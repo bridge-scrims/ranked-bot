@@ -77,6 +77,7 @@ const hypixel = new Client("12c454dc-63d9-4215-95b2-fbf1022a81d0");
 
 var EloRank = require('elo-rank');
 var elo = new EloRank(32);
+var kFactor = 32;
 
 const wait = require('util').promisify(setTimeout);
 
@@ -98,6 +99,24 @@ let voided = [];
 
 // Scoring is the people who are waiting for games to be scored.
 let scoring = [];
+
+// Giveaway is a 2d array that contains the giveaway ID and the users in it
+let giveaway = [];
+
+// Cooldown is the queue ping cooldown
+let cooldown = [];
+
+// Teams are the teams for each game
+let teams = [];
+
+// Pending party is when someone sends a party invite and is waiting for the other person to accept.
+let pendingParty = [];
+
+// parties are all the parties
+let parties = [];
+
+// partyid is the id of the party
+let partyId = [];
 
 // ELO range is the elo range in which the bot will match two players.
 const range = 100;
@@ -143,17 +162,36 @@ con.query(`SELECT * FROM games`, (err, rows) => {
 client.on('guildMemberAdd', member => {
     // Create an embed
     const helpEmbed = new Discord.MessageEmbed()
-        .setColor('#10D365')
+        .setColor('#ff2450')
         .setTitle('Welcome ' + member.user.username + '!')
         .setDescription('Please visit <#877244968564039711> and <#877038997908627476> before registering!')
         .addFields(
-            { name: 'Register using `=register <in-game username>`.', value: 'If you have trouble registering, create a ticket.' },
+            { name: 'Register using `=register <in-game username>`.', value: 'If you have trouble registering, create a ticket in <#8834181696853458964>. View the gif to make sure that you are registering correctly before opening a ticket.' },
         )
         .setTimestamp()
     // Send the embed in the specific channel.
     member.guild.channels.cache.get("878278300508778588").send({ embeds: [helpEmbed] });
-    // Send the gif.
     member.guild.channels.cache.get("878278300508778588").send("https://imgur.com/a/o8q6xKa");
+
+    var role = member.guild.roles.cache.find(role => role.name === "unverified");
+
+    member.roles.add(role);
+
+    con.query(`SELECT * FROM banned WHERE id = '${member.id}'`, (err, rows) => {
+      if (err) throw err;
+      if (rows.length < 1) {
+          console.log("User joined but isn't banned.");
+          return;
+      } else {
+        var roleBan = member.guild.roles.cache.find(role => role.name === "Banned");
+
+        member.roles.add(roleBan);
+        member.roles.remove(role);
+
+        console.log("User joined and was banned. Added role to user.");
+      }
+    })
+
 })
 
 
@@ -168,58 +206,56 @@ client.on('interactionCreate', async interaction => {
 
         if (interaction.customId === 'queue') {
             await interaction.deferReply({ ephemeral: true });
-            await wait(2000);
             await interaction.editReply("Done!");
-            await addQueuePing(interaction.guild, interaction.member.id);
+            await addQueuePing(interaction.guild, interaction.member);
+        }
+
+        if (interaction.customId === 'event') {
+            await interaction.deferReply({ ephemeral: true });
+            await interaction.editReply("Done!");
+            await addEventPing(interaction.guild, interaction.member);
         }
 
         if (interaction.customId === 'blue') {
             await interaction.deferReply({ ephemeral: true });
-            await wait(2000);
             await interaction.editReply("Done!");
-            await addRole(interaction.guild, interaction.member.id, "blue");
+            await addRole(interaction.guild, interaction.member, "Blue");
         }
 
         if (interaction.customId === 'red') {
             await interaction.deferReply({ ephemeral: true });
-            await wait(2000);
             await interaction.editReply("Done!");
-            await addRole(interaction.guild, interaction.member.id, "red");
+            await addRole(interaction.guild, interaction.member, "Red");
         }
 
         if (interaction.customId === 'green') {
             await interaction.deferReply({ ephemeral: true });
-            await wait(2000);
             await interaction.editReply("Done!");
-            await addRole(interaction.guild, interaction.member.id, "green");
+            await addRole(interaction.guild, interaction.member, "Green");
         }
 
         if (interaction.customId === 'purple') {
             await interaction.deferReply({ ephemeral: true });
-            await wait(2000);
             await interaction.editReply("Done!");
-            await addRole(interaction.guild, interaction.member.id, "purple");
+            await addRole(interaction.guild, interaction.member, "Purple");
         }
 
         if (interaction.customId === 'pink') {
             await interaction.deferReply({ ephemeral: true });
-            await wait(2000);
             await interaction.editReply("Done!");
-            await addRole(interaction.guild, interaction.member.id, "pink");
+            await addRole(interaction.guild, interaction.member, "Pink");
         }
 
         if (interaction.customId === 'orange') {
             await interaction.deferReply({ ephemeral: true });
-            await wait(2000);
             await interaction.editReply("Done!");
-            await addRole(interaction.guild, interaction.member.id, "orange");
+            await addRole(interaction.guild, interaction.member, "Orange");
         }
 
         if (interaction.customId === 'yellow') {
             await interaction.deferReply({ ephemeral: true });
-            await wait(2000);
             await interaction.editReply("Done!");
-            await addRole(interaction.guild, interaction.member.id, "yellow");
+            await addRole(interaction.guild, interaction.member, "Yellow");
         }
 
         if (interaction.customId === 'creator') {
@@ -229,10 +265,47 @@ client.on('interactionCreate', async interaction => {
             await creatorChannel(interaction.guild, interaction.member.id);
         }
 
+        if (interaction.customId.includes('party')) {
+          if (interaction.customId.includes(interaction.member.id)) {
+            let otherMember;
+            for (var i = 0; i < pendingParty.length; i++) {
+              if (pendingParty[i][1] === interaction.member.id) {
+                otherMember = pendingParty[i][0];
+              }
+              if (pendingParty[i][0] === interaction.member.id) {
+                otherMember = pendingParty[i][1];
+              }
+            }
+            for (var i = 0; i < parties.length; i++) {
+              if (parties[i][0] === otherMember || parties[i][1] === otherMember) {
+                await interaction.deferReply({ ephemeral: true});
+                await interaction.editReply("That person is already in a party!");
+                return;
+              }
+              if (parties[i][0] === interaction.member.id || parties[i][1] === interaction.member.id) {
+                await interaction.deferReply({ ephemeral: true});
+                await interaction.editReply("You're already in a party!");
+                return;
+              }
+            }
+            if (otherMember === undefined || otherMember === null || typeof otherMember === 'undefined') {
+              await interaction.deferReply({ ephemeral: true});
+              await interaction.editReply("You don't have an invite to that person's party!");
+              return;
+            }
+            pendingParty.splice(i, 1);
+            parties.push([otherMember, interaction.member.id, partyId.length])
+            partyId.push('something');
+            await interaction.deferReply({ ephemeral: true});
+            await interaction.editReply("Accepted party invite!");
+            await interaction.channel.send("<@" + otherMember + ">, " + interaction.member.user.tag + " accepted the party invite.");
+          }
+        }
+
         if (interaction.customId === 'void') {
             let j = 0;
             for (var i = 0; i < voided.length; i++) {
-                if (voided[i][0] === interaction.member.id) {
+                if (voided[i][0] === interaction.member.id && voided[i][1] === interaction.channel.name || voided[i][2] === interaction.member.id) {
                     break;
                 } else {
                     j++;
@@ -241,12 +314,11 @@ client.on('interactionCreate', async interaction => {
             if (j < voided.length) {
                 await interaction.deferReply({ ephemeral: true });
                 await wait(2000);
-                await interaction.editReply("Your opponent has to agree to void a game!");
+                await interaction.editReply("One of your opponent have to agree to void the game!");
             } else {
                 if (!interaction.member.voice.channel || !interaction.member.voice.channel.name.includes("Game")) {
                     await interaction.deferReply({ ephemeral: true });
-                    await wait(2000);
-                    await interaction.editReply("You need to be connected to a voice channel!");
+                    await interaction.editReply("You need to be connected to a voice channel! (to delete the channels)");
                 } else {
                     for (var i = 0; i < voided.length; i++) {
                         if (voided[i][1] === interaction.channel.name) {
@@ -259,8 +331,15 @@ client.on('interactionCreate', async interaction => {
                         console.log("Channel is null! Scam.");
                         return;
                     } else {
+                      var channelName = interaction.member.voice.channel.name;
+                      var splitName = channelName.split(' ');
+                      var channelNum = splitName[1];
+
+                      var channel1 = interaction.member.guild.channels.cache.find(c => c.name === "Game " + channelNum + " Team 1");
+                      var channel2 = interaction.member.guild.channels.cache.find(c => c.name === "Game " + channelNum + " Team 2");
+                      channel1.delete();
+                      channel2.delete();
                       interaction.channel.delete();
-                      interaction.member.voice.channel.delete();
                     }
                 }
             }
@@ -269,7 +348,7 @@ client.on('interactionCreate', async interaction => {
         if (interaction.customId === 'score') {
             let j = 0;
             for (var i = 0; i < scoring.length; i++) {
-                if (scoring[i][0] === interaction.member.id) {
+                if (scoring[i][0] === interaction.member.id && scoring[i][1] === interaction.channel.name || scoring[i][2] === interaction.member.id) {
                     break;
                 } else {
                     j++;
@@ -277,30 +356,42 @@ client.on('interactionCreate', async interaction => {
             }
             if (j < scoring.length) {
                 await interaction.deferReply({ ephemeral: true });
-                await wait(2000);
                 await interaction.editReply("Your opponent has to agree to score a game!");
             } else {
               if (interaction.member.voice.channel === null || interaction.member.voice === null || interaction.member.voice.channel === "null" || interaction.member.voice === "null") {
+                await interaction.deferReply( {ephemeral: true} );
+                await interaction.editReply("You need to be connected to the game vc (to delete the channels)!");
                 return;
               } else {
                 if (interaction.member.voice.channel.name.includes("Game")) {
                     if (!interaction.member.voice.channel || !interaction.member.voice.channel.name.includes("Game")) {
                         await interaction.deferReply({ ephemeral: true });
-                        await wait(2000);
-                        await interaction.editReply("You need to be connected to a voice channel!");
+                        await interaction.editReply("You need to be connected to the game VC (to delete the channels)!");
                     } else {
                         for (var i = 0; i < scoring.length; i++) {
                             if (scoring[i][1] === interaction.channel.name) {
                                 scoring.splice(i, 1);
                             }
                         }
+                        for (var i = 0; i < teams.length; i++) {
+                          if (teams.includes(interaction.member.id)) {
+                            teams.splice(i, 1);
+                          }
+                        }
                         await interaction.deferReply({ ephemeral: true });
                         await wait(2000);
                         if (interaction.member.voice.channel === null || interaction.member.voice.channel === "null") {
-                          await interaction.editReply("Channel is null! Try again.");
+                          await interaction.editReply("Channel is null! Try again and/or contact Eltik.");
                           return;
-                        } else if (interaction.member.voice.channel.name.includes("Game")){
-                          interaction.member.voice.channel.delete();
+                        } else if (interaction.member.voice.channel.name.includes("Game")) {
+                          var channelName = interaction.member.voice.channel.name;
+                          var splitName = channelName.split(' ');
+                          var channelNum = splitName[1];
+
+                          var channel1 = interaction.member.guild.channels.cache.find(c => c.name === "Game " + channelNum + " Team 1");
+                          var channel2 = interaction.member.guild.channels.cache.find(c => c.name === "Game " + channelNum + " Team 2");
+                          channel1.delete();
+                          channel2.delete();
                         }
                         interaction.channel.permissionOverwrites.set([
                             {
@@ -315,15 +406,14 @@ client.on('interactionCreate', async interaction => {
                         interaction.channel.setName(interaction.channel.name + "-finished");
                         const scoreEmbed = new Discord.MessageEmbed()
                             .setColor('#10D365')
-                            .setTitle(interaction.channel.name + ' is ready to be scored!')
-                            .setDescription('Use `=game <@winner> <@loser>` to score the game.')
+                            .setTitle('<#' + interaction.channel.id + '> is ready to be scored!')
+                            .setDescription('Use `=game <@winner> <@winner\'s teammate> <@loser> <@loser\'s teammate>` to score the game.')
                             .setTimestamp()
                         interaction.guild.channels.cache.get("891435312625090620").send({ embeds: [scoreEmbed] });
                     }
                 } else {
                   await interaction.deferReply({ ephemeral: true });
-                  await wait(2000);
-                  await interaction.editReply("You need to be connected to the game vc.");
+                  await interaction.editReply("You need to be connected to the game VC.");
                 }
               }
             }
@@ -336,25 +426,257 @@ client.on('messageCreate', async message => {
     // Argument related.
     const args = message.content.trim().split(/ +/g);
     const cmd = args[0].slice().toLowerCase();
-    /*
-    if (message.content === `${prefix}test`) {
+
+    if (cmd === `${prefix}embed`) {
         if (message.member.roles.cache.some(r => r.name === "Staff")) {
-            con.query(`Alter table rbridge ADD(bestws int(10) Default '0');`, (err, rows) => {
-                if (err) throw err;
-            })
-            message.reply("success??");
+          message.reply("The following will guide you through making an embed.");
+          const filter = response => {
+            return response.content;
+          }
+
+          message.channel.send("What's the title of the embed?", { fetchReply: true })
+            .then(() => {
+              message.channel.awaitMessages({ filter, max: 1, errors: ['time'] })
+                .then(collected => {
+                  message.channel.send('Okay! The title of the embed will be `' + collected.first().content + '`.');
+                  const titleEmbed = collected.first().content;
+                  message.channel.send("What's the description of the embed?", { fetchReply: true })
+                  .then(() => {
+                    message.channel.awaitMessages({ filter, max: 1, errors: ['time'] })
+                    .then(collected => {
+                      const descriptionEmbed = collected.first().content;
+                      message.channel.send("Okay! That\'ll be the description. What's the footer of the embed?", { fetchReply: true })
+                      .then(() => {
+                        message.channel.awaitMessages({ filter, max: 1, errors: ['time'] })
+                        .then(collected => {
+                          message.channel.send('Okay! The footer of the embed will be `' + collected.first().content + '`.');
+                          const footerEmbed = collected.first().content;
+                          message.channel.send("What's the color of the embed? (provide a hex value)", { fetchReply: true })
+                          .then(() => {
+                            message.channel.awaitMessages({ filter, max: 1, errors: ['time'] })
+                            .then(collected => {
+                              if (!collected.first().content.includes("#")) {
+                                message.reply("Please provide a valid color!");
+                                return;
+                              }
+                              message.channel.send('Okay! The color of the embed will be `' + collected.first().content + '`.');
+                              const colorEmbed = collected.first().content;
+                              message.channel.send("What's the channel of the embed?", { fetchReply: true })
+                              .then(() => {
+                                message.channel.awaitMessages({ filter, max: 1, errors: ['time'] })
+                                .then(collected => {
+                                  if (collected.first().content.includes("<#") && collected.first().content.includes(">")) {
+                                    message.channel.send('Okay! The channel of the embed will be ' + collected.first().content + '.');
+                                    const channelEmbed = collected.first().content;
+                                    const embed = new MessageEmbed()
+                                    .setColor(colorEmbed)
+                                    .setTitle(titleEmbed)
+                                    .setDescription(descriptionEmbed)
+                                    .setFooter(footerEmbed);
+
+                                    let channelSplit = channelEmbed.split("<#");
+                                    let channelEnd = channelSplit[1].split(">");
+                                    if (message.guild.channels.cache.get(channelEnd[0])) {
+                                        message.guild.channels.cache.get(channelEnd[0]).send({ embeds: [embed] });
+                                    } else {
+                                      message.reply("Couldn't get the channel!");
+                                      return
+                                    }
+                                  } else {
+                                    message.reply("Please provide a valid channel.");
+                                    return;
+                                  }
+                                })
+                              })
+                            })
+                          })
+                        })
+                      })
+                      .catch(collected => {
+                        message.channel.send('Error getting data');
+                      });
+                    })
+                  })
+                  .catch(collected => {
+                    message.channel.send('Error getting data');
+                  });
+                })
+                .catch(collected => {
+                  message.channel.send('Error getting data');
+                });
+            });
+        } else {
+          message.reply("L no permissions.");
         }
     }
 
-    if (message.content === `${prefix}drop`) {
-        if (message.member.roles.cache.some(r => r.name === "Staff")) {
-            con.query(`ALTER table rbridge drop column bestws`, (err, rows) => {
-                if (err) throw err;
+    if (cmd === `${prefix}dump`) {
+      if (message.member.roles.cache.some(r => r.name === "Staff")) {
+        con.query(`SELECT * FROM rbridge ORDER BY elo DESC`, (err, rows) => {
+          if (rows.length < 1) {
+              message.reply("Table is empty!");
+              return;
+          } else {
+            for (var i = 0; i < rows.length; i++) {
+              writeToFile("Username: " + rows[i].name, 1);
+              writeToFile("ID: " + rows[i].id, 1);
+              writeToFile("ELO: " + rows[i].elo, 1);
+              writeToFile("Division: " + rows[i].division, 1);
+              writeToFile("Wins: " + rows[i].wins, 1);
+              writeToFile("Losses: " + rows[i].losses, 1);
+              writeToFile("Winstreak: " + rows[i].winstreak, 1);
+              writeToFile("Best Winstreak: " + rows[i].bestws, 1);
+              writeToFile("Games Played: " + rows[i].games, 1);
+              writeToFile("==========", 1);
+            }
+          }
+        })
+
+        writeToFile("==========", 1);
+        writeToFile("END OF MAIN TABLE", 1);
+        writeToFile("==========", 1);
+
+        con.query(`SELECT * FROM punishments ORDER BY strikes DESC`, (err, rows) => {
+          if (rows.length < 1) {
+              message.reply("Table is empty!");
+              return;
+          } else {
+            for (var i = 0; i < rows.length; i++) {
+              writeToFile("Username: " + rows[i].name, 1);
+              writeToFile("Strikes: " + rows[i].strikes, 1);
+              writeToFile("==========", 1);
+            }
+          }
+        })
+
+        writeToFile("==========", 1);
+        writeToFile("END OF PUNISHMENTS TABLE", 1);
+        writeToFile("==========", 1);
+
+        con.query(`SELECT * FROM banned`, (err, rows) => {
+          if (rows.length < 1) {
+              message.reply("Table is empty!");
+              return;
+          } else {
+            for (var i = 0; i < rows.length; i++) {
+              writeToFile("Username: " + rows[i].name, 1);
+              writeToFile("ID: " + rows[i].id, 1);
+              writeToFile("==========", 1);
+            }
+          }
+        })
+
+        writeToFile("==========", 1);
+        writeToFile("END OF BANNED TABLE", 1);
+        writeToFile("==========", 1);
+
+        message.reply("Wrote to file.");
+      } else {
+        message.reply("L no permissions.");
+      }
+    }
+
+    if (cmd === `${prefix}getdump`) {
+      if (message.member.roles.cache.some(r => r.name === "Staff")) {
+        getDumps(message);
+      } else {
+        message.reply("No permission L");
+      }
+    }
+
+    if (cmd === `${prefix}cremove`) {
+      if (message.member.roles.cache.some(r => r.name === "Staff")) {
+        if (args.length < 2) {
+          message.reply("Incorrect arguments! Correct usage: `=cremove @user`");
+        } else {
+            let argId = args[1];
+            message.reply("Removing user from cache...");
+            message.client.users.cache.delete(argId);
+            message.reply("Removed user from the cache.");
+        }
+      } else {
+        message.reply("L no permissions.");
+      }
+    }
+
+    if (cmd === `${prefix}cget`) {
+      if (message.member.roles.cache.some(r => r.name === "Staff")) {
+        if (args.length < 2) {
+          message.reply("Incorrect arguments! Correct usage: `=cget @user`");
+        } else {
+          let argId = args[1];
+          message.reply("Getting user from the cache...");
+          message.reply("User: `" + message.client.users.cache.get(argId) + "`");
+        }
+      } else {
+        message.reply("L no permissions.");
+      }
+    }
+
+    if (cmd === `${prefix}scoreinsert`) {
+      if (message.member.roles.cache.some(r => r.name === "Staff")) {
+        let mention = message.mentions.members.first();
+        if (!mention) {
+          message.reply("L you need to mention an user");
+          return;
+        } else {
+            con.query(`INSERT INTO scorers(id, tag, games) VALUES('${mention.id}', '${mention.user.tag}', 0)`, (err, rows) => {
+              if (err) throw err;
+              message.reply("gg inserted " + mention.user.tag + ".");
             })
-            message.reply("success??");
+        }
+      } else {
+        message.reply("L no permissions");
+      }
+    }
+
+    if (cmd === `${prefix}saturday`) {
+        if (message.member.roles.cache.some(r => r.name === "Staff")) {
+          if (kFactor === 32) {
+              elo = new EloRank(64);
+              kFactor = 64;
+              message.reply("Updated ELO to 64!");
+          } else if (kFactor = 64) {
+            elo = new EloRank(32);
+            kFactor = 32;
+            message.reply("Updated ELO to 32!");
+          } else {
+            message.reply("twas an error");
+            console.log("Invalid k factor.")
+          }
         }
     }
-    */
+
+    if (message.content === `${prefix}ping`) {
+      if (!message.channel.name.includes("queue-chat")) {
+        message.reply("You can only ping Queue Ping in <#877243684977000498>!");
+        return;
+      } else {
+        var role = message.guild.roles.cache.find(role => role.name === "Queue Ping");
+        if (!role) {
+          message.reply("Couldn't get `Queue Ping` role. Contact Eltik or ping him.");
+          return;
+        } else {
+          if (cooldown.includes(message.author.id)) {
+            message.reply("You've pinged Queue Ping recently! Please wait until 1 minutes is up.");
+            return;
+          } else {
+              message.channel.send("<@&" + role.id + ">");
+              cooldown.push(message.author.id);
+              const authorId = message.author.id;
+              setTimeout(function() {
+                for (var i = 0; i < cooldown.length; i++) {
+                  if (cooldown[i] === authorId) {
+                    cooldown.splice(i, 1);
+                    // Remove them from the array and break.
+                    break;
+                  }
+                }
+              }, 60000);
+          }
+        }
+      }
+    }
 
     if (message.content === `${prefix}void`) {
         if (!message.channel.name.includes("game")) {
@@ -378,8 +700,17 @@ client.on('messageCreate', async message => {
                     .setTitle('Void Game')
                     .setDescription('If you want to void the game, click the button below.');
 
+              let teammates;
+              for (var i = 0; i < teams.length; i++) {
+                if (teams[i][0] === message.member.id) {
+                  teammates = teams[i][1];
+                }
+                if (teams[i][1] === message.member.id) {
+                  teammates = teams[i][0];
+                }
+              }
               await message.channel.send({ ephemeral: true, embeds: [embed], components: [row] });
-              await voided.push([message.member.id, message.channel.name]);
+              await voided.push([message.member.id, message.channel.name, teammates]);
           }
         }
     }
@@ -387,24 +718,57 @@ client.on('messageCreate', async message => {
     // Help command
     if (message.content === `${prefix}help`) {
         // Create a new embed.
+        var role = message.guild.roles.cache.find(role => role.name === "Queue Ping");
         const helpEmbed = new Discord.MessageEmbed()
             .setColor('#10D365')
             .setTitle('Help')
             .addFields(
-                { name: '=help', value: 'Displays this message.' },
-                { name: '=register <username>', value: 'Register your account to Ranked Bridge.' },
-                { name: '=rename <username>', value: 'If you changed your account\'s IGN, use this command.' },
-                { name: '=score', value: 'Scoring command. Can only be used in your game channel.' },
-                { name: '=leaderboard [elo/wins/losses/games/winstreak]', value: 'Displays the top 10 players in terms of ELO, wins, or losses.' },
-                { name: '=stats [user]', value: 'Displays stats for either yourself or another user.' },
-                { name: '=screenshare [user]', value: 'Use this if you want to screenshare someone.' },
-                { name: '=report [user]', value: 'Use this if you want to report someone for breaking the rules (in-game or in the Discord).' },
-                { name: '=void', value: 'Use this if you want to void a game. In order for the void to take effect, your opponent also has to agree to void the game.' },
-                { name: '=nick <hide | reset | some_value>', value: '**Booster ONLY** Boosters can hide their ELO from their display name (`=nick hide`) or add text after their username (`=nick <some_text_here>`).' },
+                { name: '**=help**', value: 'Displays this message.' },
+                { name: '**=register <username>**', value: 'Register your account to Ranked Bridge.' },
+                { name: '**=rename <username>**', value: 'If you changed your account\'s IGN, use this command.' },
+                { name: '**=score**', value: 'Scoring command. Can only be used in your game channel.' },
+                { name: '**=leaderboard [elo/wins/losses/games/winstreak/scorer]**', value: 'Displays the top 10 players in terms of ELO, wins, losses, winstreaks, games, or scorer.' },
+                { name: '**=stats [user]**', value: 'Displays stats for either yourself or another user.' },
+                { name: '**=screenshare [user]**', value: 'Use this if you want to screenshare someone.' },
+                { name: '**=report [user]**', value: 'Use this if you want to report someone for breaking the rules (in-game or in the Discord).' },
+                { name: '**=void**', value: 'Use this if you want to void a game. In order for the void to take effect, your opponent also has to agree to void the game.' },
+                { name: '**=nick <hide | reset | some_value>**', value: 'Boosters can hide their ELO from their display name (`=nick hide`) or add text after their username (`=nick <some_text>`).' },
+                { name: '**=ping**', value: 'Ping <@&' + role.id + '>. 5 minute cooldown.' },
+                { name: '**=party <leave | @user | list>**', value: 'Party commands.' },
             )
             .setTimestamp()
         // Send the embd.
         message.channel.send({ embeds: [helpEmbed] });
+    }
+
+    if (message.content === `${prefix}shelp`) {
+      if (message.member.roles.cache.some(r => r.name === "Staff")) {
+        // Create a new embed.
+        const helpEmbed = new Discord.MessageEmbed()
+            .setColor('#10D365')
+            .setTitle('Staff Help')
+            .addFields(
+                { name: '**=help**', value: 'Displays this message.' },
+                { name: '**=fregister <username> <user_mention>**', value: 'Force register an user.' },
+                { name: '**=purge <username>**', value: 'Purge an user from the database.' },
+                { name: '**=game <@winner> <@loser>**', value: 'Score a game.' },
+                { name: '**=close**', value: 'Close a ticket or game.' },
+                { name: '**=set <elo | wins | losses | winstreak | games> <user> <amount>**', value: 'Set the stats for an user.' },
+                { name: '**=freeze <user>**', value: 'Freeze an user for Screensharing.' },
+                { name: '**=mute <user> <time>**', value: 'Mute an user.' },
+                { name: '**=unmute <user>**', value: 'Unmute an user.' },
+                { name: '**=ban <user> <time>**', value: 'Ban an user.' },
+                { name: '**=unban <user>**', value: 'Unban an user.' },
+                { name: '**=strike <user>**', value: 'Strike an user. 4 strikes results in an automatic 14 day ban.' },
+                { name: '**=saturday**', value: 'Starts double ELO if double ELO hasn\'t already started. If it has, then end double ELO.' },
+                { name: '**=scoreinsert <mention>**', value: 'Insert a scorer to the database.' },
+            )
+            .setTimestamp()
+        // Send the embd.
+        message.channel.send({ embeds: [helpEmbed] });
+      } else {
+        message.reply("You don't have permission!");
+      }
     }
 
     // Score command
@@ -438,6 +802,13 @@ client.on('messageCreate', async message => {
                         // Send the embd.
                         message.channel.send({ embeds: [helpEmbed] });
                     } else {
+                        for (var i = 0; i < scoring.length; i++) {
+                          console.log("scoring[" + i + "][2]: " + scoring[i][1]);
+                          if (scoring[i][1] === message.channel.name) {
+                            message.reply("Someone is already scoring this game!");
+                            return;
+                          }
+                        }
                         // Ping scorers, delete the voice channel they're in, and rewrite permissions.
                         const row = new MessageActionRow()
                         .addComponents(
@@ -452,10 +823,18 @@ client.on('messageCreate', async message => {
                         .setDescription('If the opponent does not click the button, feel free to ping the Scorer role.')
                         .setTimestamp()
                         if (message.channel != null && message.channel != "null") {
+                          let teammates;
+                          for (var i = 0; i < teams.length; i++) {
+                            if (teams[i][0] === message.member.id) {
+                              teammates = teams[i][1];
+                            }
+                            if (teams[i][1] === message.member.id) {
+                              teammates = teams[i][0];
+                            }
+                          }
                           await message.channel.send({ ephemeral: true, embeds: [scoreEmbed], components: [row] });
-                          await scoring.push([message.member.id, message.channel.name]);
+                          await scoring.push([message.member.id, message.channel.name, teammates]);
                         }
-                        // Send the embed.
                     }
                 }
             }
@@ -471,7 +850,7 @@ client.on('messageCreate', async message => {
     }
 
     // Register command
-    if (cmd === "=register") {
+    if (cmd === `${prefix}register`) {
         // If the command wasn't sent in the register channel...
         if (message.channel.id === "878278300508778588") {
             // Get the UUID of the user based on the second args, then get the username from MojangAPI and then get the user's Discord.
@@ -491,18 +870,52 @@ client.on('messageCreate', async message => {
             })
         }
     }
+    /*
+    if (message.content === `${prefix}resetseason`) {
+      const guild = client.guilds.cache.get("877034374720274452");
+
+      // Fetch and get the list named 'members'
+      guild.members.fetch().then(members =>
+      {
+        	// Loop through every members
+      	members.forEach(member =>
+          {
+            setTimeout(function() {
+
+              if (member.roles.cache.some(r => r.name === '▲ Coal Division')) {
+                member.roles.add("878277437962739713");
+                member.roles.remove("888644358671331338");
+              }
+
+              if (member.roles.cache.some(r => r.name === 'Ranked Player')) {
+                member.roles.add("877244655866093638");
+                member.roles.remove("888644358671331338");
+              }
+
+              if (member.displayName.includes("[")) {
+                console.log("display name: " + member.displayName);
+                var memberNick = member.displayName;
+                var splite = memberNick.split(" ");
+                member.setNickname('[1000] ' + splite[1]);
+                console.log("set nickname of " + member.displayName + " to " + '[1000] ' + splite[1]);
+              }
+            }, 500)
+          });
+      });
+    }
+    */
 
     // Score command for Admins/scorers.
-    if (cmd === "=game") {
+    if (cmd === `${prefix}game`) {
         // If the user has the role "Scorer"...
         if (message.member.roles.cache.some(r => r.name === "Scorer")) {
             // If the channel isn't in a category...
             if (!message.channel.parent) {
                 // If the arguments are greater or less than 3...
-                if (args.length < 3 || args.length > 3) {
+                if (args.length < 5 || args.length > 5) {
                     const helpEmbed = new Discord.MessageEmbed()
                     .setColor('#10D365')
-                    .setTitle('Not enough arguments! Usage: `=game @winner @loser`.')
+                    .setTitle('Not enough arguments! Usage: `=game @winner @winner @loser @loser`.')
                     .setTimestamp()
                     // Send the embd.
                     message.channel.send({ embeds: [helpEmbed] });
@@ -511,32 +924,27 @@ client.on('messageCreate', async message => {
                     let mention = message.mentions.users.first();
                     // If there isn't an user mentioned...
                     if (!mention && !getUserFromMention(args[2])) {
-                        // Get the users from the command sent.
-                        var user = args[1];
-                        var user2 = args[2];
-                        // Calculate the ELO based on the arguments, then score the game and delete the channel.
-                        calcElo(message, user, user2);
-						/** TODO
-						 * Possibly change this so that it archives it for staff to see?
-						**/
-                        message.channel.delete();
+                      message.reply("Please mention an user!")
+                      return;
                     } else {
                         const user = getUserFromMention(args[2]);
-                        if (!user || !mention || !args[1].startsWith("<") || !args[2].startsWith("<")) {
+                        const user2 = getUserFromMention(args[3]);
+                        const user3 = getUserFromMention(args[4]);
+                        if (!user || !mention || !args[1].startsWith("<") || !args[2].startsWith("<") || !user2 || !user3 || !args[3].startsWith("<") || !args[4].startsWith("<")) {
                             const helpEmbed = new Discord.MessageEmbed()
                             .setColor('#10D365')
                             .setTitle('You need to mention a proper user.')
                             .setTimestamp()
                             // Send the embd.
                             message.channel.send({ embeds: [helpEmbed] });
-                        } else {
+                            return;
+                        } else if (user && mention) {
                             // If there WAS an user mentioned...
                             // Calculate the ELO, then score the game and delete the channel.
-                            calcElo(message, mention.id, user.id);
-							/** TODO
-							 * Possibly change this so that it archives it for staff to see?
-							**/
-                            message.channel.delete();
+                            calcElo(message, mention.id, user.id, user2.id, user3.id);
+                        } else {
+                          message.reply("Couldn't get the users.");
+                          return;
                         }
                     }
                 }
@@ -559,7 +967,7 @@ client.on('messageCreate', async message => {
     }
 
     // Rename command.
-    if (cmd === "=rename") {
+    if (cmd === `${prefix}rename`) {
         // If there are invalid arguments...
         if (args.length < 2 || args.length > 2) {
             const helpEmbed = new Discord.MessageEmbed()
@@ -568,7 +976,6 @@ client.on('messageCreate', async message => {
             .setTimestamp()
             // Send the embd.
             message.channel.send({ embeds: [helpEmbed] });
-            message.reply("Please input valid arguments. Ex. `=rename Freecape`");
         } else {
             // Get the ID of the user, than their username, and then rename the user.
             getUUID(args[1], message).then(id => {
@@ -588,7 +995,7 @@ client.on('messageCreate', async message => {
         }
     }
     //If the command =leaderboard or =lb is typed then get the leaderboard
-    if (cmd === '=leaderboard' || cmd === '=lb') {
+    if (cmd === `${prefix}leaderboard` || cmd === `${prefix}lb`) {
         //Check the length of the arguement passed
         if (args.length < 2 || args.length > 2) {
             // Get the ELO leaderboard if there are no arguments.
@@ -605,6 +1012,8 @@ client.on('messageCreate', async message => {
                 getWinstreakLeaderboard(message);
             } else if (args[1] === "games" || args[1] === "game") {
                 getGamesLeaderboard(message);
+            } else if (args[1] === "scores" || args[1] === "score" || args[1] === "scorer") {
+                getScoreLeaderboard(message);
             } else {
                 // If there are excess arguments, then send the ELO leaderboard.
                 getELOLeaderboard(message);
@@ -612,7 +1021,7 @@ client.on('messageCreate', async message => {
         }
     }
     //If the command =stats, =info, =i, =s is passed...
-    if (cmd === "=stats" || cmd === "=info" || cmd === "=i" || cmd === "=s") {
+    if (cmd === `${prefix}stats` || cmd === `${prefix}info` || cmd === `${prefix}i` || cmd === `${prefix}s`) {
         if (args.length < 2 || args.length > 2) {
             getStatsMention(message, message.author);
         } else {
@@ -625,7 +1034,7 @@ client.on('messageCreate', async message => {
         }
     }
 
-    if (cmd === "=report") {
+    if (cmd === `${prefix}report`) {
         if (args.length < 2) {
             const helpEmbed = new Discord.MessageEmbed()
             .setColor('#10D365')
@@ -638,7 +1047,7 @@ client.on('messageCreate', async message => {
         }
     }
 
-    if (cmd === "=screenshare" || cmd === "=ss") {
+    if (cmd === `${prefix}screenshare` || cmd === `${prefix}ss`) {
         if (args.length < 2 || args.length > 2) {
             const helpEmbed = new Discord.MessageEmbed()
             .setColor('#10D365')
@@ -647,7 +1056,20 @@ client.on('messageCreate', async message => {
             // Send the embd.
             message.channel.send({ embeds: [helpEmbed] });
         } else {
-            screenshareChannel(message, message.author.id, message.author.username);
+          let mention = message.mentions.members.first();
+          if (!mention) {
+              con.query(`SELECT * FROM rbridge WHERE name = '${args[1]}'`, (err, rows) => {
+                if (rows.length < 1) {
+                    console.log("User doesn't exist!");
+                    message.reply("That user doesn't exist!");
+                    return;
+                } else {
+                  screenshareChannel(message, message.author.id, rows[0].id);
+                }
+              })
+          } else {
+            screenshareChannel(message, message.author.id, mention.id);
+          }
         }
     }
 
@@ -674,7 +1096,7 @@ client.on('messageCreate', async message => {
         }
     }
 
-    if (cmd === "=set") {
+    if (cmd === `${prefix}set`) {
         if (args.length < 5) {
             if (message.member.roles.cache.some(r => r.name === "Staff")) {
                 if (args[1] === "elo") {
@@ -685,10 +1107,12 @@ client.on('messageCreate', async message => {
                     setLosses(message, args[2], args[3]);
                 } else if (args[1] === "winstreak") {
                     setWinstreak(message, args[2], args[3]);
+                } else if (args[1] === "games") {
+                    setGames(message, args[2], args[3]);
                 } else {
                     const helpEmbed = new Discord.MessageEmbed()
                     .setColor('#10D365')
-                    .setTitle('Unknown arguments! Usage: `/set <elo | wins | losses | winstreak> <user> <amount>`')
+                    .setTitle('Unknown arguments! Usage: `=set <elo | wins | losses | winstreak | games> <user> <amount>`')
                     .setTimestamp()
                     // Send the embd.
                     message.channel.send({ embeds: [helpEmbed] });
@@ -715,7 +1139,7 @@ client.on('messageCreate', async message => {
     }
 
     // Freeze command. Isn't working; need to do redo.
-	if (cmd === "=freeze") {
+	if (cmd === `${prefix}freeze`) {
 		if (!message.member.roles.cache.some(r => r.name === "Staff")) {
 			message.reply("You don't have permission!");
 		} else if (args.length < 2) {
@@ -739,7 +1163,7 @@ client.on('messageCreate', async message => {
 	    }
     }
 
-    if (cmd === "=strike") {
+    if (cmd === `${prefix}strike`) {
       if (!message.member.roles.cache.some(r => r.name === "Staff")) {
   			message.reply("You don't have permission!");
   		} else {
@@ -751,7 +1175,7 @@ client.on('messageCreate', async message => {
       }
     }
 
-    if (cmd === "=ban") {
+    if (cmd === `${prefix}ban`) {
       if (!message.member.roles.cache.some(r => r.name === "Staff")) {
   			message.reply("You don't have permission!");
   		} else {
@@ -761,7 +1185,8 @@ client.on('messageCreate', async message => {
           con.query(`SELECT * FROM rbridge WHERE name = '${args[1]}'`, (err, rows) => {
             if (err) throw err;
             if (rows.length < 1) {
-              message.reply("Couldn't get `" + args[1] + "` in the database!");
+                message.reply("Couldn't get `" + args[1] + "` in the database!");
+                return;
               return
             } else {
               banUser(message, rows[0].name, args[2]);
@@ -771,7 +1196,28 @@ client.on('messageCreate', async message => {
       }
     }
 
-    if (cmd === "=mute") {
+    if (cmd === `${prefix}unban`) {
+      if (!message.member.roles.cache.some(r => r.name === "Staff")) {
+        message.reply("You don't have permission!");
+      } else {
+        if (args.length < 2) {
+          message.reply("Incorrect arguments! Correct usage: `=unban <user>`");
+        } else {
+          con.query(`SELECT * FROM banned WHERE name = '${args[1]}'`, (err, rows) => {
+            if (err) throw err;
+            if (rows.length < 1) {
+                message.reply("Couldn't get `" + args[1] + "` in the database!");
+                return;
+              return
+            } else {
+              unbanUser(message, rows[0].name);
+            }
+          })
+        }
+      }
+    }
+
+    if (cmd === `${prefix}mute`) {
         if (!message.member.roles.cache.some(r => r.name === "Staff")) {
                 message.reply("You don't have permission!");
             } else {
@@ -791,20 +1237,244 @@ client.on('messageCreate', async message => {
         }
       }
 
-    if (cmd === "=purge") {
+    if (cmd === `${prefix}purge`) {
         if (message.member.roles.cache.some(r => r.name === "Staff")) {
             if (args.length < 2) {
                 message.reply("Not enough arguments! Correct usage: `=purge <user>`.");
+                return;
             } else {
                 purge(message, args[1]);
+            }
+        } else {
+            message.reply("You don't have permission!");
+            return;
+        }
+    }
+
+    if (cmd === `${prefix}fregister`) {
+        if (message.member.roles.cache.some(r => r.name === "Staff")) {
+            if (args.length < 3) {
+                message.reply("Not enough arguments! Correct usage: `=insert <username> <id>`.");
+            } else {
+                let user = message.mentions.members.first();
+                if (!user) {
+                    message.reply("Couldn't get `" + args[2] + "`!");
+                    return;
+                }
+                var role = message.member.guild.roles.cache.find(role => role.id === "877244655866093638");
+                var coalDiv = message.member.guild.roles.cache.find(role => role.id === "888644358671331338");
+                user.roles.add(role);
+                user.roles.add(role);
+                user.roles.add(coalDiv);
+                user.roles.add(coalDiv);
+                console.log("Added the role to the user.");
+                user.roles.remove("878277437962739713");
+
+                var roleRanked = message.member.guild.roles.cache.find(role => role.id === "877244655866093638");
+                con.query(`SELECT * FROM rbridge WHERE id = '${user.id}'`, (err, rows) => {
+                    if (err) throw err;
+
+                    let sql;
+
+                    if (rows.length < 1) {
+                        sql = `INSERT INTO rbridge (id, elo, name) VALUES ('${user.id}', '1000', '${args[1]}')`;
+                        console.log("Inserting " + user.id + "...");
+                        con.query(sql);
+                        // Create a new embed.
+                        const registeredEmbed = new Discord.MessageEmbed()
+                            .setColor('#10D365')
+                            .setTitle('Inserted ' + args[1] + '.')
+                            .setTimestamp()
+                        // Send the embed.
+                        message.channel.send({ embeds: [registeredEmbed] });
+                        user.setNickname('[1000] ' + args[1]);
+                    } else {
+                        // Add the role and set the nickname.
+                        user.roles.add(roleRanked);
+                        user.roles.remove("878277437962739713");
+                        user.setNickname('[' + rows[0].elo + '] ' + args[1]);
+                        message.reply(args[1] + " was already registered!");
+                    }
+                })
             }
         } else {
             message.reply("You don't have permission!");
         }
     }
 
-    if (cmd === "=nick") {
-        if (message.member.roles.cache.some(r => r.name === "Staff") || message.member.roles.cache.some(r => r.name === "Booster")) {
+    if (cmd === `${prefix}party` || cmd === `${prefix}p`) {
+      if (args.length < 2) {
+        const errorEmbed = new Discord.MessageEmbed()
+            .setColor('#10D365')
+            .setTitle('Invalid arguments!')
+            .setDescription('Correct usage: `=party <@user, leave, list>`')
+            .setTimestamp()
+        // Send the embed.
+        message.channel.send({ embeds: [errorEmbed] });
+      } else if (args[1].includes('<@')) {
+        let mention = message.mentions.members.first();
+        if (!mention) {
+          const errorEmbed = new Discord.MessageEmbed()
+              .setColor('#10D365')
+              .setTitle('Couldn\'t get `' + args[1] + '`. Please try again.')
+              .setTimestamp()
+          // Send the embed.
+          message.channel.send({ embeds: [errorEmbed] });
+        } else {
+          if (mention.id === message.author.id) {
+            message.reply("You can't invite yourself!");
+            return;
+          }
+          for (var i = 0; i < pendingParty.length; i++) {
+            if (pendingParty[i][0] === message.author.id && pendingParty[i][1] === mention.id) {
+              message.reply("You already sent an invite to that person!");
+              return;
+            }
+          }
+
+          for (var i = 0; i < parties.length; i++) {
+            if (parties[i][0] === message.author.id || parties[i][1] === message.author.id) {
+              message.reply("You're already in a party! Use `=party leave` to leave your current party.");
+              return;
+            }
+          }
+          pendingParty.push([message.author.id, mention.id]);
+
+          const pendingEmbed = new Discord.MessageEmbed()
+              .setColor('#10D365')
+              .setTitle(mention.user.tag + ' recieved an invite from ' + message.author.tag + ".")
+              .setDescription('Accept via the button below.')
+              .setTimestamp()
+          // Send the embed.
+
+          const row = new MessageActionRow()
+    			.addComponents(
+    				new MessageButton()
+    					.setCustomId('party-' + mention.id)
+    					.setLabel('Accept Invite')
+    					.setStyle('PRIMARY'),
+    			);
+
+      		message.channel.send({ ephemeral: true, embeds: [pendingEmbed], components: [row] });
+
+          setTimeout(function () {
+            for (var i = 0; i < pendingParty.length; i++) {
+              if (pendingParty[i][0] === message.author.id) {
+                const pendingEmbed = new Discord.MessageEmbed()
+                    .setColor('#10D365')
+                    .setTitle('Invite from ' + message.author.tag + ' expired.')
+                    .setTimestamp()
+            		message.channel.send({ ephemeral: true, embeds: [pendingEmbed] });
+                pendingParty.splice(i, 1);
+              }
+            }
+          }, 60000);
+        }
+      } else if (args[1] === 'leave') {
+        for (var i = 0; i < parties.length; i++) {
+          if (parties[i][0] === message.author.id) {
+            message.channel.send('<@' + parties[i][1] + '>');
+            const pendingEmbed = new Discord.MessageEmbed()
+                .setColor('#10D365')
+                .setTitle('Party has been disbanded.')
+                .setTimestamp()
+            message.channel.send({ ephemeral: true, embeds: [pendingEmbed] });
+            parties.splice(i, 1);
+            break;
+          }
+          if (parties[i][1] === message.author.id) {
+            message.channel.send('<@' + parties[i][0] + '>');
+            const pendingEmbed = new Discord.MessageEmbed()
+                .setColor('#10D365')
+                .setTitle('Party has been disbanded.')
+                .setTimestamp()
+            message.channel.send({ ephemeral: true, embeds: [pendingEmbed] });
+            parties.splice(i, 1);
+            break;
+          }
+        }
+      } else if (args[1] === 'list') {
+        for (var i = 0; i < parties.length; i++) {
+          if (parties[i][0] === message.author.id) {
+            var user = message.guild.members.cache.get(parties[i][1]);
+            var partyId = parties[i][2];
+            const pendingEmbed = new Discord.MessageEmbed()
+                .setColor('#10D365')
+                .setTitle(message.author.tag + '\'s Party: ')
+                .setDescription('• ' + user.user.tag)
+                .setFooter('Party ID: ' + partyId)
+                .setTimestamp()
+            message.channel.send({ ephemeral: true, embeds: [pendingEmbed] });
+          } else if (parties[i][1] === message.author.id) {
+            var user = message.guild.members.cache.get(parties[i][0]);
+            var partyId = parties[i][2];
+            const pendingEmbed = new Discord.MessageEmbed()
+                .setColor('#10D365')
+                .setTitle(user.user.tag + '\'s Party: ')
+                .setDescription('• ' + message.author.tag)
+                .setFooter('Party ID: ' + partyId)
+                .setTimestamp()
+            message.channel.send({ ephemeral: true, embeds: [pendingEmbed] });
+          }
+        }
+
+        let partyCounter = 0;
+        for (var i = 0; i < parties.length; i++) {
+          if (parties[i][0] === message.author.id) {
+            break;
+          }
+          if (parties[i][1] === message.author.id) {
+            break;
+          }
+          partyCounter++;
+        }
+        if (partyCounter === parties.length) {
+          message.reply("You aren't in a party!");
+        }
+      }
+    }
+
+    if (cmd === `${prefix}pl`) {
+      for (var i = 0; i < parties.length; i++) {
+        if (parties[i][0] === message.author.id) {
+          var user = message.guild.members.cache.get(parties[i][1]);
+          var partyId = parties[i][2];
+          const pendingEmbed = new Discord.MessageEmbed()
+              .setColor('#10D365')
+              .setTitle(message.author.tag + '\'s Party: ')
+              .setDescription('• ' + user.user.tag)
+              .setFooter('Party ID: ' + partyId)
+              .setTimestamp()
+          message.channel.send({ ephemeral: true, embeds: [pendingEmbed] });
+        } else if (parties[i][1] === message.author.id) {
+          var user = message.guild.members.cache.get(parties[i][0]);
+          var partyId = parties[i][2];
+          const pendingEmbed = new Discord.MessageEmbed()
+              .setColor('#10D365')
+              .setTitle(user.user.tag + '\'s Party: ')
+              .setDescription('• ' + message.author.tag)
+              .setFooter('Party ID: ' + partyId)
+              .setTimestamp()
+          message.channel.send({ ephemeral: true, embeds: [pendingEmbed] });
+        }
+      }
+      let partyCounter = 0;
+      for (var i = 0; i < parties.length; i++) {
+        if (parties[i][0] === message.author.id) {
+          break;
+        }
+        if (parties[i][1] === message.author.id) {
+          break;
+        }
+        partyCounter++;
+      }
+      if (partyCounter === parties.length) {
+        message.reply("You aren't in a party!");
+      }
+    }
+
+    if (cmd === `${prefix}nick`) {
+        if (message.member.roles.cache.some(r => r.name === "Staff") || message.member.roles.cache.some(r => r.name === "Booster") || message.member.roles.cache.some(r => r.name === "Booster Perks")) {
             if (args.length < 2) {
                 message.reply("Not enough arguments! Correct usage: `=nick <hide | reset | some_word>`");
             } else {
@@ -813,7 +1483,7 @@ client.on('messageCreate', async message => {
                         if (err) throw err;
                         if (rows.length < 1) {
                           message.reply("You're not in the database!");
-                          return
+                            return;
                         } else {
                             message.member.setNickname(rows[0].name);
                             message.reply("Hid your ELO.");
@@ -824,21 +1494,20 @@ client.on('messageCreate', async message => {
                         if (err) throw err;
                         if (rows.length < 1) {
                           message.reply("You're not in the database!");
-                          return
+                            return;
                         } else {
                             message.member.setNickname("[" + rows[0].elo + "] " + rows[0].name);
                             message.reply("Reset your nickname.");
                         }
                     })
                 } else {
-                    console.log(args[1].length);
                     if (message.member.displayName.includes("(")) {
                       message.reply("You already have a nick!");
                       return;
                     }
                     if ((message.member.displayName + args[1]).length < 32) {
                         message.member.setNickname(message.member.displayName + " (" + args[1] + ")");
-                        message.reply("Set your nickname to `" + message.member.displayName + "`.");
+                        message.reply("Set your nickname to `" + message.member.displayName + " (" + args[1] + ")`.");
                     } else {
                         message.reply("Your current nickname is too long! Use `=nick reset` to reset your nickname.");
                     }
@@ -854,203 +1523,408 @@ client.on('messageCreate', async message => {
 client.on('voiceStateUpdate', (oldState, newState) => {
     // Queue channel
     let mainChannel = '894317815740370964';
-    let testingChannel = '889287515301883904';
-    // If the user leaves teh VC...
-    if (oldState.channelID === null || typeof oldState.channelID === 'undefined') {
-      let memberID = oldState.member.id;
-      // Get the user ID.
-      if (exists(test, memberID)) {
-          // Check whether the user exists in the array.
-        for (var i = 0; i < test.length; i++) {
-            // Loop through the array.
-          if (test[i][0] === memberID) {
-              // If the ID of the current loop is equal to the memberID...
-            console.log("User left the voice channel. Removing them from the array...");
-            test.splice(i, 1);
-            // Remove them from the array and break.
-            break;
+    let testingChannel = '894317815740370964';
+    con.query(`SELECT * FROM rbridge WHERE id = '${newState.member.id}'`, (err, rows) => {
+      if (rows.length < 1) {
+        if (!newState || !oldState) {
+          newState.member.guild.channels.cache.get("877243684977000498").send('<@' + newState.member.id + '>, you\'re not registered! Register in <#878278300508778588>!');
+          return;
+        } else {
+          newState.member.guild.channels.cache.get("877243684977000498").send('<@' + newState.member.id + '>, you\'re not registered! Register in <#878278300508778588>!');
+          newState.disconnect();
+          return;
+        }
+        return;
+      } else {
+        // If the user leaves teh VC...
+        if (oldState.channelID === null || typeof oldState.channelID === 'undefined') {
+          let memberID = oldState.member.id;
+          // Get the user ID.
+          if (exists(test, memberID)) {
+              // Check whether the user exists in the array.
+            for (var i = 0; i < test.length; i++) {
+                // Loop through the array.
+              if (test[i][0] === memberID) {
+                  // If the ID of the current loop is equal to the memberID...
+                console.log("User left the voice channel. Removing them from the array...");
+                test.splice(i, 1);
+                // Remove them from the array and break.
+                break;
+              }
+            }
           }
         }
-      }
-    }
-    // If the channel the user is in is equal to the queue channel...
-    if (newState.channelId === mainChannel || newState.channelId === testingChannel) {
-        let memberID = newState.member.id;
-        if (!exists(test, memberID)) {
-          // If the user exists in the array...
-          console.log(memberID + " joined the queue VC.");
-          con.query(`SELECT * FROM rbridge WHERE id = '${newState.member.id}'`, (err, rows) => {
-            if (err) throw err;
-            let ready = false;
-            let skipse = 0;
-            let userElo = rows[0].elo;
-            test.push([memberID, userElo, 0]);
-            var timer = setInterval(function() {
-              let member = newState.member;
-              // Get the user ID...
-              // Add them to a 2D arrary with the values: [id, elo, skips]
+        // If the channel the user is in is equal to the queue channel...
+        if (newState.channelId === mainChannel || newState.channelId === testingChannel) {
+            let memberID = newState.member.id;
+            if (!exists(test, memberID)) {
+              // If the user exists in the array...
+              console.log(memberID + " joined the queue VC.");
+              con.query(`SELECT * FROM rbridge WHERE id = '${newState.member.id}'`, (err, rows) => {
+                if (err) throw err;
+                let ready = false;
+                let skipse = 0;
+                let userElo = rows[0].elo;
 
-              // If there is more then one person in the VC...
-              if (test.length > 1) {
-                  // Sort the array based on ELO.
-                  test.sort((a,b) => a[1] - b[1]);
-                  // memberIndex is the current index we're looping through.
-                  var memberIndex;
-                  // Set the difference of the two people we're comparing. If the current index we're looping through is 0 or the last index,
-                  // then the difference will be the following:
-                  var diff1 = 10000000;
-                  var diff2 = 10000000;
-                  for (var i = 0; i < test.length; i++) {
-                      // Loop through the array.
-                      if (test[i][0] === memberID) {
-                          // Set the memberIndex equal to i.
-                          memberIndex = i;
-                          // If the memberIndex isn't equal to 0...
-                          if (memberIndex != 0) {
-                              // The difference is the absolute value of the current user's ELO and the user with the ELO closest to the current user.
-                              // (Hence why we sorted the queue)
-                              diff1 = Math.abs(test[memberIndex][1] - test[memberIndex - 1][1]);
+                test.push([memberID, userElo, 0]);
+                  let member = newState.member;
+                  // Get the user ID...
+                  // Add them to a 2D arrary with the values: [id, elo, skips]
+
+                  // If there is more then three people in the VC...
+                  if (test.length > 3) {
+                      // Sort the array based on ELO.
+                      test.sort((a,b) => a[1] - b[1]);
+
+                      if (test.length > 3) {
+                        let id = newState.member.id;
+                        let elo;
+                        let skips;
+                        for (var i = 0; i < test.length; i++) {
+                          if (newState.member.id === test[i][0]) {
+                            id = newState.member.id;
+                            elo = test[i][1];
+                            skips = test[i][2];
                           }
-                          // If the memberIndex + 1 is less than the test length (if you can get the user closest to the user AFTER the current user)
-                          if (memberIndex + 1 < test.length) {
-                              // Get the absolute value of the current user's ELO and the user AFTER the current user
-                              // (Hence why we sorted the queue)
-                              diff2 = Math.abs(test[memberIndex][1] - test[memberIndex + 1][1]);
+                        }
+
+                        let isInParty = false;
+
+                        let partyMemberId;
+                        let partyMember;
+
+                        for (var k = 0; k < test.length; k++) {
+                          if (exists(parties, test[k][0])) {
+                            isInParty = true;
+
                           }
-                          // If the difference of the user BEFORE the user is less than or equal to the difference of the user AFTER the user...
-                          if (diff1 <= diff2) {
-                              // If newMember elo is closest to elo above it...
-                              if (diff1 < (range + (test[memberIndex - 1][2] + test[memberIndex][2]) * skipse * 5)) {
-                                  // If the difference is less than 40 and accounts for skips...
-                                  console.log("Matched " + test[memberIndex][0] + " and " + test[memberIndex - 1][0] + "!");
-                                  // Get the two users.
-                                  const user1 = test[memberIndex - 1][0];
-                                  const user2 = test[memberIndex][0];
-                                  // Remove them from the array.
-                                  test.splice(memberIndex - 1, 2);
-                                  // Create the channels.
-                                  matchMake(user1, user2, member);
-                                  clearInterval(timer);
-                              } else {
-                                  // If newMember elo is closest to the elo below it...
-                                  // Add skips to both users.
-                                  test[memberIndex][2]++;
-                                  test[memberIndex - 1][2]++;
-                                  skipse++;
-                                  console.log("Updated skips since we weren't able to match users.");
+                        }
+
+                        if (isInParty) {
+                            var isCurParty = false;
+                            for (var i = 0; i < parties.length; i++) {
+                              if (parties[i][0] === id) {
+                                isCurParty = true;
+                                partyMemberId = parties[i][1];
+                              } else if (parties[i][1] === id) {
+                                isCurParty = true;
+                                partyMemberId = parties[i][0];
                               }
-                          }
-                          if (diff2 < diff1) {
-                              // If newMember elo is closest to elo below it...
-                              if (diff2 < (range + (test[memberIndex + 1][2] + test[memberIndex][2]) * skipse * 5)) {
-                                  // If the difference is less than 40 and accounts for skips...
-                                  console.log("Matched " + test[memberIndex][0] + " and " + test[memberIndex + 1][0] + "!");
-                                  const user1 = test[memberIndex + 1][0];
-                                  const user2 = test[memberIndex][0];
-                                  test.splice(memberIndex, 2);
-                                  matchMake(user1, user2, member);
-                                  clearInterval(timer);
+                            }
+
+                            if (isCurParty) {
+                              var memberIdTest = client.users.fetch(partyMemberId).then((partyMember) => {
+                                if (exists(test, partyMemberId)) {
+                                  var opp1;
+                                  var opp2;
+                                  var opp1Elo;
+                                  var opp2Elo;
+
+                                  var opp1Party;
+                                  var opp2Party;
+                                  var opp1PartyB = false;
+                                  var opp2PartyB = false;
+
+                                  var indexId;
+                                  var partyMemberIndex;
+                                  for (var j = 0; j < test.length; j++) {
+                                    if (test[j][0] === id) {
+                                      indexId = j;
+                                    }
+                                    if (test[j][0] === partyMemberId) {
+                                      partyMemberIndex = j;
+                                    }
+                                  }
+
+                                  for (var j = 0; j < test.length; j++) {
+                                    if (test[j][0] != id && test[j][0] != partyMemberId && test[j][0] != opp2) {
+                                      opp1 = test[j][0];
+                                      console.log("set opp1 to " + opp1);
+                                      break;
+                                    }
+                                  }
+                                  for (var j = 0; j < test.length; j++) {
+                                    if (test[j][0] != id && test[j][0] != partyMemberId && test[j][0] != opp1) {
+                                      opp2 = test[j][0];
+                                      console.log("set opp2 to " + opp2);
+                                      break;
+                                    }
+                                  }
+
+                                  console.log("opp1: " + opp1);
+                                  console.log("opp2: " + opp2);
+
+                                  for (var j = 0; j < parties.length; j++) {
+                                    if (parties[j][0] === opp1) {
+                                      opp1PartyB = true;
+                                      opp1Party = parties[j][1];
+                                    }
+                                    if (parties[j][1] === opp1) {
+                                      opp1PartyB = true;
+                                      opp1Party = parties[j][0];
+                                    }
+                                    if (parties[j][0] === opp2) {
+                                      opp2PartyB = true;
+                                      opp2Party = parties[j][1];
+                                    }
+                                    if (parties[j][1] === opp2) {
+                                      opp2PartyB = true;
+                                      opp2Party = parties[j][0];
+                                    }
+                                  }
+
+                                  console.log("Proceeding with the party matchup...");
+                                  if (opp1PartyB && exists(test, opp1Party)) {
+                                    console.log("Opponent 1 is in a party and so is the current player.");
+                                    for (var i = 0; i < test.length; i++) {
+                                      if (test[i][0] === id || test[i][0] === partyMemberId || test[i][0] === opp1 || test[i][0] === opp1Party) {
+                                        test.splice(i, 1);
+                                      }
+                                    }
+                                    matchMake(id, partyMemberId, opp1, opp1Party, member);
+                                    return;
+                                  } else if (opp2PartyB && exists(test, opp2Party)) {
+                                    console.log("Opponent 2 is in a party and so is the current player.");
+                                    for (var i = 0; i < test.length; i++) {
+                                      if (test[i][0] === id || test[i][0] === partyMemberId || test[i][0] === opp2 || test[i][0] === opp2Party) {
+                                        test.splice(i, 1);
+                                      }
+                                    }
+                                    matchMake(id, partyMemberId, opp2, opp2Party, member);
+                                    return;
+                                  } else {
+                                    console.log("Opponents are not in a party, but the current player is.");
+                                    for (var i = 0; i < test.length; i++) {
+                                      if (test[i][0] === id || test[i][0] === partyMemberId || test[i][0] === opp1 || test[i][0] === opp2) {
+                                        test.splice(i, 1);
+                                      }
+                                    }
+                                    matchMake(id, partyMemberId, opp1, opp2, member);
+                                    return;
+                                  }
+                                  if (partyMember.voice === null || partyMember.voice === undefined || typeof partyMember.voice === 'undefined' || !partyMember.voice) {
+                                    console.log("Party member is not in the VC");
+                                    newState.member.guild.channels.cache.get("877243684977000498").send('Someone\'s party member isn\'t in the VC.');
+                                    return;
+                                  }
+                                }
+                              });
+                            } else {
+                              var opp1;
+                              var opp2;
+                              var opp1Elo;
+                              var opp2Elo;
+
+                              var opp1Party;
+                              var opp2Party;
+
+                              var opp1PartyB = false;
+                              var opp2PartyB = false;
+
+                              var indexId;
+                              var partyMemberIndex;
+                              for (var j = 0; j < test.length; j++) {
+                                if (test[j][0] === id) {
+                                  indexId = j;
+                                }
+                                if (test[j][0] === partyMemberId) {
+                                  partyMemberIndex = j;
+                                }
+                              }
+
+                              for (var j = 0; j < test.length; j++) {
+                                if (test[j][0] != id && test[j][0] != partyMemberId && test[j][0] != opp2) {
+                                  opp1 = test[j][0];
+                                  console.log("set opp1 to " + opp1);
                                   break;
-                              } else {
-                                  test[memberIndex][2]++;
-                                  test[memberIndex + 1][2]++;
-                                  skipse++;
-                                  console.log("Updated skips since we weren't able to match users.");
+                                }
                               }
+                              for (var j = 0; j < test.length; j++) {
+                                if (test[j][0] != id && test[j][0] != partyMemberId && test[j][0] != opp1) {
+                                  opp2 = test[j][0];
+                                  console.log("set opp2 to " + opp2);
+                                  break;
+                                }
+                              }
+
+                              console.log("opp1: " + opp1);
+                              console.log("opp2: " + opp2);
+
+                              for (var j = 0; j < parties.length; j++) {
+                                if (parties[j][0] === opp1) {
+                                  opp1PartyB = true;
+                                  opp1Party = parties[j][1];
+                                }
+                                if (parties[j][1] === opp1) {
+                                  opp1PartyB = true;
+                                  opp1Party = parties[j][0];
+                                }
+                                if (parties[j][0] === opp2) {
+                                  opp2PartyB = true;
+                                  opp2Party = parties[j][1];
+                                }
+                                if (parties[j][1] === opp2) {
+                                  opp2PartyB = true;
+                                  opp2Party = parties[j][0];
+                                }
+                              }
+
+                              var testE;
+                              for (var e = 0; e < test.length; e++) {
+                                if (test[e][0] != opp1 && test[e][0] != opp1Party && test[e][0] != id && test[e][0] != opp2 && test[e][0] != opp2Party) {
+                                  testE = test[e][0];
+                                  break;
+                                }
+                              }
+                              var eisInParty = false;
+                              var testEParty;
+                              for (var l = 0; l < parties.length; l++) {
+                                if (parties[l][0] === testE) {
+                                  eisInParty = true;
+                                  testEParty = parties[l][1];
+                                }
+                                if (parties[l][1] === testE) {
+                                  eisInParty = true;
+                                  testEParty = parties[l][0];
+                                }
+                              }
+
+                              if (!exists(test, testEParty)) {
+                                console.log("Couldn't start match because one person isn't in queue.");
+                                if (!testEParty) {
+                                  newState.member.guild.channels.cache.get("877243684977000498").send('Someone\'s party member isn\'t in the VC (uncached AKA they haven\'t joined a VC yet).');
+                                } else {
+                                  newState.member.guild.channels.cache.get("877243684977000498").send('<@' + testEParty + '> isn\'t in the VC.');
+                                }
+                                return;
+                              }
+
+                              console.log("Proceeding with the party matchup...");
+                              if (opp1PartyB && exists(test, opp1Party)) {
+                                for (var e = 0; e < test.length; e++) {
+                                  if (test[e][0] != opp1 && test[e][0] != opp1Party && test[e][0] != id) {
+                                      console.log("Opponent 1 is in a party but the current player isn't.");
+                                      const testE = test[e][0];
+                                      for (var i = 0; i < test.length; i++) {
+                                        if (test[i][0] === id || test[i][0] === test[e][0] || test[i][0] === opp1 || test[i][0] === opp1Party) {
+                                          test.splice(i, 1);
+                                        }
+                                      }
+                                      matchMake(id, testE, opp1, opp1Party, member);
+                                      return;
+                                  }
+                                }
+                              } else if (opp2PartyB && exists(test, opp2Party)) {
+                                for (var e = 0; e < test.length; e++) {
+                                  if (test[e][0] != opp2 && test[e][0] != opp2Party && test[e][0] != id) {
+                                      console.log("Opponent 2 is in a party but the current player isn't.");
+                                      const testE = test[e][0];
+
+                                      for (var i = 0; i < test.length; i++) {
+                                        if (test[i][0] === id || test[i][0] === test[e][0] || test[i][0] === opp2 || test[i][0] === opp2Party) {
+                                          test.splice(i, 1);
+                                        }
+                                      }
+                                      matchMake(id, testE, opp2, opp2Party, member);
+                                      return;
+                                  }
+                                }
+                                return;
+                              } else {
+                                for (var e = 0; e < test.length; e++) {
+                                  if (test[e][0] != opp1 && test[e][0] != opp2 && test[e][0] != id) {
+                                      console.log("No one is in a party.");
+                                      const testE = test[e][0];
+                                      for (var i = 0; i < test.length; i++) {
+                                        if (test[i][0] === id || test[i][0] === test[e][0] || test[i][0] === opp1 || test[i][0] === opp2) {
+                                          test.splice(i, 1);
+                                        }
+                                      }
+                                      matchMake(id, testE, opp1, opp2, member);
+                                      return;
+                                  }
+                                }
+                                return;
+                              }
+                            }
+                        } else {
+                          console.log("Proceeding with non-party thing");
+                          if (test.length > 4) {
+                            let user1Elo = test[0][1];
+                            let user2Elo = test[1][1];
+                            let user4Elo = test[3][1];
+                            let user5Elo = test[4][1];
+
+                            let user1Id = test[0][0];
+                            let user2Id = test[1][0];
+                            let user3Id = test[2][0];
+                            let user4Id = test[3][0];
+                            let user5Id = test[4][0];
+
+                            let abs54 = Math.abs(user5Elo - user4Elo);
+                            let abs21 = Math.abs(user2Elo - user1Elo);
+                            if (abs54 < abs21) {
+                              test.splice(1, 4);
+                              // Create the channels.
+                              matchMake(user2Id, user3Id, user4Id, user5Id, member);
+                              // pair 2-5 together
+                              clearInterval();
+                            } else {
+                              test.splice(0, 4);
+                              // Create the channels.
+                              matchMake(user1Id, user2Id, user3Id, user4Id, member);
+                              // pair 1-4 together
+                              clearInterval();
+                            }
+                          } else {
+                            let user1Elo = test[0][1];
+                            let user2Elo = test[1][1];
+                            let user3Elo = test[2][1];
+                            let user4Elo = test[3][1];
+
+                            let abs43 = Math.abs(user4Elo - user3Elo);
+                            let abs21 = Math.abs(user2Elo - user1Elo);
+
+                            if (abs43 + abs21 / 2 > 50) {
+                              var abs = abs43 + abs21 / 2;
+                              test[0][2]++;
+                              test[1][2]++;
+                              test[2][2]++;
+                              test[3][2]++;
+                              return;
+                            } else {
+                              let user1Id = test[0][0];
+                              let user2Id = test[1][0];
+                              let user3Id = test[2][0];
+                              let user4Id = test[3][0];
+                              test.splice(0, 4);
+                              // Create the channels.
+                              matchMake(user1Id, user3Id, user2Id, user4Id, member);
+                              clearInterval();
+                            }
                           }
+                        }
                       }
                   }
-              }
-            }, 5000);
-          })
-        } else {
-            console.log(memberID + " was already in the array.");
-        }
-    }
-});
-
-function matchMaking(memberID, skipse, member) {
-    // Get the user ID...
-    let userElo = rows[0].elo;
-    // Add them to a 2D arrary with the values: [id, elo, skips]
-
-    // If there is more then one person in the VC...
-    if (test.length > 1) {
-        // Sort the array based on ELO.
-        test.sort((a,b) => a[1] - b[1]);
-        // memberIndex is the current index we're looping through.
-        var memberIndex;
-        // Set the difference of the two people we're comparing. If the current index we're looping through is 0 or the last index,
-        // then the difference will be the following:
-        var diff1 = 10000000;
-        var diff2 = 10000000;
-        for (var i = 0; i < test.length; i++) {
-            // Loop through the array.
-            if (test[i][0] === memberID) {
-                // Set the memberIndex equal to i.
-                memberIndex = i;
-                // If the memberIndex isn't equal to 0...
-                if (memberIndex != 0) {
-                    // The difference is the absolute value of the current user's ELO and the user with the ELO closest to the current user.
-                    // (Hence why we sorted the queue)
-                    diff1 = Math.abs(test[memberIndex][1] - test[memberIndex - 1][1]);
-                }
-                // If the memberIndex + 1 is less than the test length (if you can get the user closest to the user AFTER the current user)
-                if (memberIndex + 1 < test.length) {
-                    // Get the absolute value of the current user's ELO and the user AFTER the current user
-                    // (Hence why we sorted the queue)
-                    diff2 = Math.abs(test[memberIndex][1] - test[memberIndex + 1][1]);
-                }
-                // If the difference of the user BEFORE the user is less than or equal to the difference of the user AFTER the user...
-                if (diff1 <= diff2) {
-                    // If newMember elo is closest to elo above it...
-                    if (diff1 < (range + (test[memberIndex - 1][2] + test[memberIndex][2]) * skipse * 20)) {
-                        // If the difference is less than 40 and accounts for skips...
-                        console.log("Matched " + test[memberIndex][0] + " and " + test[memberIndex - 1][0] + "!");
-                        // Get the two users.
-                        const user1 = test[memberIndex - 1][0];
-                        const user2 = test[memberIndex][0];
-                        // Remove them from the array.
-                        test.splice(memberIndex - 1, 2);
-                        // Create the channels.
-                        matchMake(user1, user2, member);
-                    } else {
-                        // If newMember elo is closest to the elo below it...
-                        // Add skips to both users.
-                        test[memberIndex][2]++;
-                        test[memberIndex - 1][2]++;
-                        console.log("Updated skips since we weren't able to match users.");
-                    }
-                }
-                if (diff2 < diff1) {
-                    // If newMember elo is closest to elo below it...
-                    if (diff2 < (range + (test[memberIndex + 1][2] + test[memberIndex][2]) * skipse * 20)) {
-                        // If the difference is less than 40 and accounts for skips...
-                        console.log("Matched " + test[memberIndex][0] + " and " + test[memberIndex + 1][0] + "!");
-                        const user1 = test[memberIndex + 1][0];
-                        const user2 = test[memberIndex][0];
-                        test.splice(memberIndex, 2);
-                        matchMake(user1, user2, member);
-                        break;
-                    } else {
-                        test[memberIndex][2]++;
-                        test[memberIndex + 1][2]++;
-                        console.log("Updated skips since we weren't able to match users.");
-                    }
-                }
+              })
+            } else {
+                console.log(memberID + " was already in the array.");
             }
         }
-    }
-}
+      }
+    })
+});
 
 // Checks whether users exist.
 function exists(arr, search) {
     return arr.some(row => row.includes(search));
 }
 
-function matchMake(user1, user2, member) {
-  console.log("About to make channel for " + user1 + " and " + user2 + ".");
-  makeChannel(member, user1, user2);
+function matchMake(user1, user2, user3, user4, member) {
+  console.log("Game starting.");
+  teams.push([user1, user2]);
+  teams.push([user3, user4]);
+  makeChannel(member, user1, user2, user3, user4);
 }
 
 // Get an user from the mention.
@@ -1069,117 +1943,165 @@ function getUserFromMention(mention) {
 }
 
 // Make the channel
-function makeChannel(message, player1, player2) {
+async function makeChannel (message, player1, player2, player3, player4) {
+
+    console.log(player1 + " and " + player2 + " vs " + player3 + " and " + player4 + ".");
     // Get the two users based on their ID.
-    var user = message.guild.members.cache.get(player1);
-    var user2 = message.guild.members.cache.get(player2);
+    let user1Sucks = await message.guild.members.fetch(player1).then(async (user) => {
+      let user2Sucks = await message.guild.members.fetch(player2).then(async (user2) => {
+        let user3Sucks = await message.guild.members.fetch(player3).then(async (user3) => {
+          let user4Sucks = await message.guild.members.fetch(player4).then(async (user4) => {
+            con.query(`SELECT * FROM games`, (err, rows) => {
+              games.push(games.length);
+              const game = games.length;
 
-    con.query(`SELECT * FROM games`, (err, rows) => {
-      games.push(games.length);
-      const game = games.length;
-
-      // Create the channels, disallowing everyone to view the channel, read the message history, and send messages.
-      message.guild.channels.create("game-" + game, {
-          permissionOverwrites: [
-              {
-                  id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
-                  deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'] //Deny permissions
-              },
-              {
-                  // But allow the two users to view the channel, send messages, and read the message history.
-                  id: user.id,
-                  allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-              },
-              {
-                  id: user2.id,
-                  allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-              },
-              {
-                  id: '882750156905275402',
-                  allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-              },
-              {
-                  id: '877309777741500487',
-                  allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-              },
-              {
-                  id: '882754787580457012',
-                  allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-              }
-          ],
-      });
-      // Create the Game x VC
-      message.guild.channels.create("Game " + game, {
-          type: 'GUILD_VOICE',
-          permissionOverwrites: [
-              {
-                  id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
-                  deny: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK'] //Deny permissions
-              },
-              {
-                  id: user.id,
-                  allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
-              },
-              {
-                  id: user2.id,
-                  allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
-              },
-              {
-                  id: '882750156905275402',
-                  allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
-              },
-              {
-                  id: '877309777741500487',
-                  allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
-              },
-              {
-                  id: '882754787580457012',
-                  allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
-              }
-          ],
-      });
-
-      console.log("Made channel game-" + games.length + " and voice channel Game " + games.length);
-
-      // Move the users to that VC after 2 seconds.
-      setTimeout(function () {
-          console.log("Current game: " + game);
-          // Get the channel ID based on the name (credit to Milo Murphy in the Top.GG Discord)
-          var channelID = message.guild.channels.cache.find(c => c.name === "Game " + game).id;
-          var messageID = message.guild.channels.cache.find(c => c.name === "game-" + game).id;
-          // Send the embed.
-          con.query(`SELECT * FROM rbridge WHERE id = '${player1}'`, (erres, rowse) => {
-              if (erres) throw erres;
-
-              if (rowse.length < 1) {
-                  message.channel.send("Couldn't get users!");
-              } else {
-                  let name1 = rowse[0].name;
-                  con.query(`SELECT * FROM rbridge WHERE id = '${player2}'`, (erre, rowses) => {
-                      if (erre) throw erre;
-                      let name2 = rowses[0].name;
-                      message.guild.channels.cache.get(messageID).send('<@' + player1 + '> <@' + player2 + '>');
-                      const errorEmbed = new Discord.MessageEmbed()
-                          .setColor('#10D365')
-                          .setTitle(`Game ` + game)
-                          .setDescription('Use `/duel <user> bridge` to duel the other player! Remember, games are best of 1. If you need help, visit <#877038997908627476>.')
-                          .setTimestamp()
-                      if (!user.voice.channel || user.voice.channel === "undefined" || typeof user.voice.channel === 'undefined') {
-                          console.log("voice is unknown");
-                          return;
-                      } else if (!user2.voice.channel) {
-                          user.voice.setChannel(channelID);
-                      } else {
-                          user.voice.setChannel(channelID);
-                          user2.voice.setChannel(channelID);
+              // Create the channels, disallowing everyone to view the channel, read the message history, and send messages.
+              message.guild.channels.create("game-" + game, {
+                  permissionOverwrites: [
+                      {
+                          id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                          deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'] //Deny permissions
+                      },
+                      {
+                          // But allow the two users to view the channel, send messages, and read the message history.
+                          id: user.id,
+                          allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                      },
+                      {
+                          id: user2.id,
+                          allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                      },
+                      {
+                          id: user3.id,
+                          allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                      },
+                      {
+                          id: user4.id,
+                          allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                      },
+                      {
+                          id: '882750156905275402',
+                          allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                      },
+                      {
+                          id: '877309777741500487',
+                          allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                      },
+                      {
+                          id: '882754787580457012',
+                          allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
                       }
-                      message.guild.channels.cache.get(messageID).send({ embeds: [errorEmbed] });
-                      message.guild.channels.cache.get(messageID).send("`/duel " + name1 + " bridge`");
-                      message.guild.channels.cache.get(messageID).send("`/duel " + name2 + " bridge`");
-                  })
-              }
+                  ],
+              });
+              // Create the Game x VC
+              message.guild.channels.create("Game " + game + " Team 1", {
+                  type: 'GUILD_VOICE',
+                  permissionOverwrites: [
+                      {
+                          id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                          deny: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK'] //Deny permissions
+                      },
+                      {
+                          id: user.id,
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      },
+                      {
+                          id: user2.id,
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      },
+                      {
+                          id: user3.id,
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      },
+                      {
+                          id: user4.id,
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      },
+                      {
+                          id: '882750156905275402',
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      },
+                      {
+                          id: '877309777741500487',
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      },
+                      {
+                          id: '882754787580457012',
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      }
+                  ],
+              });
+
+              message.guild.channels.create("Game " + game + " Team 2", {
+                  type: 'GUILD_VOICE',
+                  permissionOverwrites: [
+                      {
+                          id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                          deny: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK'] //Deny permissions
+                      },
+                      {
+                          id: user.id,
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      },
+                      {
+                          id: user2.id,
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      },
+                      {
+                          id: user3.id,
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      },
+                      {
+                          id: user4.id,
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      },
+                      {
+                          id: '882750156905275402',
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      },
+                      {
+                          id: '877309777741500487',
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      },
+                      {
+                          id: '882754787580457012',
+                          allow: ['VIEW_CHANNEL', 'CONNECT', 'SPEAK']
+                      }
+                  ],
+              });
+
+              console.log("Made channel game-" + games.length + " and voice channel Game " + games.length);
+
+              // Move the users to that VC after 2 seconds.
+              setTimeout(function () {
+                  console.log("Current game: " + game);
+                  // Get the channel ID based on the name (credit to Milo Murphy in the Top.GG Discord)
+                  var channel1ID = message.guild.channels.cache.find(c => c.name === "Game " + game + " Team 1").id;
+                  var channel2ID = message.guild.channels.cache.find(c => c.name === "Game " + game + " Team 2").id;
+
+                  var messageID = message.guild.channels.cache.find(c => c.name === "game-" + game).id;
+                  // Send the embed.
+                  message.guild.channels.cache.get(messageID).send('<@' + player1 + '> <@' + player2 + '> <@' + player3 + '> <@' + player4 + '>');
+                  const errorEmbed = new Discord.MessageEmbed()
+                      .setColor('#10D365')
+                      .setTitle(`Good Luck!`)
+                      .setDescription('Duel the other team using `/duel <user> bridge_doubles`. Once the game is done, send a screenshot of the score using `=score`. Remember, games are best of 1. If you need help, visit <#877038997908627476>.')
+                      .setTimestamp()
+                  message.guild.channels.cache.get(messageID).send({ embeds: [errorEmbed] });
+                  if (!user.voice || !user2.voice || !user3.voice || !user4.voice) {
+                      console.log("Could not move players to the voice channel.");
+                      return;
+                  } else {
+                      user.voice.setChannel(channel1ID);
+                      user2.voice.setChannel(channel1ID);
+                      user3.voice.setChannel(channel2ID);
+                      user4.voice.setChannel(channel2ID);
+                  }
+              }, 3000);
+            })
           })
-      }, 2000);
+        })
+      })
     })
 }
 
@@ -1247,17 +2169,20 @@ function supportChannel(guild, id) {
         // Otherwise, game[0] is equal to [0].
         support.push(0);
     }
-    if (user.nickname === null || user === null) {
+    if (user === null) {
         console.log("User is null!");
         return;
     }
 
+    let lowercase;
+
     con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
         if (rows.length < 1) {
             console.log("User doesn't exist!");
-            return;
+            lowercase = support.length;
+        } else {
+            lowercase = rows[0].name.toLowerCase();
         }
-        let lowercase = rows[0].name.toLowerCase();
         let title = "support-" + lowercase;
         console.log(title);
         // Create the channels, disallowing everyone to view the channel, read the message history, and send messages.
@@ -1297,16 +2222,63 @@ function supportChannel(guild, id) {
 }
 
 function addQueuePing(guild, id) {
-  var user = guild.members.cache.get(id);
-  if (user.nickname === null || user === null) {
+  var user = id;
+  if (user === null) {
       console.log("User is null!");
       return;
   }
-  let roleId = "883791592073330758";
-  var role = guild.roles.cache.find(role => role.id === roleId);
-  if (user.roles.cache.has(roleId)) {
+  //let roleId = "883791592073330758";
+  var role = guild.roles.cache.find(role => role.name === "Queue Ping");
+  if (!role) {
+    console.log("Couldn't get Queue Ping role.");
+  }
+  if (user.roles.cache.has(role.id)) {
+    console.log("User had Queue Ping role. Removed it.");
       user.roles.remove(role);
   } else {
+      console.log("User didn't have Queue Ping role. Added it.");
+      user.roles.add(role);
+  }
+}
+
+function addEventPing(guild, id) {
+  var user = id;
+  if (user === null) {
+      console.log("User is null!");
+      return;
+  }
+  //let roleId = "883791592073330758";
+  var role = guild.roles.cache.find(role => role.name === "Event Ping");
+  if (!role) {
+    console.log("Couldn't get Event Ping role.");
+  }
+  if (user.roles.cache.has(role.id)) {
+    console.log("User had Event Ping role. Removed it.");
+      user.roles.remove(role);
+  } else {
+      console.log("User didn't have Event Ping role. Added it.");
+      user.roles.add(role);
+  }
+}
+
+function addRole(guild, id, color) {
+  var user = id;
+  if (user === null) {
+      console.log("User is null!");
+      return;
+  }
+  //let roleId = "883791592073330758";
+  var role = guild.roles.cache.find(role => role.name === "Booster " + color);
+  if (!role) {
+    console.log("Couldn't get role Booster " + color + " role.");
+    return;
+  }
+  //message.member.roles.cache.some(r => r.name === "Staff"))
+  if (user.roles.cache.has(role.id)) {
+    console.log("User had Booster " + color + " role. Removed it.");
+      user.roles.remove(role);
+  } else {
+      console.log("User didn't have Booster " + color + " role. Added it.");
       user.roles.add(role);
   }
 }
@@ -1365,7 +2337,7 @@ function creatorChannel(guild, id) {
             const errorEmbed = new Discord.MessageEmbed()
                 .setColor('#10D365')
                 .setTitle(`Application for Creator`)
-                .setDescription('Please fill out the following:\n ```1. Why you want to apply for creator.\n 2. How many subscribers you have.\n 3. What content you make. 4. Link to your YouTube channel.```')
+                .setDescription('Please fill out the following:\n ```1. Why you want to apply for creator.\n 2. How many subscribers you have.\n 3. What content you make. 4. Link to your YouTube channel/social media.```')
                 .setTimestamp()
             // Send the embd.
             guild.channels.cache.get(channelID).send({ embeds: [errorEmbed] });
@@ -1374,40 +2346,49 @@ function creatorChannel(guild, id) {
 }
 
 // Screenshare channel
-function screenshareChannel(message, id, arg) {
+function screenshareChannel(message, id, id2) {
     // Get the two users based on their ID.
     var user = message.guild.members.cache.get(id);
 
-    con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
+    con.query(`SELECT * FROM rbridge WHERE id = '${id2}'`, (err, rows) => {
         if (rows.length < 1) {
             console.log("User doesn't exist!");
+            message.reply("That user doesn't exist!");
             return;
         }
         let lowercase = rows[0].name.toLowerCase();
         let title = "screenshare-" + lowercase;
-        console.log(title);
-        // Create the channels, disallowing everyone to view the channel, read the message history, and send messages.
-        message.guild.channels.create(title, {
-            permissionOverwrites: [
-                {
-                    id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
-                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'] //Deny permissions
-                },
-                {
-                    // But allow the two users to view the channel, send messages, and read the message history.
-                    id: user.id,
-                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-                },
-                {
-                    id: '882750156905275402',
-                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-                },
-                {
-                    id: '877309777741500487',
-                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-                }
-            ],
-        });
+        console.log(user.displayName + " is screensharing " + rows[0].name + ".");
+        var user2 = client.users.fetch(id2).then((user2e) => {
+
+          // Create the channels, disallowing everyone to view the channel, read the message history, and send messages.
+          message.guild.channels.create(title, {
+              permissionOverwrites: [
+                  {
+                      id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                      deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'] //Deny permissions
+                  },
+                  {
+                      // But allow the two users to view the channel, send messages, and read the message history.
+                      id: user.id,
+                      allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                  },
+                  {
+                      // But allow the two users to view the channel, send messages, and read the message history.
+                      id: user2e.id,
+                      allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                  },
+                  {
+                      id: '882750156905275402',
+                      allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                  },
+                  {
+                      id: '877309777741500487',
+                      allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                  }
+              ],
+          });
+        }).catch(console.error);
         // Move the users to that VC.
         setTimeout(function () {
             // Get the channel ID based on the name (credit to Milo Murphy in the Top.GG Discord)
@@ -1489,6 +2470,7 @@ function getDiscord(uuid, message, name) {
                     message.member.roles.remove("878277437962739713");
 
                     message.member.setNickname('[1000] ' + name);
+                    message.member.setNickname('[1000] ' + name);
 
                     // Insert the user into the database.
                     insertUser(message, message.member.id, name);
@@ -1558,17 +2540,10 @@ function rename(uuid, message, name) {
                             return;
                         } else {
                             sql = `UPDATE rbridge SET name = '${name}' WHERE id='${message.member.user.id}'`;
-                            con.query(`SELECT * FROM rbridge WHERE name = ?`, [name], function(erre, rowes, fields) {
-                                if (erre) throw erre;
-                                if (rowes.length < 1) {
-                                    message.reply("You're not in the database! Please try again and/or contact Eltik.");
-                                    return;
-                                }
-                                let p1 = rowes[0].elo;
-                                message.member.setNickname('[' + p1 + '] ' + name);
-                            });
+                            let p1 = rows[0].elo;
+                            message.member.setNickname('[' + p1 + '] ' + name);
+                            con.query(sql);
                         }
-                        con.query(sql);
                     })
                     // Create a new embed.
                     const registeredEmbed = new Discord.MessageEmbed()
@@ -1743,6 +2718,28 @@ function setWinstreak(message, name, winstreak) {
     })
 }
 
+function setGames(message, name, games) {
+    con.query(`SELECT * FROM rbridge WHERE name = '${name}'`, (err, rows) => {
+        if (err) throw err;
+
+        let sql;
+
+        if (rows.length < 1) {
+            message.reply("Coudn't find `" + name + "` in the database!");
+            return;
+        } else {
+            sql = `UPDATE rbridge SET games = ${games} WHERE name='${name}'`;
+            con.query(sql);
+            const helpEmbed = new Discord.MessageEmbed()
+                .setColor('#10D365')
+                .setTitle('Set ' + name + "'s games to " + games + ".")
+                .setTimestamp()
+            // Send the embd.
+            message.channel.send({ embeds: [helpEmbed] });
+        }
+    })
+}
+
 function strike(message, name) {
     con.query(`SELECT * FROM punishments WHERE name = '${name}'`, (err, rows) => {
         if (err) throw err;
@@ -1873,6 +2870,10 @@ function banUser(message, name, time) {
         if (!mention) {
             message.reply("Please provide a valid user!");
         } else {
+          sql = `INSERT INTO banned (id, name) VALUES ('${rowes[0].id}', '${name}')`;
+          console.log("Inserting " + name + " into ban table...");
+          con.query(sql);
+
           let timeLength = time.length;
           let timeFormat = time.charAt(timeLength - 1);
           let numTime;
@@ -1948,8 +2949,12 @@ function unbanUser(message, name) {
       if (!user) {
           message.reply("Couldn't get user `" + name + "` to unban them.");
       } else {
+          sql = `DELETE FROM banned WHERE name = '${name}'`;
+          con.query(sql);
+
           user.roles.remove("888863827830136922");
-          user.roles.add("877244655866093638");
+          var role = message.member.guild.roles.cache.find(role => role.name === "unverified");
+          user.roles.add(role);
           const notSetEmbed = new Discord.MessageEmbed()
               .setColor('#10D365')
               .setTitle(rowes[0].name + ' is now unbanned.')
@@ -2003,6 +3008,7 @@ function insertUser(message, id, name) {
                 .setTimestamp()
             // Send the embed.
             message.channel.send({ embeds: [registeredEmbed] });
+            message.member.setNickname('[1000] ' + name);
         } else {
             // Add the role and set the nickname.
             message.member.roles.add(role);
@@ -2022,8 +3028,18 @@ function setName(message, id, elo) {
             console.log("Couldn't get user " + id + ".");
             return;
         }
-        let guild = client.guilds.cache.get(id);
-        message.guild.members.fetch(id).then(user => user.setNickname('[' + elo + '] ' + rows[0].name));
+
+        message.guild.members.fetch(id).then(member => {
+            let nick = member.displayName;
+            if (nick.includes("[") && !nick.includes("(")) {
+                message.guild.members.fetch(id).then(user => user.setNickname('[' + elo + '] ' + rows[0].name));
+            } else if (nick.includes("[") && nick.includes("(")) {
+                let split = nick.split(" ");
+                let restNick = split[1] + " " + split[2];
+
+                message.guild.members.fetch(id).then(user => user.setNickname('[' + elo + '] ' + restNick));
+            }
+        }).catch(e => console.log("Error setting the nickname!"));
     });
 }
 
@@ -2071,7 +3087,7 @@ function getStats(message, name) {
         let wl;
         if (losses === 0 || isNaN(wins / losses)) {
             // If losses are 0, it will return NaN. So, check if it isn't NaN.
-            wl = "∞";
+            wl = wins;
         } else {
             // Round the w/l to the nearest tenth or hundredth.
             wl = (wins / losses).toFixed(2);
@@ -2128,7 +3144,7 @@ function getStatsMention(message, id) {
         let wl;
         if (losses === 0 || isNaN(wins / losses)) {
             // If losses are 0, it will return NaN. So, check if it isn't NaN.
-            wl = "∞";
+            wl = wins;
         } else {
             // Round the w/l to the nearest tenth or hundredth.
             wl = Math.round((wins / losses + Number.EPSILON) * 100) / 100;
@@ -2333,74 +3349,155 @@ function getGamesLeaderboard(message) {
     });
 }
 
-function calcElo(message, id, id2) {
-    console.log("Scoring game for " + id + " and " + id2 + ".");
+function getScoreLeaderboard(message) {
+    con.query(`SELECT * FROM scorers ORDER BY games DESC LIMIT 10`, (err, rows) => {
+        if (err) throw err;
+
+        if (!rows[0]) {
+            message.reply("That user doesn't exist!");
+            return;
+        }
+
+        let elo = [];
+        let names = [];
+        for (var i = 0; i < rows.length; i++) {
+            if (typeof rows[i] != 'undefined' && typeof names != 'undefined') {
+                elo.push(parseInt(rows[i].games));
+                names.push(rows[i].tag);
+            }
+        }
+        const notSetEmbed = new Discord.MessageEmbed()
+            .setColor('#10D365')
+            .setTitle('Scorer Leaderboard')
+            .addFields(
+                { name: 'Leaderboard:', value: `\`\`\`#1. ${names[0]}: ${elo[0]}\n#2. ${names[1]}: ${elo[1]}\n#3. ${names[2]}: ${elo[2]}\n#4. ${names[3]}: ${elo[3]}\n#5. ${names[4]}: ${elo[4]}\n#6. ${names[5]}: ${elo[5]}\n#7. ${names[6]}: ${elo[6]}\n#8. ${names[7]}: ${elo[7]}\n#9. ${names[8]}: ${elo[8]}\n#10. ${names[9]}: ${elo[9]}\n\`\`\`` },
+            )
+            .setTimestamp()
+        // Send the embd.
+        message.channel.send({ embeds: [notSetEmbed] });
+    });
+}
+
+function calcElo(message, id, id2, id3, id4) {
+    console.log("Scoring game for " + id + ", " + id2 + ", " + id3 + " and " + id4 + ".");
     con.query(`SELECT * FROM rbridge WHERE id = ?`, [id], function (err, rowe, fields) {
         if (rowe.length < 1) {
             console.log("Couldn't get the data for `" + id + "`! Try again.");
             return;
         }
-        var winnerName = rowe[0].name;
-        let p1 = rowe[0].elo;
-        con.query(`SELECT * FROM rbridge WHERE id = ?`, [id2], function(err, rowes, fields) {
+        var player1Name = rowe[0].name;
+        let player1Elo = rowe[0].elo;
+        con.query(`SELECT * FROM rbridge WHERE id = ?`, [id2], function(erre, rowes, fields) {
             if (rowes.length < 1) {
                 message.reply("Couldn't get the data for " + id2 + " Try again.");
                 return;
             }
-            var loserName = rowes[0].name;
-            let p2 = rowes[0].elo;
+            var player2Name = rowes[0].name;
+            let player2Elo = rowes[0].elo;
+            con.query(`SELECT * FROM rbridge WHERE id = ?`, [id3], function (erres, rowess, fields) {
+              if (rowess.length < 1) {
+                message.reply("Couldn't get the data for " + id3 + " Try again.");
+                return;
+              }
+              var player3Name = rowess[0].name;
+              let player3Elo = rowess[0].elo;
+              con.query(`SELECT * FROM rbridge WHERE id = ?`, [id4], function (erress, rowesss, fields) {
+                if (rowesss.length < 1) {
+                  message.reply("Couldn't get the data for " + id4 + " Try again.");
+                  return;
+                }
+                var player4Name = rowesss[0].name;
+                let player4Elo = rowesss[0].elo;
+                message.channel.delete();
+                var loserName = rowes[0].name;
 
-            var p1_expected = elo.getExpected(p1, p2);
-            var p2_expected = elo.getExpected(p2, p1);
+                let p1 = player1Elo + player2Elo / 4;
+                let p2 = player3Elo + player4Elo / 4;
 
-            var p1_elo = elo.updateRating(p1_expected, 1, p1);
-            var p2_elo = elo.updateRating(p2_expected, 0, p2);
+                console.log("p1: " + p1);
+                console.log("p2: " + p2)
 
-            var round1 = Math.round(p1_elo);
-            var round2 = Math.round(p2_elo);
+                var p1_expected = elo.getExpected(p1, p2);
+                var p2_expected = elo.getExpected(p2, p1);
 
-            var eloChange = round1 - p1;
-            var negChange = p2 - round2;
+                var p1_elo = elo.updateRating(p1_expected, 1, p1);
+                var p2_elo = elo.updateRating(p2_expected, 0, p2);
 
-            setName(message, id, round1);
-            setName(message, id2, round2);
+                var round1 = Math.round(p1_elo);
+                var round2 = Math.round(p2_elo);
 
-            scoreElo(message, id, round1);
-            scoreElo(message, id2, round2);
+                var eloChange = round1 - p1;
+                var negChange = p2 - round2;
 
-            console.log("Scored game for " + winnerName + " and " + loserName + ".");
-            console.log(winnerName + "'s ELO: " + round1);
-            console.log(loserName + "'s ELO: " + round2);
+                let change1 = Math.round(player1Elo + eloChange);
+                let change2 = Math.round(player2Elo + eloChange);
+                let change3 = Math.round(player3Elo - eloChange);
+                let change4 = Math.round(player4Elo - eloChange);
 
-            win(id);
-            lose(id2);
-            winStreak(id);
-            loseStreak(id2);
-            gamesPlayed(id);
-            gamesPlayed(id2);
+                setName(message, id, change1);
+                setName(message, id2, change2);
+                setName(message, id3, change3);
+                setName(message, id4, change4);
 
-            let sql;
-            console.log("Inserting game...");
-            con.query("select count(*) as \"count\" from games", (erres, rowess) => {
-                if (erres) throw erres;
-                let gameee = parseInt(rowess[0].count);
-                let gameNum = gameee++;
-                sql = `INSERT INTO games (winnerid, loserid, winnerelo, loserelo, gameid) VALUES ('${id}', '${id2}', '${round1}', '${round2}', ${gameNum})`;
-                con.query(sql, (err) => {
-                    if (err) throw err;
+                scoreElo(message, id, change1);
+                scoreElo(message, id2, change2);
+                scoreElo(message, id3, change3);
+                scoreElo(message, id4, change4);
+
+                console.log("Scored game for " + player1Name + ", " + player2Name + ", " + player3Name + " and " + player4Name + ".");
+
+                win(id);
+                lose(id3);
+                win(id2);
+                lose(id4);
+
+                winStreak(id);
+                loseStreak(id3);
+                winStreak(id2);
+                loseStreak(id4);
+
+                gamesPlayed(id);
+                gamesPlayed(id3);
+                gamesPlayed(id2);
+                gamesPlayed(id4);
+
+                let sql;
+                console.log("Inserting game...");
+                for (var i = 0; i < scoring.length; i++) {
+                  if (scoring[i][0] === id || scoring[i][0] === id2) {
+                    scoring.splice(i, 1);
+                  }
+                }
+                con.query("select count(*) as \"count\" from games", (erres, rowess) => {
+                    if (erres) throw erres;
+                    let gameee = parseInt(rowess[0].count);
+                    let gameNum = gameee++;
+                    sql = `INSERT INTO games (winnerid, loserid, winnerelo, loserelo, gameid) VALUES ('${id}', '${id2}', '${round1}', '${round2}', ${gameNum})`;
+                    con.query(sql, (err) => {
+                        if (err) throw err;
+                    });
+                    con.query(`SELECT * FROM scorers WHERE id = ${message.author.id}`, (errore, rowesc) => {
+                      let gamesScored = rowesc[0].games;
+                      let newGames = gamesScored += 1;
+                      let asdfSql = `UPDATE scorers SET games = ${newGames} WHERE id = ${message.author.id}`;
+                      con.query(asdfSql, (eroras) => {
+                        if (eroras) throw eroras;
+                      });
+                      const notSetEmbed = new Discord.MessageEmbed()
+                          .setColor('#10D365')
+                          .setTitle('Game ' + gameNum)
+                          .addFields(
+                              { name: 'Winners: ' + player1Name + ", " + player2Name, value: player1Name + ': ' + player1Elo + " -> " + change1 + ". " + player2Name + ": " + player2Elo + " -> " + change2 },
+                              { name: 'Losers: ' + player3Name + ", " + player4Name, value: player3Name + ': ' + player3Elo + " -> " + change3 + ". " + player4Name + ": " + player4Elo + " -> " + change4 },
+                          )
+                          .setFooter('Scored by ' + message.author.tag)
+                          .setTimestamp()
+                      message.guild.channels.cache.get("883834087125700659").send({ embeds: [notSetEmbed] })
+                      console.log("Done! Scored game " + gameNum + ".");
+                    })
                 });
-                const notSetEmbed = new Discord.MessageEmbed()
-                    .setColor('#10D365')
-                    .setTitle('Game ' + gameNum)
-                    .setDescription('Scored by ' + message.author.tag)
-                    .addFields(
-                        { name: 'Winner: ' + winnerName, value: 'ELO change: ' + p1 + " > " + round1 + ". +" + eloChange },
-                        { name: 'Loser: ' + loserName, value: 'ELO change: ' + p2 + " > " + round2 + ". -" + negChange },
-                    )
-                    .setTimestamp()
-                message.guild.channels.cache.get("883834087125700659").send({ embeds: [notSetEmbed] })
-                console.log("Done! Scored game " + gameNum + ".");
-            });
+              })
+            })
         });
     });
 }
@@ -2497,6 +3594,16 @@ function isString(value) {
     return typeof value === 'string' || value instanceof String;
 }
 
+function writeToFile(message, id) {
+    var fs = require('fs');
+    var util = require('util');
+    var logFile = fs.createWriteStream('dump-' + id + '.txt', { flags: 'a' });
+    var logStdout = process.stdout;
+
+    logFile.write(util.format(message) + '\n');
+    logStdout.write(util.format(message) + '\n');
+}
+
 function scoreFile(message) {
     var fs = require('fs');
     var util = require('util');
@@ -2527,6 +3634,37 @@ function purge(message, name) {
 
         con.query(sql);
     });
+}
+
+function purgeID(message, id) {
+    con.query(`SELECT * FROM rbridge WHERE id = ?`, [id], function(err, rows, fields) {
+        if (err) throw err;
+
+        let sql;
+        if (rows.length < 1) {
+            console.log("Can't find `" + id + "` in the database.");
+        } else {
+            sql = `DELETE FROM rbridge WHERE id = '${id}'`;
+            console.log("Purged `" + id + "`.");
+        }
+
+        con.query(sql);
+    });
+}
+
+function isColor(strColor){
+  var s = new Option().style;
+  s.color = strColor;
+  return s.color == strColor;
+}
+
+for(const event of ["exit", "SIGINT", "SIGUSR1", "SIGUSR2", "SIGTERM"])
+{
+    process.on(event, () =>
+    {
+      console.log("event: " + event);
+      scoreFile("Error: " + event);
+    })
 }
 
 client.login(token);
