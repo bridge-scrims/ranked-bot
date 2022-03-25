@@ -1,0 +1,13 @@
+{
+    "queueChannel": "949026099482996859",
+	"registerChannel": "949026098769956865",
+	"commandsChannel": "949026099168419905",
+	"queueChatChannel": "949026099482996857",
+	"screenshareChannel": "948701739647909980",
+	"bansChannel": "948698614568456193",
+	"punishmentsChannel": "948698582800793670",
+	"gamesChannel": "948698410205212792",
+	"generalMuted": "948727396419371040",
+	"reportChannel": "948701769968529438",
+	"queueCategory": "949026099168419909"
+}
