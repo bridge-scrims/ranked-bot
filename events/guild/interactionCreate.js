@@ -1,4 +1,6 @@
 ﻿const functions = require("../../handlers/functions.js");
+const variables = require("../../handlers/variables.js");
+const roles = require("../../config/roles.json");
 
 const Discord = require("discord.js");
 
@@ -20,7 +22,102 @@ module.exports = async (client, interaction) => {
     }
 
     if (interaction.isButton()) {
-        
+        if (interaction.customId === "score") {
+            await interaction.deferReply({ ephemeral: true });
+            let canScore = false;
+            for (let i = 0; i < variables.score.length; i++) {
+                if (variables.score[i][1] === interaction.channel.id) {
+                    canScore = true;
+                    if (variables.score[i][0] === interaction.member.id) {
+                        const errorEmbed = new Discord.EmbedBuilder()
+                            .setColor('#a84040')
+                            .setDescription("You can't score this game!")
+                            .setTimestamp();
+                        interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                        return;
+                    } else {
+                        variables.score.splice(i, 1);
+                        for (let j = 0; j < variables.curGames.length; j++) {
+                            if (variables.curGames[j][1] === interaction.channel.id || variables.curGames[j][0] === interaction.member.id) {
+                                variables.curGames.splice(j, 1);
+                            }
+                        }
+                        for (let j = 0; j < variables.curGames.length; j++) {
+                            if (variables.curGames[j][1] === interaction.channel.id || variables.curGames[j][0] === interaction.member.id) {
+                                variables.curGames.splice(j, 1);
+                            }
+                        }
+                        var channelName = interaction.channel.name;
+                        var splitName = channelName.split('-');
+                        var channelNum = splitName[1];
+                        var channel1 = interaction.member.guild.channels.cache.find(c => c.name === "Game " + channelNum + " Team 1");
+                        var channel2 = interaction.member.guild.channels.cache.find(c => c.name === "Game " + channelNum + " Team 2");
+                        if (!channel1) {
+                            interaction.editReply("Couldn't delete channel 1. Ping Scorer Ping.");
+                            return;
+                        }
+                        channel1.delete();
+                        channel2.delete();
+                        interaction.channel.permissionOverwrites.set([
+                            {
+                                id: interaction.channel.guild.roles.everyone,
+                                deny: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                            },
+                            {
+                                id: roles.scorer,
+                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                            },
+                        ]);
+                        interaction.channel.setName(interaction.channel.name + "-finished");
+                        interaction.channel.send("<@&" + roles.scorerPing + ">");
+                        interaction.editReply("Done.");
+                        break;
+                    }
+                }
+            }
+            if (!canScore) {
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("You can't score this game!")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                return;
+            }
+        }
+        if (interaction.customId === "deny") {
+            await interaction.deferReply({ ephemeral: true });
+            let canScore = false;
+            for (let i = 0; i < variables.score.length; i++) {
+                if (variables.score[i][1] === interaction.channel.id) {
+                    canScore = true;
+                    if (variables.score[i][0] === interaction.member.id) {
+                        const errorEmbed = new Discord.EmbedBuilder()
+                            .setColor('#a84040')
+                            .setDescription("You can't score this game!")
+                            .setTimestamp();
+                        interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                        return;
+                    } else {
+                        variables.score.splice(i, 1);
+                        interaction.editReply("Done.");
+                        const denyEmbed = new Discord.EmbedBuilder()
+                            .setColor('#a84040')
+                            .setDescription("<@" + interaction.member.id + "> has denied the score request.")
+                            .setTimestamp();
+                        interaction.channel.send({ embeds: [denyEmbed] });
+                        break;
+                    }
+                }
+            }
+            if (!canScore) {
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("You can't score this game!")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                return;
+            }
+        }
     }
 
     // Commands
@@ -30,7 +127,6 @@ module.exports = async (client, interaction) => {
         if (isRateLimited) {
             const errorEmbed = new Discord.EmbedBuilder()
                 .setColor(0x2f3136)
-                .setTitle("Error!")
                 .setDescription("You are being rate limited. You can only send commands every 4 seconds.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });

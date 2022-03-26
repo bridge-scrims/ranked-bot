@@ -10,37 +10,37 @@ module.exports.run = async (interaction) => {
     for (let i = 0; i < variables.curGames.length; i++) {
         if (variables.curGames[i][0] === interaction.member.id) {
             if (variables.curGames[i][1] != interaction.channel.id) {
+                isIG = true;
                 const errorEmbed = new Discord.EmbedBuilder()
                     .setColor('#a84040')
                     .setDescription("You can only use `/score` in your game channel (<#" + variables.curGames[i][1] + ">)!")
                     .setTimestamp();
-                interaction.reply({ embeds: [errorEmbed] });
+                interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                 break;
             } else {
                 isIG = true;
                 let canScore = true;
                 for (var j = 0; j < variables.score.length; j++) {
-                    if (variables.score[j] === interaction.channel.id) {
+                    if (variables.score[j][1] === interaction.channel.id) {
                         const errorEmbed = new Discord.EmbedBuilder()
                             .setColor('#a84040')
                             .setDescription("Someone's already scoring this!")
                             .setTimestamp();
-                        interaction.reply({ embeds: [errorEmbed] });
+                        interaction.reply({ embeds: [errorEmbed], ephemeral: true });
                         canScore = false;
                         return;
                     }
                 }
 
-                if (!canScore) {
-                    let file = interaction.options.getAttachment("file");
-                    variables.score.push(interaction.channel.id);
-                    
+                if (canScore) {
+                    let file = interaction.options.getAttachment("screenshot");
                     if (file.name.toLowerCase().endsWith(".jpg") || file.name.toLowerCase().endsWith(".png") || file.name.toLowerCase().endsWith(".jpeg")) {
-                        console.log(file);
+                        variables.score.push([interaction.member.id, interaction.channel.id]);
                         const scoreEmbed = new Discord.EmbedBuilder()
                             .setColor('#36699c')
                             .setTitle('Score Request')
                             .setDescription('Please click the button if the screenshot is correct! If it isn\'t, then deny the score request.')
+                            .setImage(file.url)
                             .setTimestamp()
                         const buttons = new Discord.ActionRowBuilder()
                         .addComponents(
@@ -60,8 +60,8 @@ module.exports.run = async (interaction) => {
                             .setColor('#a84040')
                             .setDescription("Please provide a valid image! Correct file types include `.jpeg`, `.png`, and `.jpg`.")
                             .setTimestamp();
-                        interaction.reply({ embeds: [errorEmbed] });
-                        return;
+                        interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                        break;
                     }
                 }
             }
@@ -73,7 +73,7 @@ module.exports.run = async (interaction) => {
             .setColor('#a84040')
             .setDescription("You're not in a game.")
             .setTimestamp();
-        interaction.reply({ embeds: [errorEmbed] });
+        interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         return;
     }
 };

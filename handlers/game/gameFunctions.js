@@ -151,8 +151,18 @@ async function makeChannel(message, id, id2) {
             variables.curGames.push([id, messageChannel]);
             variables.curGames.push([id2, messageChannel]);
 
-            user.voice.setChannel(team1).catch((err) => console.error(err));
-            user2.voice.setChannel(team2).catch((err) => console.error(err));
+            await user.voice.setChannel(team1).catch((err) => console.error(err));
+            await user2.voice.setChannel(team2).catch((err) => console.error(err));
+
+            let invis1 = await message.guild.channels.cache.find((name) => name.name === id);
+            let invis2 = await message.guild.channels.cache.find((name) => name.name === id2);
+            if (invis1 != undefined) {
+                invis1.delete().catch((err) => console.error(err));
+            }
+        
+            if (invis2 != undefined) {
+                invis2.delete().catch((err) => console.error(err));
+            }
             console.log("Game ".green + "#" + gameId + " has been started.".green);
         });
     });
