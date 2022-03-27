@@ -6,6 +6,22 @@ const config = require("../../config/config.json");
 
 const Discord = require("discord.js");
 
+const glicko2 = require("glicko2");
+const { getSkyBlockProfileMemberCollections } = require("@zikeji/hypixel");
+var settings = {
+    // tau : "Reasonable choices are between 0.3 and 1.2, though the system should
+    //      be tested to decide which value results in greatest predictive accuracy."
+    tau: 0.9,
+    // rating : default rating
+    rating: 1000,
+    //rd : Default rating deviation
+    //     small number = good confidence on the rating accuracy. Like kFactor
+    rd: 16 * 4.69,
+    //vol : Default volatility (expected fluctation on the player rating)
+    vol: 0.06
+};
+var ranking = new glicko2.Glicko2(settings);
+
 let con = mysql.createPool({
     connectionLimit: 100,
     host: config.host,
@@ -20,11 +36,240 @@ module.exports.makeChannel = makeChannel;
 module.exports.getGames = getGames;
 module.exports.setGames = setGames;
 
+module.exports.calcElo = calcElo;
+module.exports.updateELO = updateELO;
+
+module.exports.getName = getName;
+
+module.exports.getRole = getRole;
+module.exports.getUser = getUser;
+
+module.exports.fixRoles = fixRoles;
+module.exports.fixName = fixName;
+
+module.exports.getWins = getWins;
+module.exports.getLosses = getLosses;
+module.exports.getWinstreak = getWinstreak;
+module.exports.getBestWinstreak = getBestWinstreak;
+
+module.exports.setWins = setWins;
+module.exports.setLosses = setLosses;
+module.exports.setWinstreak = setWinstreak;
+module.exports.setBestwinstreak = setBestwinstreak;
+
+module.exports.getTotalGames = getTotalGames;
+module.exports.insertGame = insertGame;
+module.exports.setGame = setGame;
+
+module.exports.isInDb = isInDb;
+
+async function isInDb(id) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(false);
+            }
+    
+            resolve(true);
+        });
+    });
+}
+
+async function insertGame(id, id2) {
+    let gameId = await getTotalGames();
+    con.query(`INSERT INTO games (winnerid, loserid, winnerelo, loserelo, gameid) VALUES ('${id}', '${id2}', 0, 0, ${gameId})`, (err) => {
+        if (err) throw err;
+    });
+}
+
+async function setGame(id, id2, elo, elo2, gameId) {
+    sql = `UPDATE games SET winnerid='${id}' WHERE gameid=${gameId}`;
+    con.query(sql, (err) => {
+        if (err) throw err;
+    });
+    sql = `UPDATE games SET loserid='${id2}' WHERE gameid=${gameId}`;
+    con.query(sql, (err) => {
+        if (err) throw err;
+    });
+
+    sql = `UPDATE games SET winnerelo=${elo} WHERE gameid=${gameId}`;
+    con.query(sql, (err) => {
+        if (err) throw err;
+    });
+    sql = `UPDATE games SET loserelo=${elo2} WHERE gameid=${gameId}`;
+    con.query(sql, (err) => {
+        if (err) throw err;
+    });
+}
+
+function getTotalGames() {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM games`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(null);
+            }
+    
+            resolve(rows[rows.length - 1].gameid);
+        });
+    });
+}
+
+async function updateELO(id, elo) {
+    con.query(`UPDATE rbridge SET elo = ${elo}, division = "COAL" WHERE id='${id}'`, (err, rows) => {
+        if (err) return console.error(err);
+    });
+}
+
+async function fixRoles(interaction, id) {
+    let elo = await getELO(id);
+    let user = await getUser(interaction.guild, id);
+
+    let coal = await getRole(interaction.guild, roles.coalDivision);
+    let iron = await getRole(interaction.guild, roles.ironDivision);
+    let gold = await getRole(interaction.guild, roles.goldDivision);
+    let diamond = await getRole(interaction.guild, roles.diamondDivision);
+    let emerald = await getRole(interaction.guild, roles.emeraldDivision);
+    let obsidian = await getRole(interaction.guild, roles.obsidianDivision);
+    let crystal = await getRole(interaction.guild, roles.crystalDivision);
+
+    if (!user || !user.roles) {
+        return;
+    }
+    if (elo <= 999) {
+        user.roles.add(coal);
+        user.roles.remove(iron);
+        user.roles.remove(obsidian);
+        user.roles.remove(diamond);
+        user.roles.remove(gold);
+        user.roles.remove(emerald);
+        user.roles.remove(crystal);
+    } else if (elo < 1100 && elo >= 1000) {
+        user.roles.add(iron);
+        user.roles.remove(diamond);
+        user.roles.remove(obsidian);
+        user.roles.remove(gold);
+        user.roles.remove(coal);
+        user.roles.remove(emerald);
+        user.roles.remove(crystal);
+    } else if (elo < 1200 && elo >= 1100) {
+        user.roles.add(gold);
+        user.roles.remove(iron);
+        user.roles.remove(diamond);
+        user.roles.remove(coal);
+        user.roles.remove(obsidian);
+        user.roles.remove(emerald);
+        user.roles.remove(crystal);
+    } else if (elo < 1400 && elo >= 1200) {
+        user.roles.add(diamond);
+        user.roles.remove(obsidian);
+        user.roles.remove(gold);
+        user.roles.remove(coal);
+        user.roles.remove(emerald);
+        user.roles.remove(crystal);
+    } else if (elo < 1600 && elo >= 1400) {
+        user.roles.add(emerald);
+        user.roles.remove(diamond);
+        user.roles.remove(gold);
+        user.roles.remove(coal);
+        user.roles.remove(obsidian);
+        user.roles.remove(crystal);
+    } else if (elo < 1800 && elo >= 1600) {
+        user.roles.add(obsidian);
+        user.roles.remove(diamond);
+        user.roles.remove(gold);
+        user.roles.remove(coal);
+        user.roles.remove(emerald);
+        user.roles.remove(crystal);
+    } else if (elo >= 1800) {
+        user.roles.add(crystal);
+        user.roles.remove(diamond);
+        user.roles.remove(gold);
+        user.roles.remove(coal);
+        user.roles.remove(obsidian);
+        user.roles.remove(emerald);
+    } else if (elo < 1000) {
+        user.roles.remove(obsidian);
+        user.roles.remove(diamond);
+        user.roles.remove(gold);
+        user.roles.add(coal);
+        user.roles.remove(crystal);
+    }
+}
+
+async function fixName(interaction, id) {
+    let member = await getUser(interaction.guild, id);
+    let elo = await getELO(id);
+    let name = await getName(id);
+    let nick = member.displayName;
+    if (nick.includes("[") && !nick.includes("(")) {
+        interaction.guild.members.fetch(id).then((user) => user.setNickname("[" + elo + "] " + namee)).catch((err) => console.error(err));;
+    } else if (nick.includes("[") && nick.includes("(")) {
+        let split = nick.split(" ");
+        let restNick = split[1] + " " + split[2];
+        interaction.guild.members.fetch(id).then((user) => user.setNickname("[" + elo + "] " + restNick).catch((e) => console.log("Error setting the nickname!")));
+    }
+}
+
+async function getUser(guild, id) {
+    return new Promise(async function (resolve, reject) {
+        await guild.members.fetch(id).then((user) => {
+            resolve(user);
+        }).catch((err) => {
+            console.error(err);
+            reject(err);
+        });
+    });
+}
+
+async function getRole(guild, id) {
+    return new Promise(async function (resolve, reject) {
+        await guild.roles.fetch(id).then((role) => {
+            resolve(role);
+        }).catch((err) => {
+            console.error(err);
+            reject(err);
+        });
+    });
+}
+
+async function calcElo(winner, loser, winnerScore, loserScore) {
+    let p1 = await getELO(winner);
+    let p2 = await getELO(loser);
+    let p1Ranking = ranking.makePlayer(p1);
+    let p2Ranking = ranking.makePlayer(p2);
+    var matches = [];
+    matches.push([p1Ranking, p2Ranking, 1])
+    ranking.updateRatings(matches);
+
+    var p1_elo = p1Ranking.getRating();
+
+    var eloChange = Math.abs(p1_elo - p1);
+
+    let change1 = Math.round(p1 + eloChange + (winnerScore / 4));
+    let change2 = Math.round(p2 - eloChange + (loserScore / 2));
+    return [change1, change2];
+}
+
+function getName(id) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(null);
+            }
+    
+            resolve(rows[0].name);
+        });
+    });
+}
+
 function getELO(id) {
     return new Promise(async function (resolve, reject) {
         con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
             if (err) reject(err);
-            if (!rows[0]) {
+            if (!rows || rows.length === 0) {
                 resolve(null);
             }
     
@@ -33,11 +278,135 @@ function getELO(id) {
     });
 }
 
+async function getWins(id) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(null);
+            }
+    
+            resolve(rows[0].wins);
+        });
+    });
+}
+
+async function getLosses(id) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(null);
+            }
+    
+            resolve(rows[0].losses);
+        });
+    });
+}
+
+async function getWinstreak(id) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(null);
+            }
+    
+            resolve(rows[0].winstreak);
+        });
+    });
+}
+
+async function getBestWinstreak(id) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(null);
+            }
+    
+            resolve(rows[0].bestws);
+        });
+    });
+}
+
+async function getGames(id) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(null);
+            }
+            resolve(rows[0].games);
+        });
+    });
+}
+
+async function setWins(id, wins) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`UPDATE rbridge SET wins = ${wins} WHERE id='${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(false);
+            }
+            resolve(true);
+        });
+    });
+}
+
+async function setLosses(id, losses) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`UPDATE rbridge SET losses = ${losses} WHERE id='${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(false);
+            }
+            resolve(true);
+        });
+    });
+}
+
+async function setWinstreak(id, winstreak) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`UPDATE rbridge SET winstreak = ${winstreak} WHERE id='${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(false);
+            }
+            resolve(true);
+        });
+    });
+}
+
+async function setBestwinstreak(id, bestws) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`UPDATE rbridge SET bestws = ${bestws} WHERE id='${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(false);
+            }
+            resolve(true);
+        });
+    });
+}
+
+async function setGames(id, games) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`UPDATE rbridge SET games = ${games} WHERE id='${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(false);
+            }
+            resolve(true);
+        });
+    });
+}
+
 async function makeChannel(message, id, id2) {
     await message.guild.members.fetch(id).then(async (user) => {
         await message.guild.members.fetch(id2).then(async (user2) => {
             console.log("Starting a game for ".yellow + user.user.tag + " and ".yellow + user2.user.tag + "...".yellow);
-            variables.games.push(getGames());
+            variables.games.push(await getTotalGames());
             const gameId = variables.games.length;
 
             await message.guild.channels.create("game-" + gameId, {
@@ -148,6 +517,8 @@ async function makeChannel(message, id, id2) {
                 .setTimestamp()
             message.guild.channels.cache.get(messageChannel).send({ content: "<@" + id + "> <@" + id2 + ">", embeds: [channelEmbed] });
 
+            await insertGame(id, id2);
+
             variables.curGames.push([id, messageChannel]);
             variables.curGames.push([id2, messageChannel]);
 
@@ -174,12 +545,5 @@ function setGames() {
         for (let i = 0; i < rows.length; i++) {
             variables.games.push(rows[i].gameid);
         }
-    });
-}
-
-function getGames() {
-    con.query(`SELECT * FROM games`, (err, rows) => {
-        if (err) throw err;
-        return rows.length;
     });
 }

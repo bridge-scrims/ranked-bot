@@ -3,22 +3,33 @@ const variables = require("../../handlers/variables.js");
 const roles = require("../../config/roles.json");
 
 const Discord = require("discord.js");
+const mysql = require("mysql");
+
+let config = require("../../config/config.json");
+
+let con = mysql.createPool({
+    connectionLimit: 100,
+    host: config.host,
+    user: config.username,
+    password: config.password,
+    database: config.database,
+    debug: false
+});
 
 module.exports = async (client, interaction) => {
 
     // Autocomplete
     if (interaction.isAutocomplete()) {
         let focusedOption = interaction.options.getFocused().toString();
-        let tags = [];
-
-        // Map the tags array to JSON.
-        let options = tags.map((tag) => ({
-            name: tag.name,
-            value: tag.value,
-        }));
-
-        // Display the data.
-        interaction.respond(options).catch((err) => functions.sendError(functions.objToString(err), interaction.guild, "Autocomplete"));
+        con.query(`SELECT * FROM rbridge WHERE name LIKE '${focusedOption}%' LIMIT 10`, (err, rows) => {
+            if (err) return;
+            if (!rows || rows.length < 1) return;
+            let options = rows.map((row) => ({
+                name: row.name,
+                value: row.id,
+            }));
+            interaction.respond(options).catch((err) => console.error(err));
+        });
     }
 
     if (interaction.isButton()) {
@@ -54,6 +65,10 @@ module.exports = async (client, interaction) => {
                         var channel2 = interaction.member.guild.channels.cache.find(c => c.name === "Game " + channelNum + " Team 2");
                         if (!channel1) {
                             interaction.editReply("Couldn't delete channel 1. Ping Scorer Ping.");
+                            return;
+                        }
+                        if (!channel2) {
+                            interaction.editReply("Couldn't delete channel 2. Ping Scorer Ping.");
                             return;
                         }
                         channel1.delete();

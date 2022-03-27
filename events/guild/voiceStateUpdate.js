@@ -6,11 +6,11 @@ const { invisible, rankedPlayer } = require("../../config/roles.json");
 // Functions. Need to revise.
 const { exists } = require("../../handlers/functions.js");
 
-const { getELO, makeChannel } = require("../../handlers/game/gameFunctions.js");
+const { getELO, makeChannel, isInDb } = require("../../handlers/game/gameFunctions.js");
 
 const { queue, isMoving } = require("../../handlers/variables.js");
 
-const { queueChannel, queueCategory } = require("../../config/channels.json");
+const { queueChannel, queueCategory, queueChatChannel, registerChannel } = require("../../config/channels.json");
 
 module.exports = async (client, oldState, newState) => {
     // Deal with voice updates.
@@ -68,6 +68,10 @@ module.exports = async (client, oldState, newState) => {
             return;
         }
         let memberId = newState.member.id;
+        let isDb = await isInDb(memberId);
+        if (!isDb) {
+            newState.member.guild.channels.cache.get(queueChatChannel).send("<@" + newState.member.id + ">, you're not registered! Register in <#" + registerChannel + ">!");
+        }
         if (!exists(queue, memberId)) {
             console.log(newState.member.user.tag + " joined the queue VC.".dim);
             // Get the user's ELO

@@ -16,6 +16,14 @@ const commands = [
 	new SlashCommandBuilder().setName('void').setDescription('Send\'s a void request.'),
 	new SlashCommandBuilder().setName('call').setDescription('Call\'s an user.').addUserOption(option => option.setName('user').setDescription('The user to call.').setRequired(true)),
 	new SlashCommandBuilder().setName('score').setDescription('Sends a score request.').addAttachmentOption(option => option.setName('screenshot').setDescription('The screenshot to attach.').setRequired(true)),
+	new SlashCommandBuilder().setName('scoregame').setDescription('Scores a game.')
+		.addSubcommand(
+			subcommand => subcommand.setName("arguments").setDescription("Arguments for the score command.")
+			.addStringOption(option => option.setName('winner').setDescription('Select an user').setRequired(true).setAutocomplete(true))
+			.addStringOption(option => option.setName('loser').setDescription('Select an user').setRequired(true).setAutocomplete(true))
+			.addIntegerOption(option => option.setName('winner_score').setDescription('Winning team\'s score').setRequired(true))
+			.addIntegerOption(option => option.setName('loser_score').setDescription('Losing team\'s score').setRequired(true))
+	),
 ]
 	.map(command => command.toJSON());
 
