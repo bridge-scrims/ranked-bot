@@ -141,7 +141,7 @@ module.exports = async (client, interaction) => {
         let isRateLimited = functions.isRateLimit(interaction.member.id);
         if (isRateLimited) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor(0x2f3136)
+                .setColor('#a84040')
                 .setDescription("You are being rate limited. You can only send commands every 4 seconds.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });

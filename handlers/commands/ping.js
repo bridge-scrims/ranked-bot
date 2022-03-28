@@ -9,7 +9,7 @@ module.exports.run = async (interaction) => {
     if (interaction.channel.id === channels.queueChatChannel) {
         if (!interaction.member.voice || !interaction.member.voice.channel) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor(0x2f3136)
+                .setColor('#a84040')
                 .setDescription("You have to be in <#" + channels.queueChannel + "> to use `/ping`.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -17,7 +17,7 @@ module.exports.run = async (interaction) => {
         }
         if (interaction.member.voice.channel != channels.queueChannel) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor(0x2f3136)
+                .setColor('#a84040')
                 .setDescription("You have to be in <#" + channels.queueChannel + "> to use `/ping`.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -35,7 +35,7 @@ module.exports.run = async (interaction) => {
             }, 60000);
         } else {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor(0x2f3136)
+                .setColor('#a84040')
                 .setDescription("You can only ping <@" + roles.queuePing + "> once every minute.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -43,7 +43,7 @@ module.exports.run = async (interaction) => {
         }
     } else {
         const errorEmbed = new Discord.EmbedBuilder()
-            .setColor(0x2f3136)
+            .setColor('#a84040')
             .setDescription("You can only use `/ping` in <#" + channels.queueChatChannel + ">.")
             .setTimestamp();
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });

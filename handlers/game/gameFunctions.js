@@ -6,8 +6,9 @@ const config = require("../../config/config.json");
 
 const Discord = require("discord.js");
 
+const axios = require("axios");
+
 const glicko2 = require("glicko2");
-const { getSkyBlockProfileMemberCollections } = require("@zikeji/hypixel");
 var settings = {
     // tau : "Reasonable choices are between 0.3 and 1.2, though the system should
     //      be tested to decide which value results in greatest predictive accuracy."
@@ -62,6 +63,35 @@ module.exports.insertGame = insertGame;
 module.exports.setGame = setGame;
 
 module.exports.isInDb = isInDb;
+
+module.exports.getUUID = getUUID;
+module.exports.getHypixel = getHypixel;
+
+async function getUUID(username) {
+    return new Promise(async function (resolve, reject) {
+        let uuidURL = "https://api.mojang.com/users/profiles/minecraft/" + username;
+        axios.get(uuidURL, {
+        }).then(async (res) => {
+            resolve({ "name": res.data.name, "uuid": res.data.id })
+        }).catch((err) => {
+            console.error(err);
+            reject(err);
+        });
+    });
+}
+
+async function getHypixel(id) {
+    return new Promise(async function (resolve, reject) {
+        let uuidURL = `https://api.hypixel.net/player?uuid=${id}&key=${config.apiKey}`;
+        axios.get(uuidURL, {
+        }).then(async (res) => {
+            resolve(res.data);
+        }).catch((err) => {
+            console.error(err);
+            reject(err);
+        });
+    });
+}
 
 async function isInDb(id) {
     return new Promise(async function (resolve, reject) {
