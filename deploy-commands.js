@@ -24,6 +24,9 @@ const commands = [
 			.addIntegerOption(option => option.setName('winner_score').setDescription('Winning team\'s score').setRequired(true))
 			.addIntegerOption(option => option.setName('loser_score').setDescription('Losing team\'s score').setRequired(true))
 	),
+	new SlashCommandBuilder().setName('fregister').setDescription('Force registers an user.')
+		.addUserOption(option => option.setName('user').setDescription("The user to register.").setRequired(true))
+		.addStringOption(option => option.setName('ign').setDescription("The Minecraft account to register as.").setRequired(true)),
 ]
 	.map(command => command.toJSON());
 

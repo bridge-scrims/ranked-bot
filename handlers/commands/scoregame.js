@@ -13,29 +13,29 @@ module.exports.run = async (interaction) => {
         const loser = interaction.options.getString('loser');
         const winnerScore = interaction.options.getInteger('winner_score');
         const loserScore = interaction.options.getInteger('loser_score');
-        let wDb = await gameFunctions.isInDb(winner);
-        let lDb = await gameFunctions.isInDb(loser);
-        if (!wDb) {
-            const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
-                .setDescription("Please provide a valid winner!")
-                .setTimestamp();
-            // Send the embd.
-            interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-            return;
-        }
-
-        if (!lDb) {
-            const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
-                .setDescription("Please provide a valid loser!")
-                .setTimestamp();
-            // Send the embd.
-            interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-            return;
-        }
 
         if (interaction.member.roles.cache.has(roles.scorer)) {
+            let wDb = await gameFunctions.isInDb(winner);
+            let lDb = await gameFunctions.isInDb(loser);
+            if (!wDb) {
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor("#a84040")
+                    .setDescription("Please provide a valid winner!")
+                    .setTimestamp();
+                // Send the embd.
+                interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                return;
+            }
+    
+            if (!lDb) {
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor("#a84040")
+                    .setDescription("Please provide a valid loser!")
+                    .setTimestamp();
+                // Send the embd.
+                interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                return;
+            }
             if (interaction.channel.name.startsWith("game-")) {
                 let nameSplit = interaction.channel.name.split("-");
                 let gameNum = nameSplit[1];
@@ -132,15 +132,15 @@ module.exports.run = async (interaction) => {
                     return;
                 }
                 if (!channel1) {
-                    channel2.delete().catch((err) => console.error(err));
+                    channel2.delete().catch((err) => functions.sendError(functions.objToString(err), interaction.guild, "Deleting Channels"));
                     return;
                 }
                 if (!channel2) {
-                    channel1.delete().catch((err) => console.error(err));
+                    channel1.delete().catch((err) => functions.sendError(functions.objToString(err), interaction.guild, "Deleting Channels"));
                     return;
                 }
-                channel1.delete().catch((err) => console.error(err));
-                channel2.delete().catch((err) => console.error(err));
+                channel1.delete().catch((err) => functions.sendError(functions.objToString(err), interaction.guild, "Deleting Channels"));
+                channel2.delete().catch((err) => functions.sendError(functions.objToString(err), interaction.guild, "Deleting Channels"));
             } else {
                 const errorEmbed = new Discord.EmbedBuilder()
                     .setColor('#a84040')

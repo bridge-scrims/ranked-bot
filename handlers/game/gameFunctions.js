@@ -3,6 +3,7 @@ const mysql = require("mysql");
 let variables = require("../../handlers/variables.js");
 const roles = require("../../config/roles.json");
 const config = require("../../config/config.json");
+const functions = require("../functions.js");
 
 const Discord = require("discord.js");
 
@@ -63,9 +64,28 @@ module.exports.insertGame = insertGame;
 module.exports.setGame = setGame;
 
 module.exports.isInDb = isInDb;
+module.exports.nameInDb = nameInDb;
+module.exports.insertUser = insertUser;
 
 module.exports.getUUID = getUUID;
 module.exports.getHypixel = getHypixel;
+
+async function insertUser(id, name) {
+    return new Promise(async function (resolve, reject) {
+        let isName = await nameInDb(name);
+        if (!isName) {
+            con.query(`INSERT INTO rbridge (id, elo, name) VALUES ('${id}', '1000', '${name}')`, (err, rows) => {
+                if (err) reject(err);
+                resolve(true);
+            });
+        } else {
+            con.query(`UPDATE rbridge SET id='${id}' WHERE name='${name}'`, (err, rows) => {
+                if (err) reject(err);
+                resolve(true);
+            });
+        }
+    });
+}
 
 async function getUUID(username) {
     return new Promise(async function (resolve, reject) {
@@ -74,7 +94,6 @@ async function getUUID(username) {
         }).then(async (res) => {
             resolve({ "name": res.data.name, "uuid": res.data.id })
         }).catch((err) => {
-            console.error(err);
             reject(err);
         });
     });
@@ -87,7 +106,6 @@ async function getHypixel(id) {
         }).then(async (res) => {
             resolve(res.data);
         }).catch((err) => {
-            console.error(err);
             reject(err);
         });
     });
@@ -96,6 +114,19 @@ async function getHypixel(id) {
 async function isInDb(id) {
     return new Promise(async function (resolve, reject) {
         con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(false);
+            }
+    
+            resolve(true);
+        });
+    });
+}
+
+async function nameInDb(name) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge WHERE name = '${name}'`, (err, rows) => {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(false);

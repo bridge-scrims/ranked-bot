@@ -1,7 +1,9 @@
 const Discord = require("discord.js");
 
 const gameFunctions = require("../../handlers/game/gameFunctions.js");
+const functions = require("../functions.js");
 const channels = require("../../config/channels.json");
+const roles = require("../../config/roles.json");
 
 module.exports.run = async (interaction) => {
     if (interaction.channel.id === channels.registerChannel) {
@@ -36,21 +38,35 @@ module.exports.run = async (interaction) => {
                         return;
                     }
                     let isDb = await gameFunctions.isInDb(interaction.member.id);
+                    let rankedRole = await gameFunctions.getRole(interaction.guild, roles.rankedPlayer);
+                    let unverifiedRole = await gameFunctions.getRole(interaction.guild, roles.unverified);
+                    let coalDiv = await gameFunctions.getRole(interaction.guild, roles.coalDivision);
+                    interaction.member.roles.add(rankedRole);
+                    interaction.member.roles.add(coalDiv);
+                    interaction.member.roles.remove(unverifiedRole);
+
                     if (!isDb) {
-                        const errorEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
-                            .setDescription("k we'll insert u sec")
+                        await gameFunctions.insertUser(interaction.member.id, data.name);
+                        const successEmbed = new Discord.EmbedBuilder()
+                            .setColor('#36699c')
+                            .setDescription("Registered you as `" + data.name + "`!")
                             .setTimestamp();
-                        interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                        interaction.reply({ embeds: [successEmbed], ephemeral: true });
+                        interaction.member.setNickname("[1000] " + data.name);
+                        return;
                     } else {
-                        const errorEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
-                            .setDescription("ur already in db")
+                        const successEmbed = new Discord.EmbedBuilder()
+                            .setColor('#36699c')
+                            .setDescription("Welcome back `" + data.name + "`!")
                             .setTimestamp();
-                        interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                        interaction.reply({ embeds: [successEmbed], ephemeral: true });
+                        let elo = await gameFunctions.getELO(interaction.member.id);
+                        interaction.member.setNickname("[" + elo + "] " + data.name);
+                        return;
                     }
                 }
             }).catch((err) => {
+                functions.sendError(functions.objToString(err), interaction.guild, "Hypixel API")
                 const errorEmbed = new Discord.EmbedBuilder()
                     .setColor('#a84040')
                     .setDescription("<@" + interaction.member.id + ">, an error occurred! Please try again.")
@@ -67,6 +83,7 @@ module.exports.run = async (interaction) => {
                 return;
             });
         }).catch((err) => {
+            functions.sendError(functions.objToString(err), interaction.guild, "Mojang API")
             const errorEmbed = new Discord.EmbedBuilder()
                 .setColor('#a84040')
                 .setDescription("An error occurred! Please try again.")
