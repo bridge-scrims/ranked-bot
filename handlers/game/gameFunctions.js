@@ -7,6 +7,7 @@ const config = require("../../config/config.json");
 const functions = require("../functions.js");
 
 const Discord = require("discord.js");
+const { joinVoiceChannel } = require("@discordjs/voice");
 
 const axios = require("axios");
 
@@ -80,8 +81,35 @@ module.exports.getHypixel = getHypixel;
 
 module.exports.getLeaderboard = getLeaderboard;
 
-async function runLoops() {
-    
+module.exports.runLoops = runLoops;
+
+async function runLoops(guild) {
+    joinVoiceChannel({ channelId: channels.queueChannel, guildId: guild.id, adapterCreator: guild.voiceAdapterCreator });
+    let currentTime = Date.now();
+    con.query(`SELECT * FROM banned`, (err, rows) => {
+        for (var i = 0; i < rows.length; i++) {
+            let userID = rows[i].id;
+            let timeBanned = rows[i].time;
+            if (currentTime > timeBanned) {
+                unbanUser(guild, userID, "Timed unban.");
+                return;
+            }
+        }
+    });
+    setInterval(function () {
+        joinVoiceChannel({ channelId: channels.queueChannel, guildId: guild.id, adapterCreator: guild.voiceAdapterCreator });
+        let currentTime = Date.now();
+        con.query(`SELECT * FROM banned`, (err, rows) => {
+            for (var i = 0; i < rows.length; i++) {
+                let userID = rows[i].id;
+                let timeBanned = rows[i].time;
+                if (currentTime > timeBanned) {
+                    unbanUser(guild, userID, "Timed unban.");
+                    return;
+                }
+            }
+        });
+    }, 100000);
 }
 
 async function unbanUser(guild, id, reason) {
