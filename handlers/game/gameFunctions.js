@@ -706,6 +706,9 @@ async function screenshareUser(guild, member, member2) {
 }
 
 async function makeChannel(message, id, id2) {
+    message.guild.members.fetch(config.clientId).then((member) => {
+        member.setNickname("[" + variables.queue.length + "/2]");
+    }).catch((e) => console.log("Error setting the nickname!"));
     await message.guild.members.fetch(id).then(async (user) => {
         await message.guild.members.fetch(id2).then(async (user2) => {
             console.log("Starting a game for ".yellow + user.user.tag + " and ".yellow + user2.user.tag + "...".yellow);
