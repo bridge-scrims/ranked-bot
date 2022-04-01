@@ -20,16 +20,29 @@ module.exports = async (client, interaction) => {
 
     // Autocomplete
     if (interaction.isAutocomplete()) {
-        let focusedOption = interaction.options.getFocused().toString();
-        con.query(`SELECT * FROM rbridge WHERE name LIKE '${focusedOption}%' LIMIT 10`, (err, rows) => {
-            if (err) return;
-            if (!rows || rows.length < 1) return;
-            let options = rows.map((row) => ({
-                name: row.name,
-                value: row.id,
-            }));
-            interaction.respond(options).catch((err) => console.error(err));
-        });
+        if (interaction.options._subcommand != "unban") {
+            let focusedOption = interaction.options.getFocused().toString();
+            con.query(`SELECT * FROM rbridge WHERE name LIKE '${focusedOption}%' LIMIT 10`, (err, rows) => {
+                if (err) return;
+                if (!rows || rows.length < 1) return;
+                let options = rows.map((row) => ({
+                    name: row.name,
+                    value: row.id,
+                }));
+                interaction.respond(options).catch((err) => console.error(err));
+            });
+        } else {
+            let focusedOption = interaction.options.getFocused().toString();
+            con.query(`SELECT * FROM banned WHERE name LIKE '${focusedOption}%' LIMIT 10`, (err, rows) => {
+                if (err) return;
+                if (!rows || rows.length < 1) return;
+                let options = rows.map((row) => ({
+                    name: row.name,
+                    value: row.id,
+                }));
+                interaction.respond(options).catch((err) => console.error(err));
+            });
+        }
     }
 
     if (interaction.isButton()) {

@@ -1,6 +1,7 @@
 const mysql = require("mysql");
 
 let variables = require("../../handlers/variables.js");
+let channels = require("../../config/channels.json");
 const roles = require("../../config/roles.json");
 const config = require("../../config/config.json");
 const functions = require("../functions.js");
@@ -38,6 +39,8 @@ module.exports.makeChannel = makeChannel;
 module.exports.getGames = getGames;
 module.exports.setGames = setGames;
 
+module.exports.screenshareUser = screenshareUser;
+
 module.exports.calcElo = calcElo;
 module.exports.updateELO = updateELO;
 
@@ -68,11 +71,88 @@ module.exports.setGame = setGame;
 module.exports.isInDb = isInDb;
 module.exports.nameInDb = nameInDb;
 module.exports.insertUser = insertUser;
+module.exports.isBanned = isBanned;
+module.exports.banUser = banUser;
+module.exports.unbanUser = unbanUser;
 
 module.exports.getUUID = getUUID;
 module.exports.getHypixel = getHypixel;
 
 module.exports.getLeaderboard = getLeaderboard;
+
+async function runLoops() {
+    
+}
+
+async function unbanUser(guild, id, reason) {
+    let role = await getRole(guild, roles.banned);
+    let unverified = await getRole(guild, roles.unverified);
+    let user = await getUser(guild, id);
+    let name = await getName(id);
+
+    con.query(`DELETE FROM banned WHERE id = '${id}'`, (erre, row) => {
+        if (erre) throw erre;
+    });
+
+    if (user != undefined) {
+        user.roles.remove(role);
+        user.roles.add(unverified)
+    }
+
+    const banEmbed = new Discord.EmbedBuilder()
+        .setColor("#2f3136")
+        .setTitle(name + " is now unbanned.")
+        .setDescription("User: <@" + user + ">\nReason: ```" + reason + "```")
+        .setTimestamp();
+    guild.channels.cache.get(channels.bansChannel).send({ embeds: [banEmbed] });
+}
+
+async function banUser(guild, id, days, reason) {
+    let role = await getRole(guild, roles.banned);
+    let user = await getUser(guild, id);
+    let name = await getName(id);
+
+    let currentTime = Date.now() + days * 86400000;
+    con.query(`SELECT * FROM banned WHERE id = '${id}'`, (err, rows) => {
+        if (!rows.length === 0) {
+            sql = `INSERT INTO banned (id, name, time) VALUES ('${id}', '${name}', '${currentTime}')`;
+            con.query(sql);
+            console.log("Inserted ".green + name + " into ban table.".green);
+        } else {
+            sql = `DELETE FROM banned WHERE name = ${name}`;
+            con.query(sql);
+            console.log("Deleted ".red + name + " from banned table.".red);
+            sql = `INSERT INTO banned (id, name, time) VALUES ('${id}', '${name}', '${currentTime}')`;
+            con.query(sql);
+            console.log("Inserted ".green + name + " into ban table.".green);
+        }
+    });
+
+    if (user != undefined) {
+        user.roles.add(role);
+        user.roles.remove(roles.rankedPlayer);
+    }
+
+    const banEmbed = new Discord.EmbedBuilder()
+        .setColor("#2f3136")
+        .setTitle(name + " recieved a ban")
+        .setDescription("User: <@" + id + ">\nTime: `" + days + " days`.\nReason: ```" + reason + "```")
+        .setTimestamp();
+    guild.channels.cache.get(channels.bansChannel).send({ embeds: [banEmbed] });
+}
+
+async function isBanned(id) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM banned WHERE id = '${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (rows.length === 0) {
+                resolve(false);
+            } else {
+                resolve(true);
+            }
+        });
+    });
+}
 
 async function getLeaderboard(type) {
     return new Promise(async function (resolve, reject) {
@@ -353,7 +433,7 @@ async function calcElo(winner, loser, winnerScore, loserScore) {
     return [change1, change2];
 }
 
-function getName(id) {
+async function getName(id) {
     return new Promise(async function (resolve, reject) {
         con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
             if (err) reject(err);
@@ -511,6 +591,88 @@ async function setGames(id, games) {
                 resolve(false);
             }
             resolve(true);
+        });
+    });
+}
+
+async function screenshareUser(guild, member, member2) {
+    return new Promise(async function (resolve, reject) {
+        let name = await getName(member.id);
+        guild.channels.create("screenshare-" + name, {
+            permissionOverwrites: [
+                {
+                    id: guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                    deny: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'], //Deny permissions
+                },
+                {
+                    // But allow the two users to view the channel, send messages, and read the message history.
+                    id: member.id,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                },
+                {
+                    // But allow the two users to view the channel, send messages, and read the message history.
+                    id: member2.id,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                },
+                {
+                    id: roles.screensharer,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                },
+                {
+                    id: roles.staff,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                },
+                {
+                    id: roles.jrScreensharer,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                },
+                {
+                    id: roles.srScreensharer,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                },
+            ],
+        }).then((msg) => {
+            var channelID = msg.id;
+            const ssEmbed = new Discord.EmbedBuilder()
+                .setColor("#36699c")
+                .setTitle(`Please fill out the following:`)
+                .setDescription(
+                    "`1.` The user you want to screenshare.\n`2.` What hacks they might be using.\n`3.` Screenshot of you asking the user not to log.\n**If a Screensharer does not appear within 15 minutes, <@" + member.id + "> is allowed to log.**"
+                )
+                .setTimestamp();
+            msg.send({ embeds: [ssEmbed], content: "<@&" + roles.screensharer + ">" });
+            guild.channels.create("SS " + name, {
+                type: 2,
+                permissionOverwrites: [
+                    {
+                        id: guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                        deny: ['ViewChannel', 'Connect', 'Speak'], //Deny permissions
+                    },
+                    {
+                        id: member.id,
+                        allow: ['ViewChannel', 'Connect', 'Speak'],
+                    },
+                    {
+                        id: roles.staff,
+                        allow: ['ViewChannel', 'Connect', 'Speak'],
+                    },
+                    {
+                        id: roles.jrScreensharer,
+                        allow: ['ViewChannel', 'Connect', 'Speak'],
+                    },
+                    {
+                        id: roles.screensharer,
+                        allow: ['ViewChannel', 'Connect', 'Speak'],
+                    },
+                    {
+                        id: roles.srScreensharer,
+                        allow: ['ViewChannel', 'Connect', 'Speak'],
+                    },
+                ],
+            }).then((vc) => {
+                msg.send("<@" + member.id + ">, please join <#" + vc.id + ">.");
+                resolve(channelID);
+            });
         });
     });
 }

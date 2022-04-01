@@ -16,14 +16,21 @@ const commands = [
 	new SlashCommandBuilder().setName('void').setDescription('Send\'s a void request.'),
 	new SlashCommandBuilder().setName('call').setDescription('Call\'s an user.').addUserOption(option => option.setName('user').setDescription('The user to call.').setRequired(true)),
 	new SlashCommandBuilder().setName('score').setDescription('Sends a score request.').addAttachmentOption(option => option.setName('screenshot').setDescription('The screenshot to attach.').setRequired(true)),
-	new SlashCommandBuilder().setName('scoregame').setDescription('Scores a game.')
+	new SlashCommandBuilder().setName('ban').setDescription('Bans an user.')
+		.addStringOption(option => option.setName('user').setDescription('Select an user').setRequired(true).setAutocomplete(true))
+		.addIntegerOption(option => option.setName('days').setDescription('The amount of days to ban the user for.').setRequired(true))
+		.addStringOption(option => option.setName('reason').setDescription('Reason for banning them.')),
+	new SlashCommandBuilder().setName('unban').setDescription('Unbans an user.')
 		.addSubcommand(
-			subcommand => subcommand.setName("arguments").setDescription("Arguments for the score command.")
-			.addStringOption(option => option.setName('winner').setDescription('Select an user').setRequired(true).setAutocomplete(true))
-			.addStringOption(option => option.setName('loser').setDescription('Select an user').setRequired(true).setAutocomplete(true))
-			.addIntegerOption(option => option.setName('winner_score').setDescription('Winning team\'s score').setRequired(true))
-			.addIntegerOption(option => option.setName('loser_score').setDescription('Losing team\'s score').setRequired(true))
-	),
+			subcommand => subcommand.setName("unban").setDescription("Arguments for the unban command.")
+				.addStringOption(option => option.setName('user').setDescription('Select an user').setRequired(true).setAutocomplete(true))
+				.addStringOption(option => option.setName('reason').setDescription('Reason for unbanning them.'))
+		),
+	new SlashCommandBuilder().setName('scoregame').setDescription('Scores a game.')
+		.addStringOption(option => option.setName('winner').setDescription('Select an user').setRequired(true).setAutocomplete(true))
+		.addStringOption(option => option.setName('loser').setDescription('Select an user').setRequired(true).setAutocomplete(true))
+		.addIntegerOption(option => option.setName('winner_score').setDescription('Winning team\'s score').setRequired(true))
+		.addIntegerOption(option => option.setName('loser_score').setDescription('Losing team\'s score').setRequired(true)),
 	new SlashCommandBuilder().setName('fregister').setDescription('Force registers an user.')
 		.addUserOption(option => option.setName('user').setDescription("The user to register.").setRequired(true))
 		.addStringOption(option => option.setName('ign').setDescription("The Minecraft account to register as.").setRequired(true)),

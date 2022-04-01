@@ -72,7 +72,7 @@ module.exports.run = async (interaction) => {
     }
     const statsEmbed = new Discord.EmbedBuilder()
         .setColor("#36699c")
-        .setTitle(name + " Stats")
+        .setTitle(name + "'s Stats")
         .addFields(
             { name: "ELO", value: elo.toString(), inline: true },
             { name: "Wins", value: wins.toString(), inline: true },
