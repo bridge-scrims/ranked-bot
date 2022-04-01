@@ -7,7 +7,7 @@ const { clientId, guildId, token } = require('./config/config.json');
 
 const commands = [
 	new SlashCommandBuilder().setName('ping').setDescription('Pings @Queue Ping.'),
-	new SlashCommandBuilder().setName('leaderboard').setDescription('Get\'s the leaderboard.').addStringOption(option => option.setName('type').setDescription('The type of leaderboard to display.').addChoices({ name: "ELO", value: "elo" }, { name: "Wins", value: "wins" }, { name: "Losses", value: "losses" }, { name: "Best Winstreak", value: "winstreak" }, { name: "Scorer", value: "score" }, { name: "Worst ELO", value: "worst" }, { name: "Games", value: "games" })),
+	new SlashCommandBuilder().setName('leaderboard').setDescription('Get\'s the leaderboard.').addStringOption(option => option.setName('type').setDescription('The type of leaderboard to display.').addChoices({ name: "ELO", value: "elo" }, { name: "Wins", value: "wins" }, { name: "Losses", value: "losses" }, { name: "Best Winstreak", value: "bestws" }, { name: "Games", value: "games" })),
 	new SlashCommandBuilder().setName('register').setDescription('Registers you on Ranked Bridge.').addStringOption(option => option.setName('ign').setDescription("The Minecraft account to register as.").setRequired(true)),
 	new SlashCommandBuilder().setName('rename').setDescription('Renames your account.').addStringOption(option => option.setName('ign').setDescription('The Minecraft account to rename as.').setRequired(true)),
 	new SlashCommandBuilder().setName('screenshare').setDescription('Opens a Screenshare request.').addStringOption(option => option.setName('user').setDescription('The user to screenshare.').setAutocomplete(true).setRequired(true)),

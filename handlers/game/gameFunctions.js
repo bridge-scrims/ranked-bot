@@ -72,6 +72,21 @@ module.exports.insertUser = insertUser;
 module.exports.getUUID = getUUID;
 module.exports.getHypixel = getHypixel;
 
+module.exports.getLeaderboard = getLeaderboard;
+
+async function getLeaderboard(type) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge ORDER BY ${type} DESC LIMIT 10`, (err, rows) => {
+            if (err) throw err;
+            if (!rows[0]) {
+                resolve(null);
+                return;
+            }
+            resolve(rows);
+        });
+    });
+}
+
 async function insertUser(id, name) {
     return new Promise(async function (resolve, reject) {
         let isName = await nameInDb(name);
