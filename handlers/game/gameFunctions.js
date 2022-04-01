@@ -186,6 +186,7 @@ async function updateELO(id, elo) {
 }
 
 async function updateDivision(id) {
+    let elo = await getELO(id);
     let sql;
     if (elo <= 999) {
         sql = `UPDATE rbridge SET division = "COAL" WHERE id='${id}'`;
