@@ -53,11 +53,13 @@ module.exports.getWins = getWins;
 module.exports.getLosses = getLosses;
 module.exports.getWinstreak = getWinstreak;
 module.exports.getBestWinstreak = getBestWinstreak;
+module.exports.getStats = getStats;
 
 module.exports.setWins = setWins;
 module.exports.setLosses = setLosses;
 module.exports.setWinstreak = setWinstreak;
 module.exports.setBestwinstreak = setBestwinstreak;
+module.exports.updateDivision = updateDivision;
 
 module.exports.getTotalGames = getTotalGames;
 module.exports.insertGame = insertGame;
@@ -183,6 +185,28 @@ async function updateELO(id, elo) {
     });
 }
 
+async function updateDivision(id) {
+    let sql;
+    if (elo <= 999) {
+        sql = `UPDATE rbridge SET division = "COAL" WHERE id='${id}'`;
+    } else if (elo < 1100 && elo >= 1000) {
+        sql = `UPDATE rbridge SET division = "IRON" WHERE id='${id}'`;
+    } else if (elo < 1200 && elo >= 1100) {
+        sql = `UPDATE rbridge SET division = "GOLD" WHERE id='${id}'`;
+    } else if (elo < 1400 && elo >= 1200) {
+        sql = `UPDATE rbridge SET division = "DIAMOND" WHERE id='${id}'`;
+    } else if (elo < 1600 && elo >= 1400) {
+        sql = `UPDATE rbridge SET division = "EMERALD" WHERE id='${id}'`;
+    } else if (elo < 1800 && elo >= 1600) {
+        sql = `UPDATE rbridge SET division = "OBSIDIAN" WHERE id='${id}'`;
+    } else if (elo >= 1800) {
+        sql = `UPDATE rbridge SET division = "CRYSTAL" WHERE id='${id}'`;
+    } else if (elo < 1000) {
+        sql = `UPDATE rbridge SET division = "COAL" WHERE id='${id}'`;
+    }
+    con.query(sql);
+}
+
 async function fixRoles(interaction, id) {
     let elo = await getELO(id);
     let user = await getUser(interaction.guild, id);
@@ -265,7 +289,7 @@ async function fixName(interaction, id) {
     let name = await getName(id);
     let nick = member.displayName;
     if (nick.includes("[") && !nick.includes("(")) {
-        interaction.guild.members.fetch(id).then((user) => user.setNickname("[" + elo + "] " + namee)).catch((err) => console.error(err));;
+        interaction.guild.members.fetch(id).then((user) => user.setNickname("[" + elo + "] " + name)).catch((err) => console.error(err));;
     } else if (nick.includes("[") && nick.includes("(")) {
         let split = nick.split(" ");
         let restNick = split[1] + " " + split[2];
@@ -335,6 +359,18 @@ function getELO(id) {
             }
     
             resolve(rows[0].elo);
+        });
+    });
+}
+
+function getStats(id) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge WHERE id = '${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(null);
+            }
+            resolve(rows[0]);
         });
     });
 }

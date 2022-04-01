@@ -9,15 +9,7 @@ module.exports.run = async (interaction) => {
     let isIG = false;
     for (let i = 0; i < variables.curGames.length; i++) {
         if (variables.curGames[i][0] === interaction.member.id) {
-            if (variables.curGames[i][1] != interaction.channel.id) {
-                isIG = true;
-                const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
-                    .setDescription("You can only use `/score` in your game channel (<#" + variables.curGames[i][1] + ">)!")
-                    .setTimestamp();
-                interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-                break;
-            } else {
+            if (variables.curGames[i][1] === interaction.channel.id) {
                 isIG = true;
                 let canScore = true;
                 for (var j = 0; j < variables.score.length; j++) {

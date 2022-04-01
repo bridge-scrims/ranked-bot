@@ -102,15 +102,18 @@ module.exports.run = async (interaction) => {
                 let lBestws = await gameFunctions.getBestWinstreak(loser);
                 let lGames = await gameFunctions.getGames(loser);
                 
-                await gameFunctions.setWins(winner, wWins++);
-                await gameFunctions.setLosses(loser, lLosses++);
-                await gameFunctions.setWinstreak(winner, wWs++);
+                await gameFunctions.setWins(winner, wWins + 1);
+                await gameFunctions.setLosses(loser, lLosses + 1);
+                await gameFunctions.setWinstreak(winner, wWs + 1);
                 await gameFunctions.setWinstreak(loser, 0);
                 if (wWs > wBestws) {
                     await gameFunctions.setBestwinstreak(winner, wWs);
                 }
-                await gameFunctions.setGames(winner, wGames++);
-                await gameFunctions.setGames(loser, lGames++);
+                await gameFunctions.setGames(winner, wGames + 1);
+                await gameFunctions.setGames(loser, lGames + 1);
+
+                await gameFunctions.updateDivision(winner);
+                await gameFunctions.updateDivision(loser);
 
                 await gameFunctions.setGame(winner, loser, calcElo[0], calcElo[1], gameNum);
 

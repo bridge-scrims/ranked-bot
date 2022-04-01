@@ -12,7 +12,7 @@ const commands = [
 	new SlashCommandBuilder().setName('rename').setDescription('Renames your account.').addStringOption(option => option.setName('ign').setDescription('The Minecraft account to rename as.').setRequired(true)),
 	new SlashCommandBuilder().setName('screenshare').setDescription('Opens a Screenshare request.').addStringOption(option => option.setName('user').setDescription('The user to screenshare.').setAutocomplete(true).setRequired(true)),
 	new SlashCommandBuilder().setName('report').setDescription('Opens a report ticket.').addStringOption(option => option.setName('user').setDescription('The user to report.').setAutocomplete(true).setRequired(true)),
-	new SlashCommandBuilder().setName('stats').setDescription('Get\'s an user\'s stats.').addStringOption(option => option.setName('user').setDescription('The user to get the stats for.').setAutocomplete(true).setRequired(true)),
+	new SlashCommandBuilder().setName('stats').setDescription('Get\'s an user\'s stats.').addStringOption(option => option.setName('user').setDescription('The user to get the stats for.').setAutocomplete(true)),
 	new SlashCommandBuilder().setName('void').setDescription('Send\'s a void request.'),
 	new SlashCommandBuilder().setName('call').setDescription('Call\'s an user.').addUserOption(option => option.setName('user').setDescription('The user to call.').setRequired(true)),
 	new SlashCommandBuilder().setName('score').setDescription('Sends a score request.').addAttachmentOption(option => option.setName('screenshot').setDescription('The screenshot to attach.').setRequired(true)),
