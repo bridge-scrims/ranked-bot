@@ -19,7 +19,29 @@ module.exports.run = async (interaction) => {
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         return;
     }
-    let description = `
-    1. ${lb[0].name}
-    `;
+    let lbDesc = "```";
+    for (let i = 1; i < 10; i++) {
+        if (type === "elo") {
+            lbDesc += `${i.toString().padEnd(2, " ")}${lb[i].name.toString().padEnd(17, " ")} ${lb[i].elo.toString().padEnd(4, " ")}\n`;
+        }
+        if (type === "wins") {
+            lbDesc += `${i.toString().padEnd(2, " ")}${lb[i].name.toString().padEnd(17, " ")} ${lb[i].wins.toString().padEnd(4, " ")}\n`;            
+        }
+        if (type === "losses") {
+            lbDesc += `${i.toString().padEnd(2, " ")}${lb[i].name.toString().padEnd(17, " ")} ${lb[i].losses.toString().padEnd(4, " ")}\n`;
+        }
+        if (type === "bestws") {
+            lbDesc += `${i.toString().padEnd(2, " ")}${lb[i].name.toString().padEnd(17, " ")} ${lb[i].bestws.toString().padEnd(4, " ")}\n`;
+        }
+        if (type === "games") {
+            lbDesc += `${i.toString().padEnd(2, " ")}${lb[i].name.toString().padEnd(17, " ")} ${lb[i].games.toString().padEnd(4, " ")}\n`;
+        }
+    }
+    lbDesc = lbDesc + "```";
+    const successEmbed = new Discord.EmbedBuilder()
+        .setColor('#36699c')
+        .setTitle("Leaderboard")
+        .setDescription(lbDesc)
+        .setTimestamp();
+    interaction.reply({ embeds: [successEmbed] });
 };
