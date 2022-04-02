@@ -262,8 +262,7 @@ async function nameInDb(name) {
     });
 }
 
-async function insertGame(id, id2) {
-    let gameId = await getTotalGames();
+async function insertGame(id, id2, gameId) {
     con.query(`INSERT INTO games (winnerid, loserid, winnerelo, loserelo, gameid) VALUES ('${id}', '${id2}', 0, 0, ${gameId})`, (err) => {
         if (err) throw err;
     });
@@ -296,7 +295,6 @@ function getTotalGames() {
             if (!rows || rows.length === 0) {
                 resolve(null);
             }
-    
             resolve(rows[rows.length - 1].gameid);
         });
     });
@@ -712,8 +710,9 @@ async function makeChannel(message, id, id2) {
     await message.guild.members.fetch(id).then(async (user) => {
         await message.guild.members.fetch(id2).then(async (user2) => {
             console.log("Starting a game for ".yellow + user.user.tag + " and ".yellow + user2.user.tag + "...".yellow);
-            variables.games.push(await getTotalGames());
-            const gameId = variables.games.length;
+            let gameId = await getTotalGames();
+            gameId = parseInt(gameId + 1);
+            console.log(gameId);
 
             await message.guild.channels.create("game-" + gameId, {
                 permissionOverwrites: [
@@ -823,7 +822,7 @@ async function makeChannel(message, id, id2) {
                 .setTimestamp()
             message.guild.channels.cache.get(messageChannel).send({ content: "<@" + id + "> <@" + id2 + ">", embeds: [channelEmbed] });
 
-            await insertGame(id, id2);
+            await insertGame(id, id2, gameId);
 
             variables.curGames.push([id, messageChannel]);
             variables.curGames.push([id2, messageChannel]);
