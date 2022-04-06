@@ -24,7 +24,12 @@ module.exports.run = async (interaction) => {
             return;
         }
         if (!functions.exists(variables.pingCooldown, interaction.member.id)) {
-            interaction.reply("<@&" + roles.queuePing + ">");
+            const pingEmbed = new Discord.EmbedBuilder()
+                .setColor("#36699c")
+                .setDescription("Pinged <@&" + roles.queuePing + ">.")
+                .setTimestamp();
+            interaction.reply({ embeds: [pingEmbed], ephemeral: true });
+            interaction.channel.send("<@&" + roles.queuePing + ">");
             variables.pingCooldown.push(interaction.member.id);
             setTimeout(function() {
                 for (let i = 0; i < variables.pingCooldown.length; i++) {

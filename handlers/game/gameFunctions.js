@@ -41,6 +41,7 @@ module.exports.getGames = getGames;
 module.exports.setGames = setGames;
 
 module.exports.screenshareUser = screenshareUser;
+module.exports.supportTicket = supportTicket;
 
 module.exports.calcElo = calcElo;
 module.exports.updateELO = updateELO;
@@ -82,6 +83,8 @@ module.exports.getHypixel = getHypixel;
 module.exports.getLeaderboard = getLeaderboard;
 
 module.exports.runLoops = runLoops;
+
+module.exports.queuePing = queuePing;
 
 async function runLoops(guild) {
     joinVoiceChannel({ channelId: channels.queueChannel, guildId: guild.id, adapterCreator: guild.voiceAdapterCreator });
@@ -414,7 +417,10 @@ async function fixName(interaction, id) {
         interaction.guild.members.fetch(id).then((user) => user.setNickname("[" + elo + "] " + name)).catch((err) => console.error(err));;
     } else if (nick.includes("[") && nick.includes("(")) {
         let split = nick.split(" ");
-        let restNick = split[1] + " " + split[2];
+        let restNick = "";
+        for (let i = 0; i < split.length; i++) {
+            restNick += split[i];
+        }
         interaction.guild.members.fetch(id).then((user) => user.setNickname("[" + elo + "] " + restNick).catch((e) => console.log("Error setting the nickname!")));
     }
 }
@@ -617,6 +623,56 @@ async function setGames(id, games) {
                 resolve(false);
             }
             resolve(true);
+        });
+    });
+}
+
+async function queuePing(guild, member) {
+    return new Promise(async function (resolve, reject) {
+        var role = guild.roles.cache.get(roles.queuePing);
+        if (!member.roles.cache.has(role.id)) {
+            member.roles.add(role);
+            resolve(false);
+        } else {
+            member.roles.remove(role);
+            resolve(true);
+        }
+    });
+}
+
+async function supportTicket(guild, member) {
+    return new Promise(async function (resolve, reject) {
+        let name = member.user.username;
+        guild.channels.create("support-" + name, {
+            permissionOverwrites: [
+                {
+                    id: guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                    deny: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'], //Deny permissions
+                },
+                {
+                    // But allow the two users to view the channel, send messages, and read the message history.
+                    id: member.id,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                },
+                {
+                    id: roles.staff,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                },
+            ],
+        }).then((msg) => {
+            msg.send("<@&" + roles.staff + ">").then((message) => {
+                if (message != undefined) {
+                    message.delete();
+                }
+            });
+            var channelID = msg.id;
+            const supportEmbed = new Discord.EmbedBuilder()
+                .setColor("#36699c")
+                .setTitle(`Please state your issue!`)
+                .setDescription("Staff will be with you shortly.")
+                .setTimestamp();
+            msg.send({ embeds: [supportEmbed], content: "<@&" + member.id + ">" });
+            resolve(channelID);
         });
     });
 }

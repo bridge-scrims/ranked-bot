@@ -2,6 +2,8 @@
 const variables = require("../../handlers/variables.js");
 const roles = require("../../config/roles.json");
 
+const gameFunctions = require("../../handlers/game/gameFunctions.js");
+
 const Discord = require("discord.js");
 const mysql = require("mysql");
 
@@ -46,6 +48,34 @@ module.exports = async (client, interaction) => {
     }
 
     if (interaction.isButton()) {
+        if (interaction.customId === "queue-ping") {
+            await interaction.deferReply({ ephemeral: true });
+            let hasRole = await gameFunctions.queuePing(interaction.guild, interaction.member);
+            if (!hasRole) {
+                const supportEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("Gave you the <@&" + roles.queuePing + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [supportEmbed], ephemeral: true });
+            } else {
+                const supportEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Removed the <@&" + roles.queuePing + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [supportEmbed], ephemeral: true });
+            }
+        }
+        if (interaction.customId === "support") {
+            await interaction.deferReply({ ephemeral: true });
+            let channelId = await gameFunctions.supportTicket(interaction.guild, interaction.member);
+            if (channelId) {
+                const supportEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("<#" + channelId + ">")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [supportEmbed], ephemeral: true });
+            }
+        }
         if (interaction.customId === "score") {
             await interaction.deferReply({ ephemeral: true });
             let canScore = false;

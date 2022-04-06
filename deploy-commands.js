@@ -16,6 +16,14 @@ const commands = [
 	new SlashCommandBuilder().setName('void').setDescription('Send\'s a void request.'),
 	new SlashCommandBuilder().setName('call').setDescription('Call\'s an user.').addUserOption(option => option.setName('user').setDescription('The user to call.').setRequired(true)),
 	new SlashCommandBuilder().setName('score').setDescription('Sends a score request.').addAttachmentOption(option => option.setName('screenshot').setDescription('The screenshot to attach.').setRequired(true)),
+	new SlashCommandBuilder().setName('nick').setDescription('Set\'s your nick.')
+		.addSubcommand(
+			subcommand => subcommand.setName("set").setDescription("Set your nick.")
+			.addStringOption(option => option.setName('nick').setDescription('The nick to set.').setRequired(true)),
+		)
+		.addSubcommand(
+			subcommand => subcommand.setName("hide").setDescription("Hides your nick.")
+		),
 	new SlashCommandBuilder().setName('ban').setDescription('Bans an user.')
 		.addStringOption(option => option.setName('user').setDescription('Select an user').setRequired(true).setAutocomplete(true))
 		.addIntegerOption(option => option.setName('days').setDescription('The amount of days to ban the user for.').setRequired(true))
