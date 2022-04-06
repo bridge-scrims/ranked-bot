@@ -23,11 +23,22 @@ const commands = [
 		)
 		.addSubcommand(
 			subcommand => subcommand.setName("hide").setDescription("Hides your nick.")
+		)
+		.addSubcommand(
+			subcommand => subcommand.setName("reset").setDescription("Resets your nick.")
 		),
+	new SlashCommandBuilder().setName('purge').setDescription('Purges an user.')
+		.addStringOption(option => option.setName('user').setDescription('Select an user').setRequired(true).setAutocomplete(true)),
 	new SlashCommandBuilder().setName('ban').setDescription('Bans an user.')
 		.addStringOption(option => option.setName('user').setDescription('Select an user').setRequired(true).setAutocomplete(true))
 		.addIntegerOption(option => option.setName('days').setDescription('The amount of days to ban the user for.').setRequired(true))
 		.addStringOption(option => option.setName('reason').setDescription('Reason for banning them.')),
+	new SlashCommandBuilder().setName('mute').setDescription('Mutes an user.')
+		.addUserOption(option => option.setName('user').setDescription('Select an user').setRequired(true))
+		.addIntegerOption(option => option.setName('minutes').setDescription('The amount of minutes to mute the user for.').setRequired(true))
+		.addStringOption(option => option.setName('reason').setDescription('Reason for muting them.')),
+	new SlashCommandBuilder().setName('unmute').setDescription('Unmutes an user.')
+		.addUserOption(option => option.setName('user').setDescription('Select an user').setRequired(true)),
 	new SlashCommandBuilder().setName('unban').setDescription('Unbans an user.')
 		.addSubcommand(
 			subcommand => subcommand.setName("unban").setDescription("Arguments for the unban command.")
@@ -42,6 +53,8 @@ const commands = [
 	new SlashCommandBuilder().setName('fregister').setDescription('Force registers an user.')
 		.addUserOption(option => option.setName('user').setDescription("The user to register.").setRequired(true))
 		.addStringOption(option => option.setName('ign').setDescription("The Minecraft account to register as.").setRequired(true)),
+	new SlashCommandBuilder().setName('fix').setDescription('Fixes an user\'s nick and roles.')
+		.addUserOption(option => option.setName('user').setDescription("The user to fix.").setRequired(true))
 ]
 	.map(command => command.toJSON());
 

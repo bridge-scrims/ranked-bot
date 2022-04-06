@@ -53,6 +53,7 @@ module.exports.getUser = getUser;
 
 module.exports.fixRoles = fixRoles;
 module.exports.fixName = fixName;
+module.exports.resetName = resetName;
 
 module.exports.getWins = getWins;
 module.exports.getLosses = getLosses;
@@ -65,6 +66,8 @@ module.exports.setLosses = setLosses;
 module.exports.setWinstreak = setWinstreak;
 module.exports.setBestwinstreak = setBestwinstreak;
 module.exports.updateDivision = updateDivision;
+module.exports.updateName = updateName;
+module.exports.setUserGames = setUserGames;
 
 module.exports.getTotalGames = getTotalGames;
 module.exports.insertGame = insertGame;
@@ -76,6 +79,9 @@ module.exports.insertUser = insertUser;
 module.exports.isBanned = isBanned;
 module.exports.banUser = banUser;
 module.exports.unbanUser = unbanUser;
+module.exports.purgeUser = purgeUser;
+module.exports.muteUser = muteUser;
+module.exports.unmuteUser = unmuteUser;
 
 module.exports.getUUID = getUUID;
 module.exports.getHypixel = getHypixel;
@@ -115,10 +121,17 @@ async function runLoops(guild) {
     }, 100000);
 }
 
+async function purgeUser(id) {
+    con.query(`DELETE FROM rbridge WHERE id = '${id}'`, (erre, row) => {
+        if (erre) throw erre;
+    });
+}
+
 async function unbanUser(guild, id, reason) {
     let role = await getRole(guild, roles.banned);
     let unverified = await getRole(guild, roles.unverified);
     let user = await getUser(guild, id);
+    
     let name = await getName(id);
 
     con.query(`DELETE FROM banned WHERE id = '${id}'`, (erre, row) => {
@@ -146,7 +159,7 @@ async function banUser(guild, id, days, reason) {
     let currentTime = Date.now() + days * 86400000;
     con.query(`SELECT * FROM banned WHERE id = '${id}'`, (err, rows) => {
         if (!rows.length === 0) {
-            sql = `INSERT INTO banned (id, name, time) VALUES ('${id}', '${name}', '${currentTime}')`;
+            let sql = `INSERT INTO banned (id, name, time) VALUES ('${id}', '${name}', '${currentTime}')`;
             con.query(sql);
             console.log("Inserted ".green + name + " into ban table.".green);
         } else {
@@ -170,6 +183,53 @@ async function banUser(guild, id, days, reason) {
         .setDescription("User: <@" + id + ">\nTime: `" + days + " days`.\nReason: ```" + reason + "```")
         .setTimestamp();
     guild.channels.cache.get(channels.bansChannel).send({ embeds: [banEmbed] });
+}
+
+async function unmuteUser(guild, id) {
+    let role = await getRole(guild, roles.muted);
+    let user = await getUser(guild, id);
+
+    let name;
+    if (user != undefined) {
+        user.roles.remove(role);
+        name = user.user.tag;
+    } else {
+        name = "Unknown";
+    }
+
+    const muteEmbed = new Discord.EmbedBuilder()
+        .setColor("#2f3136")
+        .setTitle(name + " is now unmuted")
+        .setTimestamp();
+    guild.channels.cache.get(channels.punishmentsChannel).send({ embeds: [muteEmbed] });
+}
+
+async function muteUser(guild, id, minutes, reason) {
+    let role = await getRole(guild, roles.muted);
+    let user = await getUser(guild, id);
+
+    let name;
+    if (user != undefined) {
+        user.roles.add(role);
+        name = user.user.tag;
+    } else {
+        name = "Unknown";
+    }
+
+    const muteEmbed = new Discord.EmbedBuilder()
+        .setColor("#2f3136")
+        .setTitle(name + " recieved a mute")
+        .setDescription("User: <@" + id + ">\nTime: `" + minutes + " minutes`.\nReason: ```" + reason + "```")
+        .setTimestamp();
+    guild.channels.cache.get(channels.punishmentsChannel).send({ embeds: [muteEmbed] });
+
+    setTimeout(async function() {
+        let user = await getUser(guild, id);
+        if (!user) {
+            return;
+        }
+        user.roles.remove(role);
+    }, minutes * 60000);
 }
 
 async function isBanned(id) {
@@ -215,6 +275,12 @@ async function insertUser(id, name) {
     });
 }
 
+async function updateName(id, name) {
+    con.query(`UPDATE rbridge SET id='${id}' WHERE name='${name}'`, (err, rows) => {
+        if (err) return console.error(err);
+    });
+}
+
 async function getUUID(username) {
     return new Promise(async function (resolve, reject) {
         let uuidURL = "https://api.mojang.com/users/profiles/minecraft/" + username;
@@ -245,6 +311,7 @@ async function isInDb(id) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(false);
+                return;
             }
     
             resolve(true);
@@ -258,6 +325,7 @@ async function nameInDb(name) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(false);
+                return;
             }
     
             resolve(true);
@@ -297,6 +365,7 @@ function getTotalGames() {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(null);
+                return;
             }
             resolve(rows[rows.length - 1].gameid);
         });
@@ -335,7 +404,6 @@ async function updateDivision(id) {
 async function fixRoles(interaction, id) {
     let elo = await getELO(id);
     let user = await getUser(interaction.guild, id);
-
     let coal = await getRole(interaction.guild, roles.coalDivision);
     let iron = await getRole(interaction.guild, roles.ironDivision);
     let gold = await getRole(interaction.guild, roles.goldDivision);
@@ -408,8 +476,21 @@ async function fixRoles(interaction, id) {
     }
 }
 
+async function resetName(interaction, id) {
+    let member = await getUser(interaction.guild, id);
+    if (!member) {
+        return;
+    }
+    let elo = await getELO(id);
+    let name = await getName(id);
+    member.setNickname("[" + elo + "] " + name);
+}
+
 async function fixName(interaction, id) {
     let member = await getUser(interaction.guild, id);
+    if (!member) {
+        return;
+    }
     let elo = await getELO(id);
     let name = await getName(id);
     let nick = member.displayName;
@@ -428,7 +509,12 @@ async function fixName(interaction, id) {
 async function getUser(guild, id) {
     return new Promise(async function (resolve, reject) {
         await guild.members.fetch(id).then((user) => {
+            if (!user) {
+                resolve(null);
+                return;
+            }
             resolve(user);
+            return;
         }).catch((err) => {
             console.error(err);
             reject(err);
@@ -440,6 +526,7 @@ async function getRole(guild, id) {
     return new Promise(async function (resolve, reject) {
         await guild.roles.fetch(id).then((role) => {
             resolve(role);
+            return;
         }).catch((err) => {
             console.error(err);
             reject(err);
@@ -471,6 +558,7 @@ async function getName(id) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(null);
+                return;
             }
     
             resolve(rows[0].name);
@@ -484,6 +572,7 @@ function getELO(id) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(null);
+                return;
             }
     
             resolve(rows[0].elo);
@@ -497,6 +586,7 @@ function getStats(id) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(null);
+                return;
             }
             resolve(rows[0]);
         });
@@ -509,6 +599,7 @@ async function getWins(id) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(null);
+                return;
             }
     
             resolve(rows[0].wins);
@@ -522,6 +613,7 @@ async function getLosses(id) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(null);
+                return;
             }
     
             resolve(rows[0].losses);
@@ -535,6 +627,7 @@ async function getWinstreak(id) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(null);
+                return;
             }
     
             resolve(rows[0].winstreak);
@@ -548,6 +641,7 @@ async function getBestWinstreak(id) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(null);
+                return;
             }
     
             resolve(rows[0].bestws);
@@ -561,6 +655,7 @@ async function getGames(id) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(null);
+                return;
             }
             resolve(rows[0].games);
         });
@@ -573,6 +668,7 @@ async function setWins(id, wins) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(false);
+                return;
             }
             resolve(true);
         });
@@ -585,6 +681,7 @@ async function setLosses(id, losses) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(false);
+                return;
             }
             resolve(true);
         });
@@ -597,6 +694,7 @@ async function setWinstreak(id, winstreak) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(false);
+                return;
             }
             resolve(true);
         });
@@ -609,18 +707,21 @@ async function setBestwinstreak(id, bestws) {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(false);
+                return;
             }
             resolve(true);
         });
     });
 }
 
-async function setGames(id, games) {
+async function setUserGames(id, games) {
+    console.log("Setting " + id + "'s games to " + games);
     return new Promise(async function (resolve, reject) {
         con.query(`UPDATE rbridge SET games = ${games} WHERE id='${id}'`, (err, rows) => {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(false);
+                return;
             }
             resolve(true);
         });
@@ -633,6 +734,7 @@ async function queuePing(guild, member) {
         if (!member.roles.cache.has(role.id)) {
             member.roles.add(role);
             resolve(false);
+            return;
         } else {
             member.roles.remove(role);
             resolve(true);
@@ -768,7 +870,6 @@ async function makeChannel(message, id, id2) {
             console.log("Starting a game for ".yellow + user.user.tag + " and ".yellow + user2.user.tag + "...".yellow);
             let gameId = await getTotalGames();
             gameId = parseInt(gameId + 1);
-            console.log(gameId);
 
             await message.guild.channels.create("game-" + gameId, {
                 permissionOverwrites: [

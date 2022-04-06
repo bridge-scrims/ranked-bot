@@ -45,42 +45,51 @@ module.exports.run = async (interaction) => {
     }
     let file;
     let imageLink;
+    let color;
     if (division === "COAL") {
         file = new Discord.MessageAttachment("./images/coal.png");
         imageLink = "attachment://coal.png";
+        color = "#1a1a1a";
     } else if (division === "IRON") {
         file = new Discord.MessageAttachment("./images/iron.png");
         imageLink = "attachment://iron.png";
+        color = "#c2c2c2";
     } else if (division === "GOLD") {
         file = new Discord.MessageAttachment("./images/gold.png");
         imageLink = "attachment://gold.png";
+        color = "#f0df48";
     } else if (division === "DIAMOND") {
         file = new Discord.MessageAttachment("./images/diamond.png");
         imageLink = "attachment://diamond.png";
+        color = "#64e3da";
     } else if (division === "EMERALD") {
         file = new Discord.MessageAttachment("./images/emerald.png");
         imageLink = "attachment://emerald.png";
+        color = "#6ee364";
     } else if (division === "OBSIDIAN") {
         file = new Discord.MessageAttachment("./images/obsidian.png");
         imageLink = "attachment://obsidian.png";
+        color = "#1d0024";
     } else if (division === "CRYSTAL") {
         file = new Discord.MessageAttachment("./images/crystal.png");
         imageLink = "attachment://crystal.png";
+        color = "#fca9f4";
     } else {
         file = new Discord.MessageAttachment("../images/coal.png");
         imageLink = "attachment://coal.png";
+        color = "#1a1a1a";
     }
     const statsEmbed = new Discord.EmbedBuilder()
-        .setColor("#36699c")
+        .setColor(color)
         .setTitle(name + "'s Stats")
         .addFields(
-            { name: "ELO", value: elo.toString(), inline: true },
-            { name: "Wins", value: wins.toString(), inline: true },
-            { name: "Losses", value: losses.toString(), inline: true },
-            { name: "Winstreak", value: winstreak.toString(), inline: true },
-            { name: "Best Winstreak", value: bestws.toString(), inline: true },
-            { name: "Games Played", value: games.toString(), inline: true },
-            { name: "W/L", value: wl.toString(), inline: true },
+            { name: "ELO", value: "`" + elo.toString() + "` ELO" },
+            { name: "Wins", value: "`" + wins.toString() + "` Wins" },
+            { name: "Losses", value: "`" + losses.toString() + "` Losses" },
+            { name: "Winstreak", value: "`" + winstreak.toString() + "` Winstreak" },
+            { name: "Best Winstreak", value: "`" + bestws.toString() + "` Winstreak" },
+            { name: "Games Played", value: "`" + games.toString() + "` Games" },
+            { name: "W/L", value: "`" + wl.toString() + "` W/L" },
         )
         .setThumbnail(imageLink)
         .setImage("https://mc-heads.net/body/" + uuid.uuid + "/right")

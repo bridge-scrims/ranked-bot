@@ -8,6 +8,24 @@ const roles = require("../../config/roles.json");
 module.exports.run = async (interaction) => {
     if (interaction.member.roles.cache.has(roles.booster) || interaction.member.roles.cache.has(roles.boosterPerks)) {
         let curNick = interaction.member.displayName;
+        if (interaction.options.getSubcommand() === 'reset') {
+            let isDb = await gameFunctions.isInDb(interaction.member.id);
+            if (!isDb) {
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor("#a84040")
+                    .setDescription("You aren't registered! To reset your nick, please register in <#" + channels.registerChannel + ">.\n\nIf you're already registered, please contact <@" + roles.staff + ">.")
+                    .setTimestamp();
+                interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+                return;
+            }
+            await gameFunctions.resetName(interaction, interaction.member.id);
+            await gameFunctions.fixRoles(interaction, interaction.member.id);
+            const successEmbed = new Discord.EmbedBuilder()
+                .setColor("#36699c")
+                .setDescription("Reset your nick.")
+                .setTimestamp();
+            interaction.reply({ embeds: [successEmbed], ephemeral: true });
+        }
         if (interaction.options.getSubcommand() === 'set') {
             let nick = interaction.options.getString("nick");
             if (nick.length > 20) {
@@ -27,6 +45,11 @@ module.exports.run = async (interaction) => {
                     return;
                 }
                 if (curNick.startsWith("[")) {
+                    if (curNick.endsWith(")")) {
+                        let elo = await gameFunctions.getELO(interaction.member.id);
+                        let name = await gameFunctions.getName(interaction.member.id);
+                        curNick = "[" + elo + "] " + name;
+                    }
                     interaction.member.setNickname(curNick + " (" + nick + ")");
                     const nickEmbed = new Discord.EmbedBuilder()
                         .setColor("#36699c")
@@ -34,6 +57,10 @@ module.exports.run = async (interaction) => {
                         .setTimestamp();
                         interaction.reply({ embeds: [nickEmbed], ephemeral: true });
                 } else {
+                    if (curNick.endsWith(")")) {
+                        let name = await gameFunctions.getName(interaction.member.id);
+                        curNick = name;
+                    }
                     interaction.member.setNickname(curNick + " (" + nick + ")");
                     const nickEmbed = new Discord.EmbedBuilder()
                         .setColor("#36699c")

@@ -5,3 +5,111 @@
 [4/1/2022[12:9:4]] [Fri Apr 01 2022 11:08:03] - Shard #0 Reconnecting...
 [4/1/2022[14:28:33]] [Fri Apr 01 2022 13:27:32] - Shard #0 Reconnecting...
 [4/1/2022[14:28:33]] [Fri Apr 01 2022 13:27:32] - Shard #0 Reconnecting...
+[4/6/2022[14:19:48]] issues::[object Object]
+format::() => {
+            const fieldErrors = { _errors: [] };
+            const processError = (error) => {
+                for (const issue of error.issues) {
+                    if (issue.code === "invalid_union") {
+                        issue.unionErrors.map(processError);
+                    }
+                    else if (issue.code === "invalid_return_type") {
+                        processError(issue.returnTypeError);
+                    }
+                    else if (issue.code === "invalid_arguments") {
+                        processError(issue.argumentsError);
+                    }
+                    else if (issue.path.length === 0) {
+                        fieldErrors._errors.push(issue.message);
+                    }
+                    else {
+                        let curr = fieldErrors;
+                        let i = 0;
+                        while (i < issue.path.length) {
+                            const el = issue.path[i];
+                            const terminal = i === issue.path.length - 1;
+                            if (!terminal) {
+                                if (typeof el === "string") {
+                                    curr[el] = curr[el] || { _errors: [] };
+                                }
+                                else if (typeof el === "number") {
+                                    const errorArray = [];
+                                    errorArray._errors = [];
+                                    curr[el] = curr[el] || errorArray;
+                                }
+                            }
+                            else {
+                                curr[el] = curr[el] || { _errors: [] };
+                                curr[el]._errors.push(issue.message);
+                            }
+                            curr = curr[el];
+                            i++;
+                        }
+                    }
+                }
+            };
+            processError(this);
+            return fieldErrors;
+        }
+addIssue::(sub) => {
+            this.issues = [...this.issues, sub];
+        }
+addIssues::(subs = []) => {
+            this.issues = [...this.issues, ...subs];
+        }
+name::ZodError
+
+[4/6/2022[14:19:60]] issues::[object Object]
+format::() => {
+            const fieldErrors = { _errors: [] };
+            const processError = (error) => {
+                for (const issue of error.issues) {
+                    if (issue.code === "invalid_union") {
+                        issue.unionErrors.map(processError);
+                    }
+                    else if (issue.code === "invalid_return_type") {
+                        processError(issue.returnTypeError);
+                    }
+                    else if (issue.code === "invalid_arguments") {
+                        processError(issue.argumentsError);
+                    }
+                    else if (issue.path.length === 0) {
+                        fieldErrors._errors.push(issue.message);
+                    }
+                    else {
+                        let curr = fieldErrors;
+                        let i = 0;
+                        while (i < issue.path.length) {
+                            const el = issue.path[i];
+                            const terminal = i === issue.path.length - 1;
+                            if (!terminal) {
+                                if (typeof el === "string") {
+                                    curr[el] = curr[el] || { _errors: [] };
+                                }
+                                else if (typeof el === "number") {
+                                    const errorArray = [];
+                                    errorArray._errors = [];
+                                    curr[el] = curr[el] || errorArray;
+                                }
+                            }
+                            else {
+                                curr[el] = curr[el] || { _errors: [] };
+                                curr[el]._errors.push(issue.message);
+                            }
+                            curr = curr[el];
+                            i++;
+                        }
+                    }
+                }
+            };
+            processError(this);
+            return fieldErrors;
+        }
+addIssue::(sub) => {
+            this.issues = [...this.issues, sub];
+        }
+addIssues::(subs = []) => {
+            this.issues = [...this.issues, ...subs];
+        }
+name::ZodError
+

@@ -47,17 +47,19 @@ module.exports.run = async (interaction) => {
 
                     if (!isDb) {
                         await gameFunctions.insertUser(interaction.member.id, data.name);
+                        let uuid = await gameFunctions.getUUID(data.name);
                         const successEmbed = new Discord.EmbedBuilder()
                             .setColor('#36699c')
-                            .setDescription("Registered you as `" + data.name + "`!")
+                            .setAuthor({ name: "Registered you as " + data.name + "!", iconURL: "https://mc-heads.net/avatar/" + uuid.uuid + "/64"})
                             .setTimestamp();
                         interaction.reply({ embeds: [successEmbed], ephemeral: true });
                         interaction.member.setNickname("[1000] " + data.name);
                         return;
                     } else {
+                        let uuid = await gameFunctions.getUUID(data.name);
                         const successEmbed = new Discord.EmbedBuilder()
                             .setColor('#36699c')
-                            .setDescription("Welcome back `" + data.name + "`!")
+                            .setAuthor({ name: "Welcome back " + data.name + "!", iconURL: "https://mc-heads.net/avatar/" + uuid.uuid + "/64"})
                             .setTimestamp();
                         interaction.reply({ embeds: [successEmbed], ephemeral: true });
                         let elo = await gameFunctions.getELO(interaction.member.id);

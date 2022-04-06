@@ -105,11 +105,11 @@ module.exports.run = async (interaction) => {
             await gameFunctions.setLosses(loser, lLosses + 1);
             await gameFunctions.setWinstreak(winner, wWs + 1);
             await gameFunctions.setWinstreak(loser, 0);
-            if (wWs > wBestws) {
+            if (wWs + 1 > wBestws) {
                 await gameFunctions.setBestwinstreak(winner, wWs);
             }
-            await gameFunctions.setGames(winner, wGames + 1);
-            await gameFunctions.setGames(loser, lGames + 1);
+            await gameFunctions.setUserGames(winner, wGames + 1);
+            await gameFunctions.setUserGames(loser, lGames + 1);
 
             await gameFunctions.updateDivision(winner);
             await gameFunctions.updateDivision(loser);

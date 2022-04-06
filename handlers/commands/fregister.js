@@ -25,6 +25,7 @@ module.exports.run = async (interaction) => {
                 .setTimestamp();
             interaction.reply({ embeds: [successEmbed] });
         } else {
+            const name = await gameFunctions.getName(user.id);
             let memberElo = await gameFunctions.getELO(user.id);
             let member = await gameFunctions.getUser(interaction.guild, user.id);
             let rankedRole = await gameFunctions.getRole(interaction.guild, roles.rankedPlayer);
@@ -32,7 +33,7 @@ module.exports.run = async (interaction) => {
             member.roles.add(rankedRole);
             member.roles.remove(unverifiedRole);
             await gameFunctions.fixRoles(interaction, user.id);
-            member.setNickname("[" + memberElo + "] " + ign);
+            member.setNickname("[" + memberElo + "] " + name);
             const successEmbed = new Discord.EmbedBuilder()
                 .setColor('#36699c')
                 .setDescription("<@" + user.id + "> was already in the database, so fixed their roles and nickname.")
