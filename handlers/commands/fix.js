@@ -20,7 +20,7 @@ module.exports.run = async (interaction) => {
     await gameFunctions.fixRoles(interaction, user.id);
     const successEmbed = new Discord.EmbedBuilder()
         .setColor("#36699c")
-        .setDescription("Fixed <@" + interaction.member.id + ">'s name and roles.")
+        .setDescription("Fixed <@" + user.id + ">'s name and roles.")
         .setTimestamp();
     interaction.reply({ embeds: [successEmbed], ephemeral: true });
 };

@@ -172,17 +172,17 @@ async function banUser(guild, id, days, reason) {
         }
     });
 
-    if (user != undefined) {
-        user.roles.add(role);
-        user.roles.remove(roles.rankedPlayer);
-    }
-
     const banEmbed = new Discord.EmbedBuilder()
         .setColor("#2f3136")
         .setTitle(name + " recieved a ban")
         .setDescription("User: <@" + id + ">\nTime: `" + days + " days`.\nReason: ```" + reason + "```")
         .setTimestamp();
     guild.channels.cache.get(channels.bansChannel).send({ embeds: [banEmbed] });
+    if (!user) return;
+    if (user != undefined) {
+        user.roles.add(role);
+        user.roles.remove(roles.rankedPlayer);
+    }
 }
 
 async function unmuteUser(guild, id) {
@@ -516,8 +516,7 @@ async function getUser(guild, id) {
             resolve(user);
             return;
         }).catch((err) => {
-            console.error(err);
-            reject(err);
+            resolve(null);
         });
     });
 }

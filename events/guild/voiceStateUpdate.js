@@ -1,6 +1,6 @@
 const { range, clientId } = require("../../config/config.json");
 
-const { invisible, rankedPlayer } = require("../../config/roles.json");
+const { ghost, invisible, rankedPlayer } = require("../../config/roles.json");
 // We need roles set up for the config.
 
 // Functions. Need to revise.
@@ -72,7 +72,7 @@ module.exports = async (client, oldState, newState) => {
         if (!isDb) {
             newState.member.guild.channels.cache.get(queueChatChannel).send("<@" + newState.member.id + ">, you're not registered! Register in <#" + registerChannel + ">!");
         }
-        if (!exists(queue, memberId)) {
+        if (!exists(queue, memberId) && !newState.member.roles.cache.has(ghost)) {
             console.log(newState.member.user.tag + " joined the queue VC.".dim);
             // Get the user's ELO
             let userELO = await getELO(memberId);
