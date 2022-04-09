@@ -83,5 +83,12 @@ module.exports.run = async (interaction) => {
                 }
             }
         }
+    } else {
+        const errorEmbed = new Discord.EmbedBuilder()
+            .setColor('#a84040')
+            .setDescription("You don't have permsision to use this command! You need to be an <@" + roles.booster + ">.")
+            .setTimestamp();
+        interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+        return;
     }
 };

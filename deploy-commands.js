@@ -29,6 +29,7 @@ const commands = [
 		),
 	new SlashCommandBuilder().setName('purge').setDescription('Purges an user.')
 		.addStringOption(option => option.setName('user').setDescription('Select an user').setRequired(true).setAutocomplete(true)),
+	
 	new SlashCommandBuilder().setName('ban').setDescription('Bans an user.')
 		.addStringOption(option => option.setName('user').setDescription('Select an user').setRequired(true).setAutocomplete(true))
 		.addIntegerOption(option => option.setName('days').setDescription('The amount of days to ban the user for.').setRequired(true))

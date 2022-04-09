@@ -176,6 +176,95 @@ module.exports = async (client, interaction) => {
                 return;
             }
         }
+
+        if (interaction.customId === "void") {
+            await interaction.deferReply({ ephemeral: true });
+            let canVoid = false;
+            for (let i = 0; i < variables.voids.length; i++) {
+                if (variables.voids[i][1] === interaction.channel.id) {
+                    canVoid = true;
+                    if (variables.voids[i][0] === interaction.member.id) {
+                        const errorEmbed = new Discord.EmbedBuilder()
+                            .setColor('#a84040')
+                            .setDescription("You can't void this game!")
+                            .setTimestamp();
+                        interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                        return;
+                    } else {
+                        variables.voids.splice(i, 1);
+                        for (let j = 0; j < variables.curGames.length; j++) {
+                            if (variables.curGames[j][1] === interaction.channel.id || variables.curGames[j][0] === interaction.member.id) {
+                                variables.curGames.splice(j, 1);
+                            }
+                        }
+                        for (let j = 0; j < variables.curGames.length; j++) {
+                            if (variables.curGames[j][1] === interaction.channel.id || variables.curGames[j][0] === interaction.member.id) {
+                                variables.curGames.splice(j, 1);
+                            }
+                        }
+                        var channelName = interaction.channel.name;
+                        var splitName = channelName.split('-');
+                        var channelNum = splitName[1];
+                        var channel1 = interaction.member.guild.channels.cache.find(c => c.name === "Game " + channelNum + " Team 1");
+                        var channel2 = interaction.member.guild.channels.cache.find(c => c.name === "Game " + channelNum + " Team 2");
+                        if (!channel1) {
+                            interaction.editReply("Couldn't delete channel 1. Ping Scorer Ping.");
+                            return;
+                        }
+                        if (!channel2) {
+                            interaction.editReply("Couldn't delete channel 2. Ping Scorer Ping.");
+                            return;
+                        }
+                        channel1.delete();
+                        channel2.delete();
+                        interaction.channel.delete();
+                        break;
+                    }
+                }
+            }
+            if (!canVoid) {
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("You can't void this game!")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                return;
+            }
+        }
+        if (interaction.customId === "antivoid") {
+            await interaction.deferReply({ ephemeral: true });
+            let canVoid = false;
+            for (let i = 0; i < variables.voids.length; i++) {
+                if (variables.voids[i][1] === interaction.channel.id) {
+                    canVoid = true;
+                    if (variables.voids[i][0] === interaction.member.id) {
+                        const errorEmbed = new Discord.EmbedBuilder()
+                            .setColor('#a84040')
+                            .setDescription("You can't void this game!")
+                            .setTimestamp();
+                        interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                        return;
+                    } else {
+                        variables.voids.splice(i, 1);
+                        interaction.editReply("Done.");
+                        const denyEmbed = new Discord.EmbedBuilder()
+                            .setColor('#a84040')
+                            .setDescription("<@" + interaction.member.id + "> has denied the void request.")
+                            .setTimestamp();
+                        interaction.channel.send({ embeds: [denyEmbed] });
+                        break;
+                    }
+                }
+            }
+            if (!canVoid) {
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("You can't void this game!")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
+                return;
+            }
+        }
     }
 
     // Commands

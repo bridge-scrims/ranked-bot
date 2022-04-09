@@ -21,9 +21,15 @@ let curGames = [];
 // Spliced when /scoregame is used or when user accepts score request.
 let score = [];
 
+// [memberID, game channel id]
+// Pushed when user uses /void.
+// Spliced when /scoregame is used or when user accepts void request.
+let voids = [];
+
 module.exports.queue = queue;
 module.exports.isMoving = isMoving;
 module.exports.pingCooldown = pingCooldown;
 module.exports.games = games;
 module.exports.curGames = curGames;
 module.exports.score = score;
+module.exports.voids = voids;
