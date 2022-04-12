@@ -317,8 +317,7 @@ async function updateName(id, name) {
 
 async function updateIGN(id, name) {
     con.query(`UPDATE rbridge SET name=? WHERE id=?`, [name, id], function (err, rows, fields) {
-        if (err) reject(err);
-        resolve(true);
+        if (err) return console.error(err);
     });
 }
 
