@@ -48,23 +48,318 @@ module.exports = async (client, interaction) => {
     }
 
     if (interaction.isButton()) {
+        if (interaction.customId === "invisible") {
+            await interaction.deferReply({ ephemeral: true });
+            let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.invisible);
+            if (hasRole === null) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@&" + roles.invisible + "> role doesn't exist. Please contact a staff member.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+                return;
+            }
+            if (!hasRole) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("Gave you the <@&" + roles.invisible + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            } else {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Removed the <@&" + roles.invisible + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            }
+        }
+
         if (interaction.customId === "queue-ping") {
             await interaction.deferReply({ ephemeral: true });
-            let hasRole = await gameFunctions.queuePing(interaction.guild, interaction.member);
+            let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.queuePing);
+            if (hasRole === null) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@&" + roles.queuePing + "> role doesn't exist. Please contact a staff member.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+                return;
+            }
             if (!hasRole) {
-                const supportEmbed = new Discord.EmbedBuilder()
+                const pingEmbed = new Discord.EmbedBuilder()
                     .setColor("#58f55d")
                     .setDescription("Gave you the <@&" + roles.queuePing + "> role.")
                     .setTimestamp();
-                interaction.editReply({ embeds: [supportEmbed], ephemeral: true });
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
-                const supportEmbed = new Discord.EmbedBuilder()
+                const pingEmbed = new Discord.EmbedBuilder()
                     .setColor('#a84040')
                     .setDescription("Removed the <@&" + roles.queuePing + "> role.")
                     .setTimestamp();
-                interaction.editReply({ embeds: [supportEmbed], ephemeral: true });
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             }
         }
+
+        if (interaction.customId === "announcement-ping") {
+            await interaction.deferReply({ ephemeral: true });
+            let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.announcementPing);
+            if (hasRole === null) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@&" + roles.announcementPing + "> role doesn't exist. Please contact a staff member.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+                return;
+            }
+            if (!hasRole) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("Gave you the <@&" + roles.announcementPing + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            } else {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Removed the <@&" + roles.announcementPing + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            }
+        }
+
+        if (interaction.customId === "scorer-ping") {
+            await interaction.deferReply({ ephemeral: true });
+            let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.scorerPing);
+            if (hasRole === null) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@&" + roles.scorerPing + "> role doesn't exist. Please contact a staff member.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+                return;
+            }
+            if (!hasRole) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("Gave you the <@&" + roles.scorerPing + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            } else {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Removed the <@&" + roles.scorerPing + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            }
+        }
+
+        if (interaction.customId === "event-ping") {
+            await interaction.deferReply({ ephemeral: true });
+            let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.eventPing);
+            if (hasRole === null) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@&" + roles.eventPing + "> role doesn't exist. Please contact a staff member.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+                return;
+            }
+            if (!hasRole) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("Gave you the <@&" + roles.eventPing + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            } else {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Removed the <@&" + roles.eventPing + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            }
+        }
+
+        if (interaction.customId === "blue") {
+            await interaction.deferReply({ ephemeral: true });
+            let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterBlue);
+            if (hasRole === null) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@&" + roles.boosterBlue + "> role doesn't exist. Please contact a staff member.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+                return;
+            }
+            if (!hasRole) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("Gave you the <@&" + roles.boosterBlue + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            } else {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Removed the <@&" + roles.boosterBlue + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            }
+        }
+
+        if (interaction.customId === "red") {
+            await interaction.deferReply({ ephemeral: true });
+            let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterRed);
+            if (hasRole === null) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@&" + roles.boosterRed + "> role doesn't exist. Please contact a staff member.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+                return;
+            }
+            if (!hasRole) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("Gave you the <@&" + roles.boosterRed + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            } else {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Removed the <@&" + roles.boosterRed + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            }
+        }
+
+        if (interaction.customId === "green") {
+            await interaction.deferReply({ ephemeral: true });
+            let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterGreen);
+            if (hasRole === null) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@&" + roles.boosterGreen + "> role doesn't exist. Please contact a staff member.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+                return;
+            }
+            if (!hasRole) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("Gave you the <@&" + roles.boosterGreen +"> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            } else {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Removed the <@&" + roles.boosterGreen + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            }
+        }
+
+        if (interaction.customId === "purple") {
+            await interaction.deferReply({ ephemeral: true });
+            let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterPurple);
+            if (hasRole === null) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@&" + roles.boosterPurple + "> role doesn't exist. Please contact a staff member.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+                return;
+            }
+            if (!hasRole) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("Gave you the <@&" + roles.boosterPurple + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            } else {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Removed the <@&" + roles.boosterPurple + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            }
+        }
+
+        if (interaction.customId === "pink") {
+            await interaction.deferReply({ ephemeral: true });
+            let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterPink);
+            if (hasRole === null) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@&" + roles.boosterPink + "> role doesn't exist. Please contact a staff member.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+                return;
+            }
+            if (!hasRole) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("Gave you the <@&" + roles.boosterPink + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            } else {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Removed the <@&" + roles.boosterPink + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            }
+        }
+
+        if (interaction.customId === "orange") {
+            await interaction.deferReply({ ephemeral: true });
+            let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterOrange);
+            if (hasRole === null) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@&" + roles.boosterOrange + "> role doesn't exist. Please contact a staff member.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+                return;
+            }
+            if (!hasRole) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("Gave you the <@&" + roles.boosterOrange + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            } else {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Removed the <@&" + roles.boosterOrange + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            }
+        }
+
+        if (interaction.customId === "yellow") {
+            await interaction.deferReply({ ephemeral: true });
+            let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterYellow);
+            if (hasRole === null) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@&" + roles.boosterYellow + "> role doesn't exist. Please contact a staff member.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+                return;
+            }
+            if (!hasRole) {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor("#58f55d")
+                    .setDescription("Gave you the <@&" + roles.boosterYellow + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            } else {
+                const pingEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Removed the <@&" + roles.boosterYellow + "> role.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
+            }
+        }
+
         if (interaction.customId === "support") {
             await interaction.deferReply({ ephemeral: true });
             let channelId = await gameFunctions.supportTicket(interaction.guild, interaction.member);

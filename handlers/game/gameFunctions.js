@@ -68,6 +68,7 @@ module.exports.setBestwinstreak = setBestwinstreak;
 module.exports.updateDivision = updateDivision;
 module.exports.updateName = updateName;
 module.exports.setUserGames = setUserGames;
+module.exports.updateIGN = updateIGN;
 
 module.exports.getTotalGames = getTotalGames;
 module.exports.insertGame = insertGame;
@@ -90,7 +91,36 @@ module.exports.getLeaderboard = getLeaderboard;
 
 module.exports.runLoops = runLoops;
 
-module.exports.queuePing = queuePing;
+module.exports.toggleRole = toggleRole;
+
+module.exports.getPunishments = getPunishments;
+
+async function getPunishments(id) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM punishments WHERE id='${id}'`, (err, rows) => {
+            if (err) reject(err);
+            resolve(rows);
+        });
+    });
+}
+
+async function insertPunishments(id) {
+    con.query(`INSERT INTO rbridge (id, elo, name) VALUES (?, ?, ?)`, [id, 1000, name], function (err, rows, fields) {
+        if (err) reject(err);
+        resolve(true);
+    });
+}
+
+async function strikeUser(id) {
+    return new Promise(async function (resolve, reject) {
+        let data = await getPunishments(id);
+        if (!data) {
+            resolve(null);
+        } else {
+            let strikes = data[0].strikes;
+        }
+    });
+}
 
 async function runLoops(guild) {
     joinVoiceChannel({ channelId: channels.queueChannel, guildId: guild.id, adapterCreator: guild.voiceAdapterCreator });
@@ -159,16 +189,19 @@ async function banUser(guild, id, days, reason) {
     let currentTime = Date.now() + days * 86400000;
     con.query(`SELECT * FROM banned WHERE id = '${id}'`, (err, rows) => {
         if (!rows.length === 0) {
-            let sql = `INSERT INTO banned (id, name, time) VALUES ('${id}', '${name}', '${currentTime}')`;
-            con.query(sql);
-            console.log("Inserted ".green + name + " into ban table.".green);
+            con.query(`INSERT INTO banned (id, name, time) VALUES(?, ?, ?)`, [id, name, currentTime], function (err, rows, fields) {
+                if (err) return console.error(err);
+                console.log("Inserted ".green + name + " into ban table.".green);
+            });
         } else {
-            sql = `DELETE FROM banned WHERE name = ${name}`;
-            con.query(sql);
-            console.log("Deleted ".red + name + " from banned table.".red);
-            sql = `INSERT INTO banned (id, name, time) VALUES ('${id}', '${name}', '${currentTime}')`;
-            con.query(sql);
-            console.log("Inserted ".green + name + " into ban table.".green);
+            con.query(`DELETE FROM banned WHERE id=?`, [id], function (err, rows, fields) {
+                if (err) return console.error(err);
+                console.log("Deleted ".red + name + " from banned table.".red);
+                con.query(`INSERT INTO banned (id, name, time) VALUES(?, ?, ?)`, [id, name, currentTime], function (err, rows, fields) {
+                    if (err) return console.error(err);
+                    console.log("Inserted ".green + name + " into ban table.".green);
+                });
+            });
         }
     });
 
@@ -262,12 +295,12 @@ async function insertUser(id, name) {
     return new Promise(async function (resolve, reject) {
         let isName = await nameInDb(name);
         if (!isName) {
-            con.query(`INSERT INTO rbridge (id, elo, name) VALUES ('${id}', '1000', '${name}')`, (err, rows) => {
+            con.query(`INSERT INTO rbridge (id, elo, name) VALUES (?, ?, ?)`, [id, 1000, name], function (err, rows, fields) {
                 if (err) reject(err);
                 resolve(true);
             });
         } else {
-            con.query(`UPDATE rbridge SET id='${id}' WHERE name='${name}'`, (err, rows) => {
+            con.query(`UPDATE rbridge SET id=? WHERE name=?`, [id, name], function (err, rows, fields) {
                 if (err) reject(err);
                 resolve(true);
             });
@@ -276,8 +309,16 @@ async function insertUser(id, name) {
 }
 
 async function updateName(id, name) {
-    con.query(`UPDATE rbridge SET id='${id}' WHERE name='${name}'`, (err, rows) => {
-        if (err) return console.error(err);
+    con.query(`UPDATE rbridge SET id=? WHERE name=?`, [id, name], function (err, rows, fields) {
+        if (err) reject(err);
+        resolve(true);
+    });
+}
+
+async function updateIGN(id, name) {
+    con.query(`UPDATE rbridge SET name=? WHERE id=?`, [name, id], function (err, rows, fields) {
+        if (err) reject(err);
+        resolve(true);
     });
 }
 
@@ -714,7 +755,6 @@ async function setBestwinstreak(id, bestws) {
 }
 
 async function setUserGames(id, games) {
-    console.log("Setting " + id + "'s games to " + games);
     return new Promise(async function (resolve, reject) {
         con.query(`UPDATE rbridge SET games = ${games} WHERE id='${id}'`, (err, rows) => {
             if (err) reject(err);
@@ -727,13 +767,16 @@ async function setUserGames(id, games) {
     });
 }
 
-async function queuePing(guild, member) {
+async function toggleRole(guild, member, id) {
     return new Promise(async function (resolve, reject) {
-        var role = guild.roles.cache.get(roles.queuePing);
+        var role = guild.roles.cache.get(id);
+        if (!role) {
+            resolve(null);
+            return;
+        }
         if (!member.roles.cache.has(role.id)) {
             member.roles.add(role);
             resolve(false);
-            return;
         } else {
             member.roles.remove(role);
             resolve(true);

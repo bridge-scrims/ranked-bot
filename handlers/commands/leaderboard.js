@@ -20,7 +20,7 @@ module.exports.run = async (interaction) => {
         return;
     }
     let lbDesc = "```";
-    for (let i = 1; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
         if (type === "elo") {
             lbDesc += `${i.toString().padEnd(2, " ")}${lb[i].name.toString().padEnd(17, " ")} ${lb[i].elo.toString().padEnd(4, " ")}\n`;
         }

@@ -46,6 +46,9 @@ const commands = [
 				.addStringOption(option => option.setName('user').setDescription('Select an user').setRequired(true).setAutocomplete(true))
 				.addStringOption(option => option.setName('reason').setDescription('Reason for unbanning them.'))
 		),
+	new SlashCommandBuilder().setName('strike').setDescription('Strikes an user.')
+		.addStringOption(option => option.setName('user').setDescription('Select an user').setRequired(true).setAutocomplete(true))
+		.addStringOption(option => option.setName('reason').setDescription('Reason for striking them.')),
 	new SlashCommandBuilder().setName('scoregame').setDescription('Scores a game.')
 		.addStringOption(option => option.setName('winner').setDescription('Select an user').setRequired(true).setAutocomplete(true))
 		.addStringOption(option => option.setName('loser').setDescription('Select an user').setRequired(true).setAutocomplete(true))
@@ -54,6 +57,9 @@ const commands = [
 	new SlashCommandBuilder().setName('fregister').setDescription('Force registers an user.')
 		.addUserOption(option => option.setName('user').setDescription("The user to register.").setRequired(true))
 		.addStringOption(option => option.setName('ign').setDescription("The Minecraft account to register as.").setRequired(true)),
+	new SlashCommandBuilder().setName('frename').setDescription('Force renames an user.')
+		.addUserOption(option => option.setName('user').setDescription("The user to rename.").setRequired(true))
+		.addStringOption(option => option.setName('ign').setDescription("The Minecraft account to rename as.").setRequired(true)),
 	new SlashCommandBuilder().setName('fix').setDescription('Fixes an user\'s nick and roles.')
 		.addUserOption(option => option.setName('user').setDescription("The user to fix.").setRequired(true))
 ]
