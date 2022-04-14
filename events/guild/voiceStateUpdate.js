@@ -29,7 +29,7 @@ module.exports = async (client, oldState, newState) => {
                     console.log(oldState.member.user.tag + " left the queue.".dim);
                     queue.splice(i, 1);
                     newState.guild.members.fetch(clientId).then((member) => {
-                        member.setNickname("[" + queue.length + "/2]");
+                        member.setNickname("[" + queue.length + "/4]");
                     }).catch((e) => console.log("Error setting the nickname of the bot!"));
 
                     setTimeout(async function () {
@@ -89,7 +89,7 @@ module.exports = async (client, oldState, newState) => {
 
             // Set the bot's nickname
             newState.guild.members.fetch(clientId).then((member) => {
-                member.setNickname("[" + queue.length + "/2]");
+                member.setNickname("[" + queue.length + "/4]");
             }).catch((e) => console.log("Error setting the nickname!".red));
 
             // Invisible queueing
@@ -121,86 +121,42 @@ module.exports = async (client, oldState, newState) => {
             // Repeat
             var timer = setInterval(function () {
                 // If there is more than one person in queue...
-                if (queue.length > 1) {
+                if (queue.length > 3) {
                     // Sort the array based on ELO.
                     queue.sort((a, b) => a[1] - b[1]);
 
-                    // memberIndex is the index of the member.
-                    var memberIndex;
+                    let user1 = queue[0][0];
+                    let user2 = queue[1][0];
+                    let user3 = queue[2][0];
+                    let user4 = queue[3][0];
 
-                    // Set the difference of the two people we're comparing. If the current index we're looping through is 0 or the last index,
-                    // then the difference will be the following:
-                    var diff1 = 10000000;
-                    var diff2 = 10000000;
-
-                    // Loop through the queue array.
-                    for (var i = 0; i < queue.length; i++) {
-                        // If the current index is the member...
-                        if (queue[i][0] === memberId) {
-                            // Set the memberIndex.
-                            memberIndex = i;
-
-                            // If the memberIndex is not equal to 0...
-                            if (memberIndex != 0) {
-                                // The difference is the absolute value of the current user's ELO and the user with the ELO closest to the current user.
-                                // (Hence why we sorted the queue)
-                                diff1 = Math.abs(queue[memberIndex][1] - queue[memberIndex - 1][1]);
-                            }
-
-                            // If the memberIndex + 1 is less than the queue length (if you can get the user closest to the user AFTER the current user)
-                            if (memberIndex + 1 < queue.length) {
-                                // Get the absolute value of the current user's ELO and the user AFTER the current user
-                                // (Hence why we sorted the queue)
-                                diff2 = Math.abs(queue[memberIndex][1] - queue[memberIndex + 1][1]);
-                            }
-
-                            // If the difference of the user BEFORE the user is less than or equal to the difference of the user AFTER the user...
-                            if (diff1 <= diff2) {
-                                // If newMember elo is closest to elo above it...
-                                if (diff1 < (range + (queue[memberIndex - 1][2] + queue[memberIndex][2]) * skips * 5)) {
-                                    // If the difference is less than 25 and accounts for skips...
-                                    // Get the two users.
-                                    const user1 = queue[memberIndex - 1][0];
-                                    const user2 = queue[memberIndex][0];
-                                    // Remove them from the array.
-                                    queue.splice(memberIndex - 1, 2);
-                                    // Create the channels.
-                                    makeChannel(newState.member, user1, user2);
-
-                                    // Break the loop
-                                    clearInterval(timer);
-                                    break;
-                                } else {
-                                    // If we can't match the users, then add skips to both users.
-                                    queue[memberIndex][2]++;
-                                    queue[memberIndex - 1][2]++;
-                                    skips++;
-                                }
-                            }
-
-                            // If the difference is closest to the ELO below it...
-                            if (diff2 < diff1) {
-                                if (diff2 < (range + (queue[memberIndex + 1][2] + queue[memberIndex][2]) * skips * 5)) {
-                                    // If the difference is less than 25 and accounts for skips...
-                                    // Get the two users.
-                                    const user1 = queue[memberIndex + 1][0];
-                                    const user2 = queue[memberIndex][0];
-                                    // Remove them from the array.
-                                    queue.splice(memberIndex, 2);
-                                    // Create the channels.
-                                    makeChannel(newState.member, user1, user2);
-
-                                    // Break the loop
-                                    clearInterval(timer);
-                                    break;
-                                } else {
-                                    // If we can't match the users, then add skips to both users.
-                                    queue[memberIndex][2]++;
-                                    queue[memberIndex + 1][2]++;
-                                    skips++;
-                                }
+                    let canQueue = true;
+                    for (let i = 0; i < 4; i++) {
+                        let curUserELO = queue[i][1];
+                        let curUserSkips = queue[i][2];
+                        for (let j = 0; j < queue.length; j++) {
+                            let secUserELO = queue[j][1];
+                            let diff = Math.abs(curUserELO - secUserELO);
+                            let secUserSkips = queue[j][2];
+                            if (diff > (range + (curUserSkips + secUserSkips) * skips * 5)) {
+                                canQueue = false;
                             }
                         }
+                    }
+                    if (canQueue) {
+                        for (let i = 0; i < queue.length; i++) {
+                            if (queue[i][0] === user1 || queue[i][0] === user2 || queue[i][0] === user3 || queue[i][0] === user4) {
+                                queue.splice(i, 1);
+                            }
+                        }
+                        makeChannel(newState.member, user1, user2, user3, user4);
+                        clearInterval(timer);
+                    } else {
+                        queue[0][2] += 2;
+                        queue[1][2] += 2;
+                        queue[2][2]++;
+                        queue[3][2]++;
+                        skips++;
                     }
                 }
             }, 2000);
