@@ -1,3 +1,3 @@
 module.exports = (client, member) => {
-    // Member left
+    console.log(member.user.tag + " left the server.".dim);
 }
