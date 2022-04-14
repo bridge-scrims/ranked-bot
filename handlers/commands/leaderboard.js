@@ -22,19 +22,19 @@ module.exports.run = async (interaction) => {
     let lbDesc = "```";
     for (let i = 1; i <= 10; i++) {
         if (type === "elo") {
-            lbDesc += `${i.toString().padEnd(2, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].elo.toString().padEnd(4, " ")}\n`;
+            lbDesc += `${i.toString().padEnd(3, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].elo.toString().padEnd(4, " ")}\n`;
         }
         if (type === "wins") {
-            lbDesc += `${i.toString().padEnd(2, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].wins.toString().padEnd(4, " ")}\n`;            
+            lbDesc += `${i.toString().padEnd(3, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].wins.toString().padEnd(4, " ")}\n`;            
         }
         if (type === "losses") {
-            lbDesc += `${i.toString().padEnd(2, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].losses.toString().padEnd(4, " ")}\n`;
+            lbDesc += `${i.toString().padEnd(3, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].losses.toString().padEnd(4, " ")}\n`;
         }
         if (type === "bestws") {
-            lbDesc += `${i.toString().padEnd(2, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].bestws.toString().padEnd(4, " ")}\n`;
+            lbDesc += `${i.toString().padEnd(3, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].bestws.toString().padEnd(4, " ")}\n`;
         }
         if (type === "games") {
-            lbDesc += `${i.toString().padEnd(2, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].games.toString().padEnd(4, " ")}\n`;
+            lbDesc += `${i.toString().padEnd(3, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].games.toString().padEnd(4, " ")}\n`;
         }
     }
     lbDesc = lbDesc + "```";
