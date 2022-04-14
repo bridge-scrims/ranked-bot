@@ -8,10 +8,6 @@ const commands = [];
 
 const client = new Discord.Client({
     shards: "auto",
-    allowedMentions: {
-        parse: [],
-        repliedUser: true,
-    },
     intents: [
         Discord.GatewayIntentBits.GuildMembers,
         Discord.GatewayIntentBits.Guilds,

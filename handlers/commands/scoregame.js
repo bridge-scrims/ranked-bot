@@ -9,13 +9,16 @@ const gameFunctions = require("../../handlers/game/gameFunctions.js");
 
 module.exports.run = async (interaction) => {
     const winner = interaction.options.getString('winner');
+    
     const loser = interaction.options.getString('loser');
+
     const winnerScore = interaction.options.getInteger('winner_score');
     const loserScore = interaction.options.getInteger('loser_score');
 
     if (interaction.member.roles.cache.has(roles.scorer)) {
         let wDb = await gameFunctions.isInDb(winner);
         let lDb = await gameFunctions.isInDb(loser);
+        
         if (!wDb) {
             const errorEmbed = new Discord.EmbedBuilder()
                 .setColor("#a84040")
