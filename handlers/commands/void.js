@@ -25,7 +25,7 @@ module.exports.run = async (interaction) => {
                 }
 
                 if (canVoid) {
-                    variables.voids.push([interaction.member.id, interaction.channel.id]);
+                    variables.voids.push([interaction.member.id, interaction.channel.id, variables.curGames[i][1]]);
                     const voidEmbed = new Discord.EmbedBuilder()
                         .setColor('#36699c')
                         .setTitle('Void Request')

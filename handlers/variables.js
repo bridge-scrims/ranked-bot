@@ -11,17 +11,18 @@ let isMoving = [];
 // Pushed upon startup.
 let games = [];
 
-// [userID, game channel ID]
+// [userID, teammateID, game channel ID]
 // Pushed when channels are created.
 // Spliced when /scoregame is used or when user accepts score request.
+// teammateID is the user's teammate ID.
 let curGames = [];
 
-// [game channel ID]
+// [game channel ID, teammateID]
 // Pushed when user uses /score.
 // Spliced when /scoregame is used or when user accepts score request.
 let score = [];
 
-// [memberID, game channel id]
+// [memberID, game channel id, teammateID]
 // Pushed when user uses /void.
 // Spliced when /scoregame is used or when user accepts void request.
 let voids = [];

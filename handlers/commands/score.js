@@ -9,7 +9,7 @@ module.exports.run = async (interaction) => {
     let isIG = false;
     for (let i = 0; i < variables.curGames.length; i++) {
         if (variables.curGames[i][0] === interaction.member.id) {
-            if (variables.curGames[i][1] === interaction.channel.id) {
+            if (variables.curGames[i][2] === interaction.channel.id) {
                 isIG = true;
                 let canScore = true;
                 for (var j = 0; j < variables.score.length; j++) {
@@ -27,7 +27,7 @@ module.exports.run = async (interaction) => {
                 if (canScore) {
                     let file = interaction.options.getAttachment("screenshot");
                     if (file.name.toLowerCase().endsWith(".jpg") || file.name.toLowerCase().endsWith(".png") || file.name.toLowerCase().endsWith(".jpeg")) {
-                        variables.score.push([interaction.member.id, interaction.channel.id]);
+                        variables.score.push([interaction.member.id, interaction.channel.id, variables.curGames[i][1]]);
                         const scoreEmbed = new Discord.EmbedBuilder()
                             .setColor('#36699c')
                             .setTitle('Score Request')

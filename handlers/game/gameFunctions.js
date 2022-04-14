@@ -1050,8 +1050,10 @@ async function makeChannel(message, id, id2, id3, id4) {
 
                                     await insertGame(id, id2, gameId);
 
-                                    variables.curGames.push([id, messageChannel]);
-                                    variables.curGames.push([id2, messageChannel]);
+                                    variables.curGames.push([id, id2, messageChannel]);
+                                    variables.curGames.push([id2, id, messageChannel]);
+                                    variables.curGames.push([id3, id4, messageChannel]);
+                                    variables.curGames.push([id4, id3, messageChannel]);
 
                                     await user.voice.setChannel(team1).catch((err) => console.error(err));
                                     await user2.voice.setChannel(team1).catch((err) => console.error(err));
