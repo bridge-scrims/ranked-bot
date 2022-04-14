@@ -81,6 +81,13 @@ module.exports.run = async (interaction) => {
                         .setTimestamp();
                     interaction.reply({ embeds: [nickEmbed], ephemeral: true });
                 }
+            } else {
+                interaction.member.setNickname(name);
+                const nickEmbed = new Discord.EmbedBuilder()
+                    .setColor("#36699c")
+                    .setDescription("Hid your nickname.\n\nYou can change your nickname again by using `/nick set [nickname]`.")
+                    .setTimestamp();
+                interaction.reply({ embeds: [nickEmbed], ephemeral: true });
             }
         }
     } else {

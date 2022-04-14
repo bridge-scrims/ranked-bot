@@ -9,7 +9,7 @@ module.exports.run = async (interaction) => {
     let isIG = false;
     for (let i = 0; i < variables.curGames.length; i++) {
         if (variables.curGames[i][0] === interaction.member.id) {
-            if (variables.curGames[i][1] === interaction.channel.id) {
+            if (variables.curGames[i][2] === interaction.channel.id) {
                 isIG = true;
                 let canVoid = true;
                 for (var j = 0; j < variables.voids.length; j++) {

@@ -17,7 +17,7 @@ let games = [];
 // teammateID is the user's teammate ID.
 let curGames = [];
 
-// [game channel ID, teammateID]
+// [memberID, game channel ID, teammateID]
 // Pushed when user uses /score.
 // Spliced when /scoregame is used or when user accepts score request.
 let score = [];
