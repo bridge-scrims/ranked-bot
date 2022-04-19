@@ -139,6 +139,9 @@ async function runLoops(guild) {
         joinVoiceChannel({ channelId: channels.queueChannel, guildId: guild.id, adapterCreator: guild.voiceAdapterCreator });
         let currentTime = Date.now();
         con.query(`SELECT * FROM banned`, (err, rows) => {
+            if (!rows) {
+                return;
+            }
             for (var i = 0; i < rows.length; i++) {
                 let userID = rows[i].id;
                 let timeBanned = rows[i].time;
