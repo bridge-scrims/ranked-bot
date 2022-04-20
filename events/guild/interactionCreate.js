@@ -10,11 +10,15 @@ const mysql = require("mysql");
 let config = require("../../config/config.json");
 
 let con = mysql.createPool({
-    connectionLimit: 100,
+    connectionLimit: 1000,
     host: config.host,
     user: config.username,
     password: config.password,
     database: config.database,
+    port: config.port,
+    connectTimeout  : 60 * 60 * 1000,
+    acquireTimeout  : 60 * 60 * 1000,
+    timeout         : 60 * 60 * 1000,
     debug: false
 });
 
