@@ -84,6 +84,37 @@ module.exports = async (client, interaction) => {
             interaction.message.channel.send({ content: "<@" + otherUser + ">", embeds: [acceptEmbed] });
         }
 
+        if (interaction.customId.startsWith("pdeny")) {
+            let user = interaction.customId.split("-")[1];
+            let otherUser = interaction.customId.split("-")[2];
+            if (!user || !otherUser) {
+                return;
+            }
+            if (user != interaction.member.id) {
+                await interaction.deferReply({ ephemeral: true });
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Only <@" + user + "> can deny this party invite.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [errorEmbed] });
+                return;
+            }
+
+            for (let i = 0; i < variables.pendingParty.length; i++) {
+                if (variables.pendingParty[i][0] === interaction.member.id || variables.pendingParty[i][1] === otherUser || variables.pendingParty[i][1] === interaction.member.id || variables.pendingParty[i][0] === otherUser) {
+                    variables.pendingParty.splice(i, 1);
+                }
+            }
+            const denyEmbed = new Discord.EmbedBuilder()
+                .setColor('#a84040')
+                .setDescription('<@' + user + "> has denied the party invite.")
+                .setTimestamp()
+            if (interaction.message != undefined) {
+                interaction.message.edit({ components: [] });
+            }
+            interaction.message.channel.send({ content: "<@" + otherUser + ">", embeds: [denyEmbed] });
+        }
+
         if (interaction.customId === "invisible") {
             await interaction.deferReply({ ephemeral: true });
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.invisible);
