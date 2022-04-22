@@ -67,6 +67,27 @@ module.exports = async (client, interaction) => {
                 interaction.editReply({ embeds: [errorEmbed] });
                 return;
             }
+
+            if (gameFunctions.isInParty(otherUser)) {
+                await interaction.deferReply({ ephemeral: true });
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("<@" + otherUser + "> is already in a party.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [errorEmbed] });
+                return;
+            }
+
+            if (gameFunctions.isInParty(user)) {
+                await interaction.deferReply({ ephemeral: true });
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("You're already in a party.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [errorEmbed] });
+                return;
+            }
+
             gameFunctions.createParty(otherUser, interaction.member.id);
 
             for (let i = 0; i < variables.pendingParty.length; i++) {

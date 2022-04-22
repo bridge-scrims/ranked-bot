@@ -138,6 +138,21 @@ function isInParty(id) {
     return false;
 }
 
+function getPartyMember(id) {
+    if (isInParty(id)) {
+        for (let i = 0; i < variables.party.length; i++) {
+            if (variables.party[i][0] === id) {
+                return variables.party[i][1];
+            }
+            if (variables.party[i][1] === id) {
+                return variables.party[i][0];
+            }
+        }
+    } else {
+        return null;
+    }
+}
+
 function createParty(id, id2) {
     variables.party.push([id, id2]);
 }
