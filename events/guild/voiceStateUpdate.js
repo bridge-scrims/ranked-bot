@@ -6,11 +6,13 @@ const { ghost, invisible, rankedPlayer } = require("../../config/roles.json");
 // Functions. Need to revise.
 const { exists } = require("../../handlers/functions.js");
 
-const { getELO, makeChannel, isInDb } = require("../../handlers/game/gameFunctions.js");
+const { getELO, makeChannel, isInDb, isInParty } = require("../../handlers/game/gameFunctions.js");
 
 const { queue, isMoving } = require("../../handlers/variables.js");
 
 const { queueChannel, queueCategory, queueChatChannel, registerChannel } = require("../../config/channels.json");
+
+const gameFunctions = require("../../handlers/game/gameFunctions.js");
 
 module.exports = async (client, oldState, newState) => {
     // Deal with voice updates.
@@ -143,6 +145,40 @@ module.exports = async (client, oldState, newState) => {
                             }
                         }
                     }
+                    
+                    if (gameFunctions.isInParty(user1)) {
+                        let partyMember = gameFunctions.getPartyMember(user1);
+                        if (partyMember != null) {
+                            if (partyMember != user2 && partyMember != user3 && partyMember != user4) {
+                                canQueue = false;
+                            }
+                        }
+                    }
+                    if (gameFunctions.isInParty(user2)) {
+                        let partyMember = gameFunctions.getPartyMember(user2);
+                        if (partyMember != null) {
+                            if (partyMember != user1 && partyMember != user3 && partyMember != user4) {
+                                canQueue = false;
+                            }
+                        }
+                    }
+                    if (gameFunctions.isInParty(user3)) {
+                        let partyMember = gameFunctions.getPartyMember(user3);
+                        if (partyMember != null) {
+                            if (partyMember != user1 && partyMember != user2 && partyMember != user4) {
+                                canQueue = false;
+                            }
+                        }
+                    }
+                    if (gameFunctions.isInParty(user4)) {
+                        let partyMember = gameFunctions.getPartyMember(user4);
+                        if (partyMember != null) {
+                            if (partyMember != user1 && partyMember != user2 && partyMember != user3) {
+                                canQueue = false;
+                            }
+                        }
+                    }
+
                     if (canQueue) {
                         for (let i = 0; i < queue.length; i++) {
                             if (queue[i][0] === user1 || queue[i][0] === user2 || queue[i][0] === user3 || queue[i][0] === user4) {

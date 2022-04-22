@@ -103,6 +103,7 @@ module.exports.createParty = createParty;
 module.exports.isInParty = isInParty;
 module.exports.isPending = isPending;
 module.exports.getParty = getParty;
+module.exports.getPartyMember = getPartyMember;
 
 function getParty(id) {
     for (let i = 0; i < variables.party.length; i++) {
