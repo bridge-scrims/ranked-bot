@@ -52,6 +52,38 @@ module.exports = async (client, interaction) => {
     }
 
     if (interaction.isButton()) {
+        if (interaction.customId.startsWith("paccept")) {
+            let user = interaction.customId.split("-")[1];
+            let otherUser = interaction.customId.split("-")[2];
+            if (!user || !otherUser) {
+                return;
+            }
+            if (user != interaction.member.id) {
+                await interaction.deferReply({ ephemeral: true });
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("Only <@" + user + "> can accept this party invite.")
+                    .setTimestamp();
+                interaction.editReply({ embeds: [errorEmbed] });
+                return;
+            }
+            gameFunctions.createParty(otherUser, interaction.member.id);
+
+            for (let i = 0; i < variables.pendingParty.length; i++) {
+                if (variables.pendingParty[i][0] === interaction.member.id || variables.pendingParty[i][1] === otherUser || variables.pendingParty[i][1] === interaction.member.id || variables.pendingParty[i][0] === otherUser) {
+                    variables.pendingParty.splice(i, 1);
+                }
+            }
+            const acceptEmbed = new Discord.EmbedBuilder()
+                .setColor('#36699c')
+                .setDescription('<@' + user + "> has accepted the party invite.")
+                .setTimestamp()
+            if (interaction.message != undefined) {
+                interaction.message.edit({ components: [] });
+            }
+            interaction.message.channel.send({ content: "<@" + otherUser + ">", embeds: [acceptEmbed] });
+        }
+
         if (interaction.customId === "invisible") {
             await interaction.deferReply({ ephemeral: true });
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.invisible);

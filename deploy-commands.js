@@ -61,7 +61,18 @@ const commands = [
 		.addUserOption(option => option.setName('user').setDescription("The user to rename.").setRequired(true))
 		.addStringOption(option => option.setName('ign').setDescription("The Minecraft account to rename as.").setRequired(true)),
 	new SlashCommandBuilder().setName('fix').setDescription('Fixes an user\'s nick and roles.')
-		.addUserOption(option => option.setName('user').setDescription("The user to fix.").setRequired(true))
+		.addUserOption(option => option.setName('user').setDescription("The user to fix.").setRequired(true)),
+	new SlashCommandBuilder().setName('party').setDescription('Party commands.')
+	.addSubcommand(
+		subcommand => subcommand.setName("invite").setDescription("The user to invite to your party.")
+		.addUserOption(option => option.setName('user').setDescription('The user to invite.').setRequired(true)),
+	)
+	.addSubcommand(
+		subcommand => subcommand.setName("list").setDescription("Lists your party.")
+	)
+	.addSubcommand(
+		subcommand => subcommand.setName("leave").setDescription("Leaves/disbands the party.")
+	),
 ]
 	.map(command => command.toJSON());
 

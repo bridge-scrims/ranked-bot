@@ -99,6 +99,49 @@ module.exports.toggleRole = toggleRole;
 
 module.exports.getPunishments = getPunishments;
 
+module.exports.createParty = createParty;
+module.exports.isInParty = isInParty;
+module.exports.isPending = isPending;
+module.exports.getParty = getParty;
+
+function getParty(id) {
+    for (let i = 0; i < variables.party.length; i++) {
+        if (variables.party[i][0] === id || variables.party[i][1] === id) {
+            return variables.party[i];
+        }
+    }
+    return false;
+}
+
+function isPending(id, id2) {
+    for (let i = 0; i < variables.pendingParty.length; i++) {
+        if (variables.pendingParty[i][0] === id) {
+            if (variables.pendingParty[i][1] === id2) {
+                return true;
+            }
+        }
+        if (variables.pendingParty[i][1] === id) {
+            if (variables.pendingParty[i][0] === id2) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function isInParty(id) {
+    for (let i = 0; i < variables.party.length; i++) {
+        if (variables.party[i][0] === id || variables.party[i][1] === id) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function createParty(id, id2) {
+    variables.party.push([id, id2]);
+}
+
 async function getPunishments(id) {
     return new Promise(async function (resolve, reject) {
         con.query(`SELECT * FROM punishments WHERE id='${id}'`, (err, rows) => {

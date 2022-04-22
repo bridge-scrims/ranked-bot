@@ -27,6 +27,14 @@ let score = [];
 // Spliced when /scoregame is used or when user accepts void request.
 let voids = [];
 
+// [id, id2]
+// id is the user who partied id2.
+let pendingParty = [];
+
+// [id, id2]
+// Pushed when an user accepts a party invite.
+let party = [];
+
 module.exports.queue = queue;
 module.exports.isMoving = isMoving;
 module.exports.pingCooldown = pingCooldown;
@@ -34,3 +42,5 @@ module.exports.games = games;
 module.exports.curGames = curGames;
 module.exports.score = score;
 module.exports.voids = voids;
+module.exports.pendingParty = pendingParty;
+module.exports.party = party;
