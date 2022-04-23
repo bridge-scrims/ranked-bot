@@ -10,6 +10,7 @@ const gameFunctions = require("../../handlers/game/gameFunctions.js");
 module.exports.run = async (interaction) => {
 
     if (interaction.member.roles.cache.has(roles.admin)) {
+        /*
         await interaction.guild.members.fetch().then(async members => {
             for(const member of members.values()) {
                 if (!member || member.id === "593882880854196228") {
@@ -28,6 +29,12 @@ module.exports.run = async (interaction) => {
             }
         });
         console.log("Done.");
+        */
+        const errorEmbed = new Discord.EmbedBuilder()
+            .setColor('#a84040')
+            .setDescription("ratio")
+            .setTimestamp();
+        interaction.reply({ embeds: [errorEmbed], ephemeral: true });
     } else {
         const errorEmbed = new Discord.EmbedBuilder()
             .setColor('#a84040')
