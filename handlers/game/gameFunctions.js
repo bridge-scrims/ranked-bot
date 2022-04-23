@@ -639,11 +639,19 @@ async function getRole(guild, id) {
     });
 }
 
-async function calcElo(winner, loser, winnerScore, loserScore) {
+async function calcElo(winner, winnerTeammate, loser, loserTeammate, winnerScore, loserScore) {
     let p1 = await getELO(winner);
-    let p2 = await getELO(loser);
-    let p1Ranking = ranking.makePlayer(p1);
-    let p2Ranking = ranking.makePlayer(p2);
+    let p2 = await getELO(winnerTeammate);
+    let p3 = await getELO(loser);
+    let p4 = await getELO(loserTeammate);
+
+    let average1 = (p1 + p2) / 2;
+    let average2 = (p3 + p4) / 2;
+
+    let p1Ranking = ranking.makePlayer(average1);
+    let p2Ranking = ranking.makePlayer(average2);
+
+
     var matches = [];
     matches.push([p1Ranking, p2Ranking, 1])
     ranking.updateRatings(matches);
@@ -653,8 +661,19 @@ async function calcElo(winner, loser, winnerScore, loserScore) {
     var eloChange = Math.abs(p1_elo - p1);
 
     let change1 = Math.round(p1 + eloChange + (winnerScore / 4));
-    let change2 = Math.round(p2 - eloChange + (loserScore / 2));
-    return [change1, change2];
+    let change2 = Math.round(p2 + eloChange + (winnerScore / 4));
+    
+    let change3 = Math.round(p3 - eloChange + (loserScore / 2));
+    let change4 = Math.round(p4 - eloChange + (loserScore / 2));
+
+    if (change3 > p3) {
+        change3 = p3 - 2;
+    }
+    if (change4 > p4) {
+        change4 = p4 - 2;
+    }
+    
+    return [change1, change2, change3, change4];
 }
 
 async function getName(id) {

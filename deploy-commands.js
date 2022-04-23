@@ -51,7 +51,9 @@ const commands = [
 		.addStringOption(option => option.setName('reason').setDescription('Reason for striking them.')),
 	new SlashCommandBuilder().setName('scoregame').setDescription('Scores a game.')
 		.addStringOption(option => option.setName('winner').setDescription('Select an user').setRequired(true).setAutocomplete(true))
+		.addStringOption(option => option.setName('winner_teammate').setDescription('Select an user').setRequired(true).setAutocomplete(true))
 		.addStringOption(option => option.setName('loser').setDescription('Select an user').setRequired(true).setAutocomplete(true))
+		.addStringOption(option => option.setName('loser_teammate').setDescription('Select an user').setRequired(true).setAutocomplete(true))
 		.addIntegerOption(option => option.setName('winner_score').setDescription('Winning team\'s score').setRequired(true))
 		.addIntegerOption(option => option.setName('loser_score').setDescription('Losing team\'s score').setRequired(true)),
 	new SlashCommandBuilder().setName('fregister').setDescription('Force registers an user.')
@@ -62,6 +64,7 @@ const commands = [
 		.addStringOption(option => option.setName('ign').setDescription("The Minecraft account to rename as.").setRequired(true)),
 	new SlashCommandBuilder().setName('fix').setDescription('Fixes an user\'s nick and roles.')
 		.addUserOption(option => option.setName('user').setDescription("The user to fix.").setRequired(true)),
+	new SlashCommandBuilder().setName('reset').setDescription('DO NOT USE.'),
 	new SlashCommandBuilder().setName('party').setDescription('Party commands.')
 	.addSubcommand(
 		subcommand => subcommand.setName("invite").setDescription("The user to invite to your party.")
