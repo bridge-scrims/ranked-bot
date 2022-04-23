@@ -12,18 +12,22 @@ module.exports.run = async (interaction) => {
     if (interaction.member.roles.cache.has(roles.admin)) {
         await interaction.guild.members.fetch().then(async members => {
             for(const member of members.values()) {
+                if (!member || member.id === "593882880854196228") {
+                    return;
+                }
                 if (!member.displayName) {
                     console.log("Couldn't get " + member.id + "'s display name.");
                     return;
                 }
-                if (member.displayName.includes("[") && member.displayName.includes("]")) {
+                if (member.displayName.includes("[") && member.displayName.includes("]") && !member.displayName.includes("[1000")) {
                     let memberNick = member.displayName;
                     let splite = memberNick.split(" ");
-                    await member.setNickname('[1000] ' + splite[1]);
                     console.log(member.displayName + " -> " + '[1000] ' + splite[1]);
+                    await member.setNickname('[1000] ' + splite[1]);
                 }
             }
         });
+        console.log("Done.");
     } else {
         const errorEmbed = new Discord.EmbedBuilder()
             .setColor('#a84040')
