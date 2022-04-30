@@ -1129,9 +1129,9 @@ async function makeChannel(message, id, id2, id3, id4) {
                                     const channelEmbed = new Discord.EmbedBuilder()
                                         .setColor('#36699c')
                                         .setTitle(`Game #${gameId}`)
-                                        .setDescription('Duel the other person using `/duel <user> bridge`. Once the game is done, send a screenshot of the score using `/score`. Remember, games are best of 1.')
+                                        .setDescription('Duel the other team using `/duel <user> bridgedoubles`. Once the game is done, send a screenshot of the score using `/score`. Remember, **games are best of 1**.')
                                         .setTimestamp()
-                                    message.guild.channels.cache.get(messageChannel).send({ content: "<@" + id + "> <@" + id2 + ">", embeds: [channelEmbed] });
+                                    message.guild.channels.cache.get(messageChannel).send({ content: "<@" + id + "> <@" + id2 + "> <@" + id3 + "> <@" + id4 + ">", embeds: [channelEmbed] });
 
                                     await insertGame(id, id2, gameId);
 

@@ -121,18 +121,38 @@ module.exports = async (client, oldState, newState) => {
             }
 
             // Repeat
-            var timer = setInterval(function () {
+            var timer = setInterval(async function () {
                 // If there is more than one person in queue...
                 if (queue.length > 3) {
                     // Sort the array based on ELO.
                     queue.sort((a, b) => a[1] - b[1]);
 
-                    let user1 = queue[0][0];
-                    let user2 = queue[1][0];
-                    let user3 = queue[2][0];
-                    let user4 = queue[3][0];
-
                     let canQueue = true;
+                    
+                    for (let i = 1; i <= queue.length; i++) {
+                        let curUser = queue[i - 1][0];
+                        if (gameFunctions.isInParty(curUser)) {
+                            let partyMember = gameFunctions.getPartyMember(curUser);
+                            let isInQ = false;
+                            let pMemberIndex = 0;
+                            for (let j = 0; j < queue.length; j++) {
+                                if (queue[j][0] === partyMember) {
+                                    isInQ = true;
+                                    pMemberIndex = j;
+                                    break;
+                                }
+                            }
+                            if (isInQ && pMemberIndex < queue.length / 2) {
+                                queue[pMemberIndex][0] = queue[queue.length - i][0];
+                                queue[pMemberIndex][1] = queue[queue.length - i][1];
+                                queue[queue.length - i][0] = partyMember;
+                                let pMemberELO = await gameFunctions.getELO(partyMember);
+                                queue[queue.length - i][1] = pMemberELO;
+                            }
+                        }
+                    }
+                    console.log(queue);
+                    /*
                     for (let i = 0; i < 4; i++) {
                         let curUserELO = queue[i][1];
                         let curUserSkips = queue[i][2];
@@ -145,41 +165,15 @@ module.exports = async (client, oldState, newState) => {
                             }
                         }
                     }
-                    
-                    if (gameFunctions.isInParty(user1)) {
-                        let partyMember = gameFunctions.getPartyMember(user1);
-                        if (partyMember != null) {
-                            if (partyMember != user2 && partyMember != user3 && partyMember != user4) {
-                                canQueue = false;
-                            }
-                        }
-                    }
-                    if (gameFunctions.isInParty(user2)) {
-                        let partyMember = gameFunctions.getPartyMember(user2);
-                        if (partyMember != null) {
-                            if (partyMember != user1 && partyMember != user3 && partyMember != user4) {
-                                canQueue = false;
-                            }
-                        }
-                    }
-                    if (gameFunctions.isInParty(user3)) {
-                        let partyMember = gameFunctions.getPartyMember(user3);
-                        if (partyMember != null) {
-                            if (partyMember != user1 && partyMember != user2 && partyMember != user4) {
-                                canQueue = false;
-                            }
-                        }
-                    }
-                    if (gameFunctions.isInParty(user4)) {
-                        let partyMember = gameFunctions.getPartyMember(user4);
-                        if (partyMember != null) {
-                            if (partyMember != user1 && partyMember != user2 && partyMember != user3) {
-                                canQueue = false;
-                            }
-                        }
-                    }
+                    */
+                    canQueue = true;
 
                     if (canQueue) {
+                        console.log(queue);
+                        let user1 = queue[queue.length - 4][0];
+                        let user2 = queue[queue.length - 1][0];
+                        let user3 = queue[queue.length - 2][0];
+                        let user4 = queue[queue.length - 3][0];
                         for (let i = 0; i < queue.length; i++) {
                             if (queue[i][0] === user1 || queue[i][0] === user2 || queue[i][0] === user3 || queue[i][0] === user4) {
                                 queue.splice(i, 1);

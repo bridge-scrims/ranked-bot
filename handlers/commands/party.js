@@ -56,6 +56,7 @@ module.exports.run = async (interaction) => {
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             return;
         }
+
         if (gameFunctions.isInParty(user.id)) {
             const errorEmbed = new Discord.EmbedBuilder()
                 .setColor("#a84040")
@@ -97,7 +98,7 @@ module.exports.run = async (interaction) => {
                         variables.pendingParty.splice(i, 1);
                     }
                 }
-                if (!msg) {
+                if (!msg || !msg.channel) {
                     return;
                 }
                 const expiredEmbed = new Discord.EmbedBuilder()
