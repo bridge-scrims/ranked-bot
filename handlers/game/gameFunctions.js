@@ -660,11 +660,11 @@ async function calcElo(winner, winnerTeammate, loser, loserTeammate, winnerScore
 
     var eloChange = Math.abs(p1_elo - p1);
 
-    let change1 = Math.round(p1 + eloChange + (winnerScore / 4));
-    let change2 = Math.round(p2 + eloChange + (winnerScore / 4));
+    let change1 = Math.round(p1 + 15 + (winnerScore / 4));
+    let change2 = Math.round(p2 + 15 + (winnerScore / 4));
     
-    let change3 = Math.round(p3 - eloChange + (loserScore / 2));
-    let change4 = Math.round(p4 - eloChange + (loserScore / 2));
+    let change3 = Math.round(p3 - 10 + (loserScore / 2));
+    let change4 = Math.round(p4 - 10 + (loserScore / 2));
 
     if (change3 > p3) {
         change3 = p3 - 2;

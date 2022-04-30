@@ -48,7 +48,7 @@ module.exports.run = async (interaction) => {
         
         let curElo = await gameFunctions.getELO(interaction.member.id);
         let userElo = await gameFunctions.getELO(user.id);
-        /*
+        
         if (Math.abs(curElo - userElo) > 30) {
             const errorEmbed = new Discord.EmbedBuilder()
                 .setColor("#a84040")
@@ -57,7 +57,6 @@ module.exports.run = async (interaction) => {
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             return;
         }
-        */
         if (gameFunctions.isInParty(user.id)) {
             const errorEmbed = new Discord.EmbedBuilder()
                 .setColor("#a84040")

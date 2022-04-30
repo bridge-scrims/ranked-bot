@@ -8,7 +8,7 @@ const { exists } = require("../../handlers/functions.js");
 
 const { getELO, makeChannel, isInDb, isInParty } = require("../../handlers/game/gameFunctions.js");
 
-const { queue, isMoving } = require("../../handlers/variables.js");
+const { queue, isMoving, party } = require("../../handlers/variables.js");
 
 const { queueChannel, queueCategory, queueChatChannel, registerChannel } = require("../../config/channels.json");
 
@@ -165,27 +165,21 @@ module.exports = async (client, oldState, newState) => {
                     partyQueue.push([noParty[0], noParty[1]]);
                     noParty.splice(0, 2);
                 }
-                /*
-                for (let i = 0; i < 4; i++) {
-                    let curUserELO = queue[i][1];
-                    let curUserSkips = queue[i][2];
-                    for (let j = 0; j < queue.length; j++) {
-                        let secUserELO = queue[j][1];
-                        let diff = Math.abs(curUserELO - secUserELO);
-                        let secUserSkips = queue[j][2];
-                        if (diff > (range + (curUserSkips + secUserSkips) * skips * 5)) {
-                            canQueue = false;
-                        }
-                    }
+                if (noParty.length > 1) {
+                    partyQueue.push([noParty[0], noParty[1]]);
+                    noParty.splice(0, 2);
                 }
-                */
                 
                 if (partyQueue.length >= 2) {
-                    console.log(partyQueue);
                     let user1 = partyQueue[0][0];
                     let user2 = partyQueue[0][1];
                     let user3 = partyQueue[1][0];
                     let user4 = partyQueue[1][1];
+                    for (let i = 0; i < queue.length; i++) {
+                        if (queue[i][0] === user1 || queue[i][0] === user2 || queue[i][0] === user3 || queue[i][0] === user4) {
+                            queue.splice(i, 1);
+                        }
+                    }
                     partyQueue.splice(0, 2);
                     makeChannel(newState.member, user1, user2, user3, user4);
                 }
