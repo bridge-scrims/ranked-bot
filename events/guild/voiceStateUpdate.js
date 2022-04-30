@@ -120,76 +120,76 @@ module.exports = async (client, oldState, newState) => {
                 });
             }
 
-            // Repeat
-            var timer = setInterval(async function () {
-                // If there is more than one person in queue...
-                if (queue.length > 3) {
-                    // Sort the array based on ELO.
-                    queue.sort((a, b) => a[1] - b[1]);
+            if (queue.length > 3) {
+                // Sort the array based on ELO.
+                queue.sort((a, b) => a[1] - b[1]);
 
-                    let canQueue = true;
-                    
-                    for (let i = 1; i <= queue.length; i++) {
-                        let curUser = queue[i - 1][0];
-                        if (gameFunctions.isInParty(curUser)) {
-                            let partyMember = gameFunctions.getPartyMember(curUser);
-                            let isInQ = false;
-                            let pMemberIndex = 0;
-                            for (let j = 0; j < queue.length; j++) {
-                                if (queue[j][0] === partyMember) {
-                                    isInQ = true;
-                                    pMemberIndex = j;
+                let canQueue = true;
+                
+                let partyQueue = [];
+                let noParty = [];
+                let lastIndex = queue.length - 1;
+                for (let i = 0; i < queue.length; i++) {
+                    let curUser = queue[i][0];
+                    if (gameFunctions.isInParty(curUser)) {
+                        let partyMember = gameFunctions.getPartyMember(curUser);
+                        let isInQ = false;
+                        let pMemberIndex = 0;
+                        for (let j = 0; j < queue.length; j++) {
+                            if (queue[j][0] === partyMember) {
+                                isInQ = true;
+                                pMemberIndex = j;
+                                break;
+                            }
+                        }
+                        if (isInQ) {
+                            let canPush = true;
+                            for (let k = 0; k < partyQueue.length; k++) {
+                                if (partyQueue[k][0] === partyMember || partyQueue[k][1] === partyMember || partyQueue[k][0] === curUser || partyQueue[k][1] === curUser) {
+                                    canPush = false;
                                     break;
                                 }
                             }
-                            if (isInQ && pMemberIndex < queue.length / 2) {
-                                queue[pMemberIndex][0] = queue[queue.length - i][0];
-                                queue[pMemberIndex][1] = queue[queue.length - i][1];
-                                queue[queue.length - i][0] = partyMember;
-                                let pMemberELO = await gameFunctions.getELO(partyMember);
-                                queue[queue.length - i][1] = pMemberELO;
+                            if (canPush) {
+                                partyQueue.push([partyMember, curUser]);
+                                if (partyQueue.length >= 2) {
+                                    canQueue = true;
+                                }
                             }
                         }
-                    }
-                    console.log(queue);
-                    /*
-                    for (let i = 0; i < 4; i++) {
-                        let curUserELO = queue[i][1];
-                        let curUserSkips = queue[i][2];
-                        for (let j = 0; j < queue.length; j++) {
-                            let secUserELO = queue[j][1];
-                            let diff = Math.abs(curUserELO - secUserELO);
-                            let secUserSkips = queue[j][2];
-                            if (diff > (range + (curUserSkips + secUserSkips) * skips * 5)) {
-                                canQueue = false;
-                            }
-                        }
-                    }
-                    */
-                    canQueue = true;
-
-                    if (canQueue) {
-                        console.log(queue);
-                        let user1 = queue[queue.length - 4][0];
-                        let user2 = queue[queue.length - 1][0];
-                        let user3 = queue[queue.length - 2][0];
-                        let user4 = queue[queue.length - 3][0];
-                        for (let i = 0; i < queue.length; i++) {
-                            if (queue[i][0] === user1 || queue[i][0] === user2 || queue[i][0] === user3 || queue[i][0] === user4) {
-                                queue.splice(i, 1);
-                            }
-                        }
-                        makeChannel(newState.member, user1, user2, user3, user4);
-                        clearInterval(timer);
                     } else {
-                        queue[0][2] += 2;
-                        queue[1][2] += 2;
-                        queue[2][2]++;
-                        queue[3][2]++;
-                        skips++;
+                        noParty.push(curUser);
                     }
                 }
-            }, 2000);
+                if (noParty.length > 1) {
+                    partyQueue.push([noParty[0], noParty[1]]);
+                    noParty.splice(0, 2);
+                }
+                /*
+                for (let i = 0; i < 4; i++) {
+                    let curUserELO = queue[i][1];
+                    let curUserSkips = queue[i][2];
+                    for (let j = 0; j < queue.length; j++) {
+                        let secUserELO = queue[j][1];
+                        let diff = Math.abs(curUserELO - secUserELO);
+                        let secUserSkips = queue[j][2];
+                        if (diff > (range + (curUserSkips + secUserSkips) * skips * 5)) {
+                            canQueue = false;
+                        }
+                    }
+                }
+                */
+                
+                if (partyQueue.length >= 2) {
+                    console.log(partyQueue);
+                    let user1 = partyQueue[0][0];
+                    let user2 = partyQueue[0][1];
+                    let user3 = partyQueue[1][0];
+                    let user4 = partyQueue[1][1];
+                    partyQueue.splice(0, 2);
+                    makeChannel(newState.member, user1, user2, user3, user4);
+                }
+            }
         } else {
             // idk
         }
