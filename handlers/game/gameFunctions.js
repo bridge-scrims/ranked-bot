@@ -253,14 +253,6 @@ async function scoreCard(guild, id) {
                     ctx.fillText(name + " ", 100, 361);
                 }
 
-                /*
-                // Bar thing
-                ctx.globalAlpha = 0.5;
-                ctx.fillStyle = "#303030";
-                console.log((name.length * 4)^(name.length * 100));
-                ctx.fillRect(100, 400, (name.length * 4)^(name.length * 100), 25);
-                */
-
                 ctx.globalAlpha = 1;
                 // ELO text
                 ctx.font = '195px "Oxanium"';
@@ -1194,7 +1186,10 @@ async function supportTicket(guild, member) {
 
 async function reportUser(guild, member, member2) {
     return new Promise(async function (resolve, reject) {
-        let name = await getName(member.id);
+        let name = member.user.username;
+        if (isInDb(member.id)) {
+            name = await getName(member.id);
+        }
         guild.channels.create("report-" + name, {
             permissionOverwrites: [
                 {

@@ -5,7 +5,7 @@ const channels = require("../../config/channels.json");
 const roles = require("../../config/roles.json");
 
 module.exports.run = async (interaction) => {
-    let user = interaction.options.getString("user");
+    let user = interaction.options.getUser("user");
     let member = await gameFunctions.getUser(interaction.guild, user);
     if (!member) {
         const errorEmbed = new Discord.EmbedBuilder()
