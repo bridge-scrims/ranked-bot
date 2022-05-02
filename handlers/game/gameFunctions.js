@@ -6,6 +6,8 @@ const roles = require("../../config/roles.json");
 const config = require("../../config/config.json");
 const functions = require("../functions.js");
 
+const { registerFont, createCanvas, loadImage } = require("canvas");
+
 const Discord = require("discord.js");
 const { joinVoiceChannel } = require("@discordjs/voice");
 
@@ -45,6 +47,7 @@ module.exports.getGames = getGames;
 module.exports.setGames = setGames;
 
 module.exports.screenshareUser = screenshareUser;
+module.exports.reportUser = reportUser;
 module.exports.supportTicket = supportTicket;
 
 module.exports.calcElo = calcElo;
@@ -104,6 +107,249 @@ module.exports.isInParty = isInParty;
 module.exports.isPending = isPending;
 module.exports.getParty = getParty;
 module.exports.getPartyMember = getPartyMember;
+
+async function scoreCard(guild, id) {
+    return new Promise(async function (resolve, reject) {
+        if (!isInDb(id)) {
+            resolve(null);
+            return;
+        }
+        let name = await getName(id);
+        let elo = await getELO(id);
+        let wins = await getWins(id);
+        let losses = await getLosses(id);
+        let winStreak = await getWinstreak(id);
+        let bestWinstreak = await getBestWinstreak(id);
+        let gamesPlayed = await getGames(id);
+        let division = await getDivision(id);
+        
+        registerFont("fonts/Comfortaa.ttf", { family: "Comfortaa" });
+        registerFont("fonts/SourceSansPro.ttf", { family: "SourceSans" });
+        registerFont("fonts/Hubballi.ttf", { family: "Hubballi" });
+        registerFont("fonts/Audiowide.ttf", { family: "Audiowide" });
+        registerFont("fonts/Baloo2.ttf", { family: "Baloo2" });
+        registerFont("fonts/Oxanium.ttf", { family: "Oxanium" });
+        registerFont("fonts/Oxanium-Bold.ttf", { family: "OxaniumBold" });
+        registerFont("fonts/Rajdhani.ttf", { family: "Rajdhani" });
+
+        const canvas = createCanvas(3000, 2000);
+        const ctx = canvas.getContext("2d");
+
+        getUUID(name).then(async (id) => {
+            if (id === "undefined" || !id) {
+                resolve(null);
+            }
+            const image = await loadImage("images/baseCard.png").catch((err) => {
+                reject(err);
+            });
+            const imagee = await loadImage("https://mc-heads.net/body/" + id + "/right").catch((err) => {
+                reject(err);
+            });
+            if (!image || !imagee) {
+                resolve(null);
+            } else {
+                // Background image
+                ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+                // Character image
+                ctx.drawImage(imagee, 450, 500, 180 * 2.3, 432 * 2.3);
+
+                // Base text
+                ctx.globalAlpha = 1;
+                ctx.font = '100px "SourceSans"';
+                ctx.fillStyle = "#666666";
+                ctx.fillText("Wins", 1420, 1200);
+                ctx.fillText("Losses", 2300, 1200);
+                ctx.fillText("W/L", 2360, 770);
+                ctx.fillText("Games", 1400, 770);
+                ctx.fillText("WS", 2365, 1700);
+                ctx.fillText("Best WS", 1400, 1700);
+
+                // Background box
+                ctx.globalAlpha = 0.1;
+                ctx.fillStyle = "#141414";
+                ctx.fillRect(1325, 500, 1400, 1275);
+
+
+                // Draw division icon background circle
+                ctx.globalAlpha = 0.2;
+                ctx.strokeStyle = "#141414";
+                ctx.beginPath();
+                ctx.arc(1550, 300, 125, 0 * Math.PI, 4 * Math.PI);
+                ctx.fill();
+
+                ctx.globalAlpha = 1;
+
+                // Load the division icons
+                const coalDiv = await loadImage("images/coal.png").catch((err) => {
+                    reject(err);
+                });
+                const ironDiv = await loadImage("images/iron.png").catch((err) => {
+                    reject(err);
+                });
+                const goldDiv = await loadImage("images/gold.png").catch((err) => {
+                    reject(err);
+                });
+                const diamondDiv = await loadImage("images/diamond.png").catch((err) => {
+                    reject(err);
+                });
+                const emeraldDiv = await loadImage("images/emerald.png").catch((err) => {
+                    reject(err);
+                });
+                const obsidianDiv = await loadImage("images/obsidian.png").catch((err) => {
+                    reject(err);
+                });
+                const crystalDiv = await loadImage("images/crystal.png").catch((err) => {
+                    reject(err);
+                });
+
+                // Draw the division icon
+                if (division === "COAL") {
+                    ctx.drawImage(coalDiv, 1435, 175, 700 / 2.5, 700 / 2.5);
+                } else if (division === "IRON") {
+                    ctx.drawImage(ironDiv, 1435, 175, 547 / 2.5, 600 / 2.5);
+                } else if (division === "GOLD") {
+                    ctx.drawImage(goldDiv, 1435, 175, 547 / 2.5, 600 / 2.5);
+                } else if (division === "DIAMOND") {
+                    ctx.drawImage(diamondDiv, 1435, 175, 547 / 2.5, 600 / 2.5);
+                } else if (division === "EMERALD") {
+                    ctx.drawImage(emeraldDiv, 1435, 175, 547 / 2.5, 600 / 2.5);
+                } else if (division === "OBSIDIAN") {
+                    ctx.drawImage(obsidianDiv, 1435, 175, 547 / 2.5, 600 / 2.5);
+                } else if (division === "CRYSTAL") {
+                    ctx.drawImage(crystalDiv, 1435, 175, 547 / 2.5, 600 / 2.5);
+                }
+
+                // Draw level number text
+                ctx.fillStyle = "#66fff5";
+                ctx.font = '200px "SourceSans"';
+                ctx.fillText(level, 1875, 361);
+
+                // Draw level arc
+                ctx.globalAlpha = 0.1;
+                ctx.strokeStyle = "#141414";
+                ctx.beginPath();
+                ctx.arc(1926, 300, 125, 0 * Math.PI, 4 * Math.PI);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                ctx.strokeStyle = "#66fff5";
+                ctx.lineWidth = 10;
+                ctx.beginPath();
+                let degrees = amountToNextLevel * 360.0;
+                let radians = degrees * Math.PI / 180.0;
+                let s = (2 * (amountToNextLevel - 1)) * Math.PI;
+
+                ctx.arc(1926, 300, 125, s, radians + s, true);
+                ctx.stroke();
+
+                // IGN of the user
+                ctx.fillStyle = "#66fff5";
+
+                if (name.length > 9) {
+                    ctx.font = '150px "Rajdhani"';
+                    ctx.fillText(name + " ", 100, 350);
+                } else {
+                    ctx.font = '200px "Rajdhani"';
+                    ctx.fillText(name + " ", 100, 361);
+                }
+
+                /*
+                // Bar thing
+                ctx.globalAlpha = 0.5;
+                ctx.fillStyle = "#303030";
+                console.log((name.length * 4)^(name.length * 100));
+                ctx.fillRect(100, 400, (name.length * 4)^(name.length * 100), 25);
+                */
+
+                ctx.globalAlpha = 1;
+                // ELO text
+                ctx.font = '195px "Oxanium"';
+                ctx.fillStyle = "#4cad59";
+                if (elo < 1000) {
+                    ctx.fillText(elo, 270, 1710);
+                    ctx.fillStyle = "white";
+                    ctx.fillText("ELO", 700, 1710);
+                } else {
+                    ctx.fillText(elo, 170, 1710);
+                    ctx.fillStyle = "white";
+                    ctx.fillText("ELO", 700, 1710);
+                }
+
+                // Wins
+                ctx.font = '195px "OxaniumBold"';
+                ctx.fillStyle = "#70AD47";
+                if (wins > 9 && wins < 99) {
+                    ctx.fillText(wins, 1420, 1100);
+                } else if (wins > 99) {
+                    ctx.fillText(wins, 1370, 1100);
+                } else {
+                    ctx.fillText(wins, 1480, 1100);
+                }
+
+                // Losses
+                ctx.fillStyle = "#C00000";
+                if (losses > 9 && losses < 99) {
+                    ctx.fillText(losses, 2340, 1100);
+                } else if (losses > 99) {
+                    ctx.fillText(losses, 2305, 1100);
+                } else {
+                    ctx.fillText(losses, 2395, 1100);
+                }
+
+                // W/L
+                ctx.fillStyle = "white";
+                if (wl.toString().length < 2) {
+                    ctx.fillText(wl + ".0", 2315, 670);
+                } else if (wl.toString().length === 3) {
+                    ctx.fillText(wl, 2315, 670);
+                } else if (wl.toString().length === 2) {
+                    ctx.fillText(wl + ".0", 2300, 670);
+                } else {
+                    ctx.fillText(wl, 2300, 670);
+                }
+
+                // Games played
+                if (gamesPlayed > 9 && gamesPlayed < 99) {
+                    ctx.fillText(gamesPlayed, 1420, 670);
+                } else if (gamesPlayed > 99) {
+                    ctx.fillText(gamesPlayed, 1370, 670);
+                } else {
+                    ctx.fillText(gamesPlayed, 1480, 670);
+                }
+
+                // Winstreak
+                ctx.fillStyle = "#70AD47";
+                if (winStreak > 9 && winStreak < 99) {
+                    ctx.fillText(winStreak, 2340, 1600);
+                } else if (wins > 99) {
+                    ctx.fillText(winStreak, 2305, 1600);
+                } else {
+                    if (winStreak === 4) {
+                        ctx.fillText(winStreak, 2400, 1600);
+                    } else {
+                        ctx.fillText(winStreak, 2390, 1600);
+                    }
+                }
+
+                // Best winstreak
+                if (bestWinstreak > 9 && bestWinstreak < 99) {
+                    ctx.fillText(bestWinstreak, 1420, 1600);
+                } else if (wins > 99) {
+                    ctx.fillText(bestWinstreak, 1370, 1600);
+                } else {
+                    ctx.fillText(bestWinstreak, 1480, 1600);
+                }
+
+                const buffer = canvas.toBuffer();
+                const attachment = new MessageAttachment(buffer, name + ".png");
+                fs.writeFile("./images/profiles/" + name + ".png", buffer, function (err) {
+                    if (err) throw err;
+                    msg.edit({ embeds: [], files: [attachment] }).catch((error) => console.error("Error: " + error));;
+                });
+            }
+        });
+    });
+}
 
 function getParty(id) {
     for (let i = 0; i < variables.party.length; i++) {
@@ -645,26 +891,67 @@ async function calcElo(winner, winnerTeammate, loser, loserTeammate, winnerScore
     let p3 = await getELO(loser);
     let p4 = await getELO(loserTeammate);
 
-    let average1 = (p1 + p2) / 2;
-    let average2 = (p3 + p4) / 2;
-
-    let p1Ranking = ranking.makePlayer(average1);
-    let p2Ranking = ranking.makePlayer(average2);
-
-
-    var matches = [];
-    matches.push([p1Ranking, p2Ranking, 1])
-    ranking.updateRatings(matches);
-
-    var p1_elo = p1Ranking.getRating();
-
-    var eloChange = Math.abs(p1_elo - p1);
-
     let change1 = Math.round(p1 + 15 + (winnerScore / 4));
     let change2 = Math.round(p2 + 15 + (winnerScore / 4));
     
     let change3 = Math.round(p3 - 10 + (loserScore / 2));
     let change4 = Math.round(p4 - 10 + (loserScore / 2));
+
+    if (p1 <= 1000) {
+        change1 = Math.round(p1 + 17 + (winnerScore / 4));
+    } else if (p1 >= 1001 && p1 <= 1050) {
+        change1 = Math.round(p1 + 13 + (winnerScore / 4));
+    } else if (p1 >= 1051 && p1 <= 1100) {
+        change1 = Math.round(p1 + 11 + (winnerScore / 4));
+    } else if (p1 >= 1101 && p1 <= 1150) {
+        change1 = Math.round(p1 + 8 + (winnerScore / 4));
+    } else if (p1 >= 1151 && p1 <= 1200) {
+        change1 = Math.round(p1 + 5 + (winnerScore / 4));
+    } else if (p1 >= 1201) {
+        change1 = Math.round(p1 + 4 + (winnerScore / 4));
+    }
+
+    if (p2 <= 1000) {
+        change2 = Math.round(p2 + 17 + (winnerScore / 4));
+    } else if (p2 >= 1001 && p2 <= 1050) {
+        change2 = Math.round(p2 + 13 + (winnerScore / 4));
+    } else if (p2 >= 1051 && p2 <= 1100) {
+        change2 = Math.round(p2 + 11 + (winnerScore / 4));
+    } else if (p2 >= 1101 && p2 <= 1150) {
+        change2 = Math.round(p2 + 8 + (winnerScore / 4));
+    } else if (p2 >= 1151 && p2 <= 1200) {
+        change2 = Math.round(p2 + 5 + (winnerScore / 4));
+    } else if (p2 >= 1201) {
+        change2 = Math.round(p2 + 4 + (winnerScore / 4));
+    }
+
+    if (p3 <= 1000) {
+        change3 = Math.round(p3 - 5 + (loserScore / 2));
+    } else if (p3 >= 1001 && p3 <= 1050) {
+        change3 = Math.round(p3 - 7 + (loserScore / 2));
+    } else if (p3 >= 1051 && p3 <= 1100) {
+        change3 = Math.round(p3 - 9 + (loserScore / 2));
+    } else if (p3 >= 1101 && p3 <= 1150) {
+        change3 = Math.round(p3 - 11 + (loserScore / 2));
+    } else if (p3 >= 1151 && p3 <= 1200) {
+        change3 = Math.round(p3 - 12 + (loserScore / 2));
+    } else if (p3 >= 1201) {
+        change3 = Math.round(p3 - 15 + (loserScore / 2));
+    }
+
+    if (p4 <= 1000) {
+        change4 = Math.round(p4 - 5 + (loserScore / 2));
+    } else if (p4 >= 1001 && p4 <= 1050) {
+        change4 = Math.round(p4 - 7 + (loserScore / 2));
+    } else if (p4 >= 1051 && p4 <= 1100) {
+        change4 = Math.round(p4 - 9 + (loserScore / 2));
+    } else if (p4 >= 1101 && p4 <= 1150) {
+        change4 = Math.round(p4 - 11 + (loserScore / 2));
+    } else if (p4 >= 1151 && p4 <= 1200) {
+        change4 = Math.round(p4 - 12 + (loserScore / 2));
+    } else if (p4 >= 1201) {
+        change4 = Math.round(p4 - 15 + (loserScore / 2));
+    }
 
     if (change3 > p3) {
         change3 = p3 - 2;
@@ -901,6 +1188,44 @@ async function supportTicket(guild, member) {
                 .setTimestamp();
             msg.send({ embeds: [supportEmbed], content: "<@&" + member.id + ">" });
             resolve(channelID);
+        });
+    });
+}
+
+async function reportUser(guild, member, member2) {
+    return new Promise(async function (resolve, reject) {
+        let name = await getName(member.id);
+        guild.channels.create("report-" + name, {
+            permissionOverwrites: [
+                {
+                    id: guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                    deny: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'], //Deny permissions
+                },
+                {
+                    // But allow the two users to view the channel, send messages, and read the message history.
+                    id: member.id,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                },
+                {
+                    // But allow the two users to view the channel, send messages, and read the message history.
+                    id: member2.id,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                },
+                {
+                    id: roles.staff,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                },
+            ],
+        }).then((msg) => {
+            var channelID = msg.id;
+            const reportEmbed = new Discord.EmbedBuilder()
+                .setColor("#36699c")
+                .setTitle(`Please fill out the following:`)
+                .setDescription(
+                    "`1.` The user you want to report.\n`2.` Why you wish to report them.\n`3.` Screenshot/clip/other evidence of the person breaking a rule."
+                )
+                .setTimestamp();
+            msg.send({ embeds: [reportEmbed], content: "<@&" + roles.staff + ">" });
         });
     });
 }

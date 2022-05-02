@@ -1,12 +1,13 @@
 {
 	"token": "OTU2OTg0NzQ1NDc5MjU4MTcy.Yj4Lfw.qO03mqbLXwREp6Ab4Mq57iZ2FyA",
 	"clientId": "956984745479258172",
-	"guildId": "949026098073714728",
+	"guildId": "877034374720274452",
 	"apiKey": "67670788-a3e7-4c9d-9914-a5f790364165",
-	"host": "170.130.210.4",
-	"username": "u841_nYd1lapWNn",
-	"password": "pP4WUhpUtM!f8!Dw.7pT@zAT",
-	"database": "s841_ranked_bridge",
+	"host": "localhost",
+	"username": "root",
+	"password": "Coderscratch1!",
+	"database": "rbridge",
+	"port": "3306",
 	"range": 25,
 	"antiCrash": false
 }

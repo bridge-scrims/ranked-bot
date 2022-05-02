@@ -41,7 +41,7 @@ module.exports.run = async (interaction) => {
         } else {
             const errorEmbed = new Discord.EmbedBuilder()
                 .setColor('#a84040')
-                .setDescription("You can only ping <@" + roles.queuePing + "> once every minute.")
+                .setDescription("You can only ping <@&" + roles.queuePing + "> once every minute.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             return;
