@@ -29,7 +29,12 @@ const commands = [
 		),
 	new SlashCommandBuilder().setName('purge').setDescription('Purges an user.')
 		.addStringOption(option => option.setName('user').setDescription('Select an user').setRequired(true).setAutocomplete(true)),
-	
+
+	new SlashCommandBuilder().setName('set').setDescription('Sets an user\'s stats.')
+		.addStringOption(option => option.setName('user').setDescription('Select an user').setRequired(true).setAutocomplete(true))
+		.addStringOption(option => option.setName('type').setDescription('The type of stat to set.').setRequired(true).addChoices({ name: "ELO", value: "elo" }, { name: "Wins", value: "wins" }, { name: "Losses", value: "losses" }, { name: "Best Winstreak", value: "bestws" }, { name: "Games", value: "games" }))
+		.addNumberOption(option => option.setName('amount').setDescription('The amount to set.').setRequired(true)),
+
 	new SlashCommandBuilder().setName('ban').setDescription('Bans an user.')
 		.addStringOption(option => option.setName('user').setDescription('Select an user').setRequired(true).setAutocomplete(true))
 		.addIntegerOption(option => option.setName('days').setDescription('The amount of days to ban the user for.').setRequired(true))
@@ -64,7 +69,7 @@ const commands = [
 		.addStringOption(option => option.setName('ign').setDescription("The Minecraft account to rename as.").setRequired(true)),
 	new SlashCommandBuilder().setName('fix').setDescription('Fixes an user\'s nick and roles.')
 		.addUserOption(option => option.setName('user').setDescription("The user to fix.").setRequired(true)),
-	new SlashCommandBuilder().setName('reset').setDescription('DO NOT USE.'),
+	new SlashCommandBuilder().setName('double').setDescription('Turns on/off double ELO.'),
 	new SlashCommandBuilder().setName('party').setDescription('Party commands.')
 	.addSubcommand(
 		subcommand => subcommand.setName("invite").setDescription("The user to invite to your party.")

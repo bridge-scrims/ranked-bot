@@ -35,6 +35,10 @@ let pendingParty = [];
 // Pushed when an user accepts a party invite.
 let party = [];
 
+// Enabled/disabled whenever staff turns double ELO on/off.
+// Double ELO doubles the ELO of any game played.
+let double = false;
+
 module.exports.queue = queue;
 module.exports.isMoving = isMoving;
 module.exports.pingCooldown = pingCooldown;
@@ -44,3 +48,4 @@ module.exports.score = score;
 module.exports.voids = voids;
 module.exports.pendingParty = pendingParty;
 module.exports.party = party;
+module.exports.double = double;

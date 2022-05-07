@@ -10,6 +10,7 @@ const { registerFont, createCanvas, loadImage } = require("canvas");
 
 const Discord = require("discord.js");
 const { joinVoiceChannel } = require("@discordjs/voice");
+const fs = require("fs");
 
 const axios = require("axios");
 
@@ -68,6 +69,7 @@ module.exports.getWinstreak = getWinstreak;
 module.exports.getBestWinstreak = getBestWinstreak;
 module.exports.getStats = getStats;
 
+module.exports.setElo = setElo;
 module.exports.setWins = setWins;
 module.exports.setLosses = setLosses;
 module.exports.setWinstreak = setWinstreak;
@@ -108,20 +110,33 @@ module.exports.isPending = isPending;
 module.exports.getParty = getParty;
 module.exports.getPartyMember = getPartyMember;
 
-async function scoreCard(guild, id) {
+module.exports.scoreCard = scoreCard;
+
+async function scoreCard(id) {
     return new Promise(async function (resolve, reject) {
         if (!isInDb(id)) {
             resolve(null);
             return;
         }
         let name = await getName(id);
-        let elo = await getELO(id);
-        let wins = await getWins(id);
-        let losses = await getLosses(id);
-        let winStreak = await getWinstreak(id);
-        let bestWinstreak = await getBestWinstreak(id);
-        let gamesPlayed = await getGames(id);
-        let division = await getDivision(id);
+        let stats = await getStats(id);
+        if (!stats) {
+            resolve(null);
+            return;
+        }
+        let elo = stats.elo;
+        let winStreak = stats.winstreak;
+        let gamesPlayed = stats.games;
+        let bestWinstreak = stats.bestws;
+        let wins = stats.wins;
+        let losses = stats.losses;
+        let division = stats.division;
+        let wl;
+        if (losses === 0 || isNaN(wins / losses)) {
+        wl = wins;
+        } else {
+        wl = (wins / losses).toFixed(2);
+        }
         
         registerFont("fonts/Comfortaa.ttf", { family: "Comfortaa" });
         registerFont("fonts/SourceSansPro.ttf", { family: "SourceSans" });
@@ -134,12 +149,16 @@ async function scoreCard(guild, id) {
 
         const canvas = createCanvas(3000, 2000);
         const ctx = canvas.getContext("2d");
-
         getUUID(name).then(async (id) => {
             if (id === "undefined" || !id) {
                 resolve(null);
             }
+            /*
             const image = await loadImage("images/baseCard.png").catch((err) => {
+                reject(err);
+            });
+            */
+            const image = await loadImage("images/test.png").catch((err) => {
                 reject(err);
             });
             const imagee = await loadImage("https://mc-heads.net/body/" + id + "/right").catch((err) => {
@@ -220,11 +239,11 @@ async function scoreCard(guild, id) {
                     ctx.drawImage(crystalDiv, 1435, 175, 547 / 2.5, 600 / 2.5);
                 }
 
+                /*
                 // Draw level number text
                 ctx.fillStyle = "#66fff5";
                 ctx.font = '200px "SourceSans"';
                 ctx.fillText(level, 1875, 361);
-
                 // Draw level arc
                 ctx.globalAlpha = 0.1;
                 ctx.strokeStyle = "#141414";
@@ -241,6 +260,7 @@ async function scoreCard(guild, id) {
 
                 ctx.arc(1926, 300, 125, s, radians + s, true);
                 ctx.stroke();
+                */
 
                 // IGN of the user
                 ctx.fillStyle = "#66fff5";
@@ -333,10 +353,11 @@ async function scoreCard(guild, id) {
                 }
 
                 const buffer = canvas.toBuffer();
-                const attachment = new MessageAttachment(buffer, name + ".png");
+                const attachment = new Discord.MessageAttachment(buffer, name + ".png");
                 fs.writeFile("./images/profiles/" + name + ".png", buffer, function (err) {
-                    if (err) throw err;
-                    msg.edit({ embeds: [], files: [attachment] }).catch((error) => console.error("Error: " + error));;
+                    if (err) reject(err);
+                    resolve(attachment);
+                    //msg.edit({ embeds: [], files: [attachment] }).catch((error) => console.error("Error: " + error));;
                 });
             }
         });
@@ -883,11 +904,16 @@ async function calcElo(winner, winnerTeammate, loser, loserTeammate, winnerScore
     let p3 = await getELO(loser);
     let p4 = await getELO(loserTeammate);
 
-    let change1 = Math.round(p1 + 15 + (winnerScore / 4));
-    let change2 = Math.round(p2 + 15 + (winnerScore / 4));
+    let additional = 1;
+    if (variables.double) {
+        additional = 2;
+    }
+
+    let change1 = Math.round(p1 + 15 + (winnerScore / 4)) * additional;
+    let change2 = Math.round(p2 + 15 + (winnerScore / 4)) * additional;
     
-    let change3 = Math.round(p3 - 10 + (loserScore / 2));
-    let change4 = Math.round(p4 - 10 + (loserScore / 2));
+    let change3 = Math.round(p3 - 10 + (loserScore / 2)) * additional;
+    let change4 = Math.round(p4 - 10 + (loserScore / 2)) * additional;
 
     if (p1 <= 1000) {
         change1 = Math.round(p1 + 17 + (winnerScore / 4));
@@ -1061,6 +1087,19 @@ async function getGames(id) {
                 return;
             }
             resolve(rows[0].games);
+        });
+    });
+}
+
+async function setElo(id, elo) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`UPDATE rbridge SET elo = ${elo} WHERE id='${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(false);
+                return;
+            }
+            resolve(true);
         });
     });
 }
