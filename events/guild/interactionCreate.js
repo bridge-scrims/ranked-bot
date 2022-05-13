@@ -530,7 +530,6 @@ module.exports = async (client, interaction) => {
             let canScore = false;
             for (let i = 0; i < variables.score.length; i++) {
                 if (variables.score[i][1] === interaction.channel.id) {
-                    console.log(variables.score[i]);
                     canScore = true;
                     if (variables.score[i][0] === interaction.member.id || variables.score[i][2] === interaction.member.id) {
                         const errorEmbed = new Discord.EmbedBuilder()

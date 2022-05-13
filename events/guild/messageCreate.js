@@ -64,6 +64,84 @@ module.exports = async (client, message) => {
         message.reply({ embeds: [errorEmbed] });
     }
 
+    if (cmd.toLowerCase().startsWith("=score")) {
+        let isIG = false;
+        for (let i = 0; i < variables.curGames.length; i++) {
+            if (variables.curGames[i][0] === message.member.id) {
+                if (variables.curGames[i][2] === message.channel.id) {
+                    isIG = true;
+                    let canScore = true;
+                    for (var j = 0; j < variables.score.length; j++) {
+                        if (variables.score[j][1] === message.channel.id) {
+                            const errorEmbed = new Discord.EmbedBuilder()
+                                .setColor('#a84040')
+                                .setDescription("Someone's already scoring this!")
+                                .setTimestamp();
+                            message.reply({ embeds: [errorEmbed] });
+                            canScore = false;
+                            return;
+                        }
+                    }
+
+                    if (canScore) {
+                        if (!message.attachments.first()) {
+                            const errorEmbed = new Discord.EmbedBuilder()
+                                .setColor('#a84040')
+                                .setDescription("Please provide a valid image! Correct file types include `.jpeg`, `.png`, and `.jpg`.")
+                                .setTimestamp();
+                            message.reply({ embeds: [errorEmbed] });
+                        } else {
+                            let fileB = true;
+                            message.attachments.forEach(async attachment => {
+                                if (fileB) {
+                                    let file = attachment.proxyURL;
+                                    if (file.toLowerCase().endsWith(".jpg") || file.toLowerCase().endsWith(".png") || file.toLowerCase().endsWith(".jpeg")) {
+                                        variables.score.push([message.member.id, message.channel.id, variables.curGames[i][1]]);
+                                        const scoreEmbed = new Discord.EmbedBuilder()
+                                            .setColor('#36699c')
+                                            .setTitle('Score Request')
+                                            .setDescription('Please click the button if the screenshot is correct! If it isn\'t, then deny the score request.')
+                                            .setImage(file.url)
+                                            .setTimestamp()
+                                        const buttons = new Discord.ActionRowBuilder()
+                                        .addComponents(
+                                            new Discord.ButtonBuilder()
+                                                .setCustomId("score")
+                                                .setLabel('Score')
+                                                .setStyle(Discord.ButtonStyle.Success),
+                                            new Discord.ButtonBuilder()
+                                            .setCustomId("deny")
+                                            .setLabel('Deny')
+                                            .setStyle(Discord.ButtonStyle.Danger)
+                                        );
+                                        message.reply({ embeds: [scoreEmbed], components: [buttons] });
+                                        fileB = false;
+                                    }
+                                }
+                            });
+                            if (fileB) {
+                                const errorEmbed = new Discord.EmbedBuilder()
+                                    .setColor('#a84040')
+                                    .setDescription("Please provide a valid image! Correct file types include `.jpeg`, `.png`, and `.jpg`.")
+                                    .setTimestamp();
+                                message.reply({ embeds: [errorEmbed] });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!isIG) {
+            const errorEmbed = new Discord.EmbedBuilder()
+                .setColor('#a84040')
+                .setDescription("You're not in a game.")
+                .setTimestamp();
+            message.reply({ embeds: [errorEmbed] });
+            return;
+        }
+    }
+
     if (cmd.toLowerCase().startsWith("=party") || cmd.toLowerCase().startsWith("=p")) {
         if (args.length < 2) {
             const errorEmbed = new Discord.EmbedBuilder()
