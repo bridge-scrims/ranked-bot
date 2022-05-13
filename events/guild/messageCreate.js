@@ -64,6 +64,113 @@ module.exports = async (client, message) => {
         message.reply({ embeds: [errorEmbed] });
     }
 
+    if (cmd.toLowerCase().startsWith("=register")) {
+        if (message.channel.id === channels.registerChannel) {
+            if (args.length < 2) {
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("You need to provide an username!")
+                    .setTimestamp();
+                message.reply({ embeds: [errorEmbed] });
+                return;
+            }
+            let username = args[1];
+            await gameFunctions.getUUID(username).then(async (data) => {
+                if (!data.name) {
+                    const errorEmbed = new Discord.EmbedBuilder()
+                        .setColor('#a84040')
+                        .setDescription("`" + username + "` isn't a valid username!")
+                        .setTimestamp();
+                    message.reply({ embeds: [errorEmbed] });
+                    return;
+                }
+                await gameFunctions.getHypixel(data.uuid).then(async (hypixel) => {
+                    let socialMedia = hypixel.player.socialMedia;
+                    if (!socialMedia || !socialMedia.links || !socialMedia.links.DISCORD) {
+                        const errorEmbed = new Discord.EmbedBuilder()
+                            .setColor('#a84040')
+                            .setDescription("`" + data.name + "` hasn't linked their Discord!")
+                            .setTimestamp();
+                        message.reply({ embeds: [errorEmbed] });
+                        return;
+                    }
+                    if (socialMedia.links.DISCORD != undefined) {
+                        let linkedDiscord = socialMedia.links.DISCORD;
+                        if (linkedDiscord != message.member.user.tag) {
+                            const errorEmbed = new Discord.EmbedBuilder()
+                                .setColor('#a84040')
+                                .setDescription("`" + data.name + "`'s account is linked to `" + linkedDiscord + "`!")
+                                .setTimestamp();
+                            message.reply({ embeds: [errorEmbed] });
+                            return;
+                        }
+                        let isDb = await gameFunctions.isInDb(message.member.id);
+                        let rankedRole = await gameFunctions.getRole(message.guild, roles.rankedPlayer);
+                        let unverifiedRole = await gameFunctions.getRole(message.guild, roles.unverified);
+                        let coalDiv = await gameFunctions.getRole(message.guild, roles.coalDivision);
+                        message.member.roles.add(rankedRole);
+                        message.member.roles.add(coalDiv);
+                        message.member.roles.remove(unverifiedRole);
+    
+                        if (!isDb) {
+                            await gameFunctions.insertUser(message.member.id, data.name);
+                            let uuid = await gameFunctions.getUUID(data.name);
+                            const successEmbed = new Discord.EmbedBuilder()
+                                .setColor('#36699c')
+                                .setAuthor({ name: "Registered you as " + data.name + "!", iconURL: "https://mc-heads.net/avatar/" + uuid.uuid + "/64"})
+                                .setTimestamp();
+                            message.reply({ embeds: [successEmbed], ephemeral: true });
+                            message.member.setNickname("[1000] " + data.name);
+                            return;
+                        } else {
+                            let uuid = await gameFunctions.getUUID(data.name);
+                            const successEmbed = new Discord.EmbedBuilder()
+                                .setColor('#36699c')
+                                .setAuthor({ name: "Welcome back " + data.name + "!", iconURL: "https://mc-heads.net/avatar/" + uuid.uuid + "/64"})
+                                .setTimestamp();
+                            message.reply({ embeds: [successEmbed], ephemeral: true });
+                            let elo = await gameFunctions.getELO(message.member.id);
+                            message.member.setNickname("[" + elo + "] " + data.name);
+                            return;
+                        }
+                    }
+                }).catch((err) => {
+                    functions.sendError(functions.objToString(err), message.guild, "Hypixel API")
+                    const errorEmbed = new Discord.EmbedBuilder()
+                        .setColor('#a84040')
+                        .setDescription("<@" + message.member.id + ">, an error occurred! Please try again.")
+                        .setTimestamp();
+                    message.channel.send({ embeds: [errorEmbed] }).then((msg) => {
+                        setTimeout(function() {
+                            if (!msg) {
+                                return;
+                            } else {
+                                msg.delete();
+                            }
+                        }, 4000);
+                    });
+                    return;
+                });
+            }).catch((err) => {
+                functions.sendError(functions.objToString(err), message.guild, "Mojang API")
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("An error occurred! Please try again.")
+                    .setTimestamp();
+                message.reply({ embeds: [errorEmbed], ephemeral: true });
+                console.error(err);
+                return;
+            });
+        } else {
+            const errorEmbed = new Discord.EmbedBuilder()
+                .setColor('#a84040')
+                .setDescription("You can only use `=register` in <#" + channels.registerChannel + ">.")
+                .setTimestamp();
+            message.reply({ embeds: [errorEmbed] });
+            return;
+        }
+    }
+
     if (cmd.toLowerCase().startsWith("=score")) {
         let isIG = false;
         for (let i = 0; i < variables.curGames.length; i++) {
