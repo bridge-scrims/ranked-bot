@@ -913,62 +913,62 @@ async function calcElo(winner, winnerTeammate, loser, loserTeammate, winnerScore
     let change2 = Math.round(p2 + 15 + (winnerScore / 4)) * additional;
     
     let change3 = Math.round(p3 - 10 + (loserScore / 2)) * additional;
-    let change4 = Math.round(p4 - 10 + (loserScore / 2)) * additional;
+    let change4 = Math.round(p4 - 10 + (loserScore / 2));
 
     if (p1 <= 1000) {
-        change1 = Math.round(p1 + 17 + (winnerScore / 4));
+        change1 = Math.round(p1 + (17 * additional) + (winnerScore / 4));
     } else if (p1 >= 1001 && p1 <= 1050) {
-        change1 = Math.round(p1 + 13 + (winnerScore / 4));
+        change1 = Math.round(p1 + (13 * additional) + (winnerScore / 4));
     } else if (p1 >= 1051 && p1 <= 1100) {
-        change1 = Math.round(p1 + 11 + (winnerScore / 4));
+        change1 = Math.round(p1 + (11 * additional) + (winnerScore / 4));
     } else if (p1 >= 1101 && p1 <= 1150) {
-        change1 = Math.round(p1 + 8 + (winnerScore / 4));
+        change1 = Math.round(p1 + (8 * additional) + (winnerScore / 4));
     } else if (p1 >= 1151 && p1 <= 1200) {
-        change1 = Math.round(p1 + 5 + (winnerScore / 4));
+        change1 = Math.round(p1 + (5 * additional) + (winnerScore / 4));
     } else if (p1 >= 1201) {
-        change1 = Math.round(p1 + 4 + (winnerScore / 4));
+        change1 = Math.round(p1 + (4 * additional) + (winnerScore / 4));
     }
 
     if (p2 <= 1000) {
-        change2 = Math.round(p2 + 17 + (winnerScore / 4));
+        change2 = Math.round(p2 + (17 * additional) + (winnerScore / 4));
     } else if (p2 >= 1001 && p2 <= 1050) {
-        change2 = Math.round(p2 + 13 + (winnerScore / 4));
+        change2 = Math.round(p2 + (13 * additional) + (winnerScore / 4));
     } else if (p2 >= 1051 && p2 <= 1100) {
-        change2 = Math.round(p2 + 11 + (winnerScore / 4));
+        change2 = Math.round(p2 + (11 * additional) + (winnerScore / 4));
     } else if (p2 >= 1101 && p2 <= 1150) {
-        change2 = Math.round(p2 + 8 + (winnerScore / 4));
+        change2 = Math.round(p2 + (8 * additional) + (winnerScore / 4));
     } else if (p2 >= 1151 && p2 <= 1200) {
-        change2 = Math.round(p2 + 5 + (winnerScore / 4));
+        change2 = Math.round(p2 + (5 * additional) + (winnerScore / 4));
     } else if (p2 >= 1201) {
-        change2 = Math.round(p2 + 4 + (winnerScore / 4));
+        change2 = Math.round(p2 + (4 * additional) + (winnerScore / 4));
     }
 
     if (p3 <= 1000) {
-        change3 = Math.round(p3 - 5 + (loserScore / 2));
+        change3 = Math.round(p3 - (5 * additional) + (loserScore / 2));
     } else if (p3 >= 1001 && p3 <= 1050) {
-        change3 = Math.round(p3 - 7 + (loserScore / 2));
+        change3 = Math.round(p3 - (7 * additional) + (loserScore / 2));
     } else if (p3 >= 1051 && p3 <= 1100) {
-        change3 = Math.round(p3 - 9 + (loserScore / 2));
+        change3 = Math.round(p3 - (9 * additional) + (loserScore / 2));
     } else if (p3 >= 1101 && p3 <= 1150) {
-        change3 = Math.round(p3 - 11 + (loserScore / 2));
+        change3 = Math.round(p3 - (11 * additional) + (loserScore / 2));
     } else if (p3 >= 1151 && p3 <= 1200) {
-        change3 = Math.round(p3 - 12 + (loserScore / 2));
+        change3 = Math.round(p3 - (12 * additional) + (loserScore / 2));
     } else if (p3 >= 1201) {
-        change3 = Math.round(p3 - 15 + (loserScore / 2));
+        change3 = Math.round(p3 - (15 * additional) + (loserScore / 2));
     }
 
     if (p4 <= 1000) {
-        change4 = Math.round(p4 - 5 + (loserScore / 2));
+        change4 = Math.round(p4 - (5 * additional) + (loserScore / 2));
     } else if (p4 >= 1001 && p4 <= 1050) {
-        change4 = Math.round(p4 - 7 + (loserScore / 2));
+        change4 = Math.round(p4 - (7 * additional) + (loserScore / 2));
     } else if (p4 >= 1051 && p4 <= 1100) {
-        change4 = Math.round(p4 - 9 + (loserScore / 2));
+        change4 = Math.round(p4 - (9 * additional) + (loserScore / 2));
     } else if (p4 >= 1101 && p4 <= 1150) {
-        change4 = Math.round(p4 - 11 + (loserScore / 2));
+        change4 = Math.round(p4 - (11 * additional) + (loserScore / 2));
     } else if (p4 >= 1151 && p4 <= 1200) {
-        change4 = Math.round(p4 - 12 + (loserScore / 2));
+        change4 = Math.round(p4 - (12 * additional) + (loserScore / 2));
     } else if (p4 >= 1201) {
-        change4 = Math.round(p4 - 15 + (loserScore / 2));
+        change4 = Math.round(p4 - (15 * additional) + (loserScore / 2));
     }
 
     if (change3 > p3) {
