@@ -1,5 +1,6 @@
 ﻿const Discord = require("discord.js");
 
+const config = require("../../config/config.json");
 const variables = require("../../handlers/variables.js");
 const channels = require("../../config/channels.json");
 const functions = require("../../handlers/functions.js");

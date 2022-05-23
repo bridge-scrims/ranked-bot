@@ -1,4 +1,6 @@
 const { range, clientId } = require("../../config/config.json");
+const workerConfig = require("../../config/config_worker.json");
+const worker = require("../../worker.js");
 
 const { ghost, invisible, rankedPlayer } = require("../../config/roles.json");
 // We need roles set up for the config.
@@ -30,9 +32,11 @@ module.exports = async (client, oldState, newState) => {
                     // If the ID of the current loop is equal to the memberID...
                     console.log(oldState.member.user.tag + " left the queue.".dim);
                     queue.splice(i, 1);
-                    newState.guild.members.fetch(clientId).then((member) => {
-                        member.setNickname("[" + queue.length + "/4]");
-                    }).catch((e) => console.log("Error setting the nickname of the bot!"));
+
+                    let changed = await worker.changeNickname(newState.guild, workerConfig.clientId, "[" + queue.length + "/4]");
+                    if (!changed) {
+                        console.log("Error setting the nickname of the bot!")
+                    }
 
                     setTimeout(async function () {
                         // Fetch the private queue channel.
@@ -66,7 +70,7 @@ module.exports = async (client, oldState, newState) => {
     // If the channel the user is in is equal to the queue channel...
     if (newState.channelId === queueChannel) {
         // If the user who joins the channel is the bot, then return.
-        if (newState.member.id === clientId || oldState.member.id === clientId) {
+        if (newState.member.id === clientId || oldState.member.id === clientId || newState.member.id === workerConfig.clientId || oldState.member.id === workerConfig.clientId) {
             return;
         }
         let memberId = newState.member.id;
@@ -90,9 +94,10 @@ module.exports = async (client, oldState, newState) => {
             queue.push([memberId, userELO, 0]);
 
             // Set the bot's nickname
-            newState.guild.members.fetch(clientId).then((member) => {
-                member.setNickname("[" + queue.length + "/4]");
-            }).catch((e) => console.log("Error setting the nickname!".red));
+            let changed = await worker.changeNickname(newState.guild, workerConfig.clientId, "[" + queue.length + "/4]");
+            if (!changed) {
+                console.log("Error setting the nickname of the bot!")
+            }
 
             // Invisible queueing
             if (newState.member.roles.cache.has(invisible)) {

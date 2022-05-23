@@ -6,10 +6,12 @@ const roles = require("../../config/roles.json");
 const config = require("../../config/config.json");
 const functions = require("../functions.js");
 
+const workerConfig = require("../../config/config_worker.json");
+const worker = require("../../worker.js");
+
 const { registerFont, createCanvas, loadImage } = require("canvas");
 
 const Discord = require("discord.js");
-const { joinVoiceChannel } = require("@discordjs/voice");
 const fs = require("fs");
 
 const axios = require("axios");
@@ -445,7 +447,6 @@ async function strikeUser(id) {
 }
 
 async function runLoops(guild) {
-    joinVoiceChannel({ channelId: channels.queueChannel, guildId: guild.id, adapterCreator: guild.voiceAdapterCreator });
     let currentTime = Date.now();
     con.query(`SELECT * FROM banned`, (err, rows) => {
         for (var i = 0; i < rows.length; i++) {
@@ -458,7 +459,6 @@ async function runLoops(guild) {
         }
     });
     setInterval(function () {
-        joinVoiceChannel({ channelId: channels.queueChannel, guildId: guild.id, adapterCreator: guild.voiceAdapterCreator });
         let currentTime = Date.now();
         con.query(`SELECT * FROM banned`, (err, rows) => {
             if (!rows) {
@@ -860,14 +860,20 @@ async function fixName(interaction, id) {
     let name = await getName(id);
     let nick = member.displayName;
     if (nick.includes("[") && !nick.includes("(")) {
-        interaction.guild.members.fetch(id).then((user) => user.setNickname("[" + elo + "] " + name)).catch((err) => console.error(err));;
+        let changed = await worker.changeNickname(interaction.guild, id, "[" + elo + "] " + name);
+        if (!changed) {
+            console.log("Failed to change nickname");
+        }
     } else if (nick.includes("[") && nick.includes("(")) {
         let split = nick.split(" ");
         let restNick = "";
         for (let i = 0; i < split.length; i++) {
             restNick += split[i];
         }
-        interaction.guild.members.fetch(id).then((user) => user.setNickname("[" + elo + "] " + restNick).catch((e) => console.log("Error setting the nickname!")));
+        let changed = await worker.changeNickname(interaction.guild, id, "[" + elo + "] " + restNick);
+        if (!changed) {
+            console.log("Failed to change nickname");
+        }
     }
 }
 
@@ -1347,9 +1353,10 @@ async function screenshareUser(guild, member, member2) {
 }
 
 async function makeChannel(message, id, id2, id3, id4) {
-    message.guild.members.fetch(config.clientId).then((member) => {
-        member.setNickname("[" + variables.queue.length + "/4]");
-    }).catch((e) => console.log("Error setting the nickname!"));
+    let changed = await worker.changeNickname(message.guild, workerConfig.clientId, "[" + variables.queue.length + "/4]");
+    if (!changed) {
+        console.log("Error setting the nickname!")
+    }
     await getUser(message.guild, id).then(async(user) => {
         if (user != null && user != undefined) {
             await getUser(message.guild, id2).then(async(user2) => {

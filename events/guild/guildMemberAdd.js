@@ -6,7 +6,7 @@ const Discord = require("discord.js");
 module.exports = async (client, member) => {
     const joinEmbed = new Discord.EmbedBuilder()
         .setColor('#36699c')
-        .setDescription("**Welcome " + member.user.tag + "!**\n\nPlease use the `/register <ign>` command to register yourself and view other channels! If you cannot do so, open a ticket (tbd).")
+        .setDescription("**Welcome " + member.user.tag + "!**\n\nPlease use the `/register <ign>` command to register yourself and view other channels! If you are having trouble registering, open a ticket in <#948697996692946975>.")
         .setImage("https://media.giphy.com/media/GkBJtdg7avYshmfcFi/giphy.gif")
         .setTimestamp();
     member.guild.channels.cache.get(channels.registerChannel).send({ embeds: [joinEmbed] });
