@@ -16,7 +16,8 @@ const client = new Discord.Client({
         Discord.GatewayIntentBits.GuildMessageReactions,
     ],
     presence: {
-        status: "dnd"
+        status: "dnd",
+        activities: [{ name: "Ranked Bridge" }]
     }
 });
 
