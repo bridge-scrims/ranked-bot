@@ -45,7 +45,7 @@ module.exports.run = async (interaction) => {
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             return;
         }
-        
+        /*
         let curElo = await gameFunctions.getELO(interaction.member.id);
         let userElo = await gameFunctions.getELO(user.id);
         
@@ -57,6 +57,7 @@ module.exports.run = async (interaction) => {
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             return;
         }
+        */
         if (gameFunctions.isInParty(user.id)) {
             const errorEmbed = new Discord.EmbedBuilder()
                 .setColor("#a84040")

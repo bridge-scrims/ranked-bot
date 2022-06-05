@@ -52,6 +52,59 @@ module.exports = async (client, interaction) => {
     }
 
     if (interaction.isButton()) {
+        if (interaction.customId.startsWith("tdeny")) {
+            await interaction.deferReply({ ephemeral: true });
+            let splitID = interaction.customId.split("-");
+            let userID = splitID[1];
+            if (userID != interaction.member.id) {
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor("#2f3136")
+                    .setTitle(`Error!`)
+                    .setDescription("Only <@" + userID + "> can close this ticket. If you are Staff, use `/forceclose`.")
+                    .setTimestamp();
+                await interaction.editReply({ embeds: [errorEmbed] });
+            } else {
+                await interaction.editReply("Denied close request.");
+                const embed = new Discord.EmbedBuilder()
+                    .setColor("#ff2445")
+                    .setTitle(`Close Request Denied`)
+                    .setDescription("<@" + interaction.member.id + "> has denied the close request.")
+                    .setTimestamp();
+                interaction.message.edit({ embeds: [embed], components: [] });
+            }
+        }
+
+        if (interaction.customId.startsWith("taccept")) {
+            await interaction.deferReply({ ephemeral: true });
+            let splitID = interaction.customId.split("-");
+            let userID = splitID[1];
+            if (userID != interaction.member.id) {
+                const channelEmbed = new Discord.EmbedBuilder()
+                    .setColor("#2f3136")
+                    .setTitle(`Error!`)
+                    .setDescription("Only <@" + userID + "> can close this ticket. If you are Staff, use `/forceclose`.")
+                    .setTimestamp();
+                await interaction.editReply({ embeds: [channelEmbed] });
+            } else {
+                con.query(`SELECT * FROM tickets WHERE channelid='${interaction.channel.id}'`, async (err, rows) => {
+                    if (err) throw err;
+                    if (rows.length < 1) {
+                        const embed = new Discord.EmbedBuilder()
+                        .setColor("#2f3136")
+                        .setTitle("Error!")
+                        .setDescription("This isn't a ticket channel!")
+                        .setTimestamp();
+                        await interaction.reply({ embeds: [embed] });
+                    } else {
+                        con.query(`DELETE FROM tickets WHERE id='${interaction.member.id}'`, async (err, rows) => {
+                            if (err) throw err;
+                        });
+                        interaction.channel.delete();
+                    }
+                });
+            }
+        }
+
         if (interaction.customId.startsWith("paccept")) {
             let user = interaction.customId.split("-")[1];
             let otherUser = interaction.customId.split("-")[2];

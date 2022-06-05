@@ -1212,19 +1212,22 @@ async function supportTicket(guild, member) {
                 },
             ],
         }).then((msg) => {
-            msg.send("<@&" + roles.staff + ">").then((message) => {
-                if (message != undefined) {
-                    message.delete();
-                }
+            con.query(`INSERT INTO tickets (channelid, id) VALUES ('${msg.id}', '${member.id}')`, async (err, rows) => {
+                if (err) msg.send("Error inserting into the ticket database.");
+                msg.send("<@&" + roles.staff + ">").then((message) => {
+                    if (message != undefined) {
+                        message.delete();
+                    }
+                });
+                var channelID = msg.id;
+                const supportEmbed = new Discord.EmbedBuilder()
+                    .setColor("#36699c")
+                    .setTitle(`Please state your issue!`)
+                    .setDescription("Staff will be with you shortly.")
+                    .setTimestamp();
+                msg.send({ embeds: [supportEmbed], content: "<@" + member.id + ">" });
+                resolve(channelID);
             });
-            var channelID = msg.id;
-            const supportEmbed = new Discord.EmbedBuilder()
-                .setColor("#36699c")
-                .setTitle(`Please state your issue!`)
-                .setDescription("Staff will be with you shortly.")
-                .setTimestamp();
-            msg.send({ embeds: [supportEmbed], content: "<@&" + member.id + ">" });
-            resolve(channelID);
         });
     });
 }

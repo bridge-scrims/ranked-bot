@@ -18,7 +18,7 @@ const client = new Discord.Client({
         Discord.GatewayIntentBits.GuildMessageReactions,
     ],
     presence: {
-        status: "available",
+        status: "invisible",
     }
 });
 

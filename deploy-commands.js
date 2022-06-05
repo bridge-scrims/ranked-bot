@@ -6,6 +6,8 @@ const { Routes } = require('discord-api-types/v9');
 const { clientId, guildId, token } = require('./config/config.json');
 
 const commands = [
+    new SlashCommandBuilder().setName('close').setDescription('Creates a close request.')
+		.addStringOption(option => option.setName('reason').setDescription('Reason for closing the ticket.')),
 	new SlashCommandBuilder().setName('help').setDescription('Displays a help menu.'),
 	new SlashCommandBuilder().setName('ping').setDescription('Pings @Queue Ping.'),
 	new SlashCommandBuilder().setName('leaderboard').setDescription('Get\'s the leaderboard.').addStringOption(option => option.setName('type').setDescription('The type of leaderboard to display.').addChoices({ name: "ELO", value: "elo" }, { name: "Wins", value: "wins" }, { name: "Losses", value: "losses" }, { name: "Best Winstreak", value: "bestws" }, { name: "Games", value: "games" })),

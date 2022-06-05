@@ -294,7 +294,7 @@ module.exports = async (client, message) => {
         }
     }
 
-    if (cmd.toLowerCase().startsWith("=party") || cmd.toLowerCase().startsWith("=p")) {
+    if (cmd.toLowerCase().startsWith("=party") || cmd.toLowerCase().startsWith("=p") && cmd.toLowerCase().includes("=ping")) {
         if (args.length < 2) {
             const errorEmbed = new Discord.EmbedBuilder()
                 .setColor('#a84040')
