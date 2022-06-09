@@ -9,7 +9,7 @@ module.exports.run = async (interaction) => {
     let isIG = false;
     for (let i = 0; i < variables.curGames.length; i++) {
         if (variables.curGames[i][0] === interaction.member.id) {
-            if (variables.curGames[i][2] === interaction.channel.id) {
+            if (variables.curGames[i][1] === interaction.channel.id) {
                 isIG = true;
                 let canVoid = true;
                 for (var j = 0; j < variables.voids.length; j++) {
@@ -25,7 +25,7 @@ module.exports.run = async (interaction) => {
                 }
 
                 if (canVoid) {
-                    variables.voids.push([interaction.member.id, interaction.channel.id, variables.curGames[i][1]]);
+                    variables.voids.push([interaction.member.id, interaction.channel.id]);
                     const voidEmbed = new Discord.EmbedBuilder()
                         .setColor('#36699c')
                         .setTitle('Void Request')

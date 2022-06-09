@@ -9,5 +9,5 @@
 	"database": "rbridge",
 	"port": "3306",
 	"range": 25,
-	"antiCrash": false
+	"antiCrash": true
 }

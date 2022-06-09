@@ -9,19 +9,15 @@ const gameFunctions = require("../../handlers/game/gameFunctions.js");
 
 module.exports.run = async (interaction) => {
     const winner = interaction.options.getString('winner');
-    const winnerTeammate = interaction.options.getString('winner_teammate');
     
     const loser = interaction.options.getString('loser');
-    const loserTeammate = interaction.options.getString('loser_teammate');
 
     const winnerScore = interaction.options.getInteger('winner_score');
     const loserScore = interaction.options.getInteger('loser_score');
 
     if (interaction.member.roles.cache.has(roles.scorer)) {
         let wDb = await gameFunctions.isInDb(winner);
-        let wTDb = await gameFunctions.isInDb(winnerTeammate);
         let lDb = await gameFunctions.isInDb(loser);
-        let lTDb = await gameFunctions.isInDb(loserTeammate);
         
         if (!wDb) {
             const errorEmbed = new Discord.EmbedBuilder()
@@ -37,26 +33,6 @@ module.exports.run = async (interaction) => {
             const errorEmbed = new Discord.EmbedBuilder()
                 .setColor("#a84040")
                 .setDescription("Please provide a valid loser!")
-                .setTimestamp();
-            // Send the embd.
-            interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-            return;
-        }
-
-        if (!wDb) {
-            const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
-                .setDescription("Please provide a valid winner teammate!")
-                .setTimestamp();
-            // Send the embd.
-            interaction.reply({ embeds: [errorEmbed], ephemeral: true });
-            return;
-        }
-
-        if (!lDb) {
-            const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
-                .setDescription("Please provide a valid loser teammate!")
                 .setTimestamp();
             // Send the embd.
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -105,39 +81,24 @@ module.exports.run = async (interaction) => {
 
             const wElo = await gameFunctions.getELO(winner);
             const lElo = await gameFunctions.getELO(loser);
-            const wTElo = await gameFunctions.getELO(winnerTeammate);
-            const lTElo = await gameFunctions.getELO(loserTeammate);
             
             
-            let calcElo = await gameFunctions.calcElo(winner, winnerTeammate, loser, loserTeammate, winnerScore, loserScore);
+            let calcElo = await gameFunctions.calcElo(winner, loser, winnerScore, loserScore);
             await gameFunctions.updateELO(winner, calcElo[0]);
-            await gameFunctions.updateELO(winnerTeammate, calcElo[1]);
-            await gameFunctions.updateELO(loser, calcElo[2]);
-            await gameFunctions.updateELO(loserTeammate, calcElo[3]);
+            await gameFunctions.updateELO(loser, calcElo[1]);
             
             await gameFunctions.fixRoles(interaction, winner);
             await gameFunctions.fixRoles(interaction, loser);
             await gameFunctions.fixName(interaction, winner);
             await gameFunctions.fixName(interaction, loser);
-            await gameFunctions.fixRoles(interaction, winnerTeammate);
-            await gameFunctions.fixRoles(interaction, loserTeammate);
-            await gameFunctions.fixName(interaction, winnerTeammate);
-            await gameFunctions.fixName(interaction, loserTeammate);
 
             let wWins = await gameFunctions.getWins(winner);
             let wWs = await gameFunctions.getWinstreak(winner);
             let wBestws = await gameFunctions.getBestWinstreak(winner);
             let wGames = await gameFunctions.getGames(winner);
 
-            let wTWins = await gameFunctions.getWins(winnerTeammate);
-            let wTWs = await gameFunctions.getWinstreak(winnerTeammate);
-            let wTBestws = await gameFunctions.getBestWinstreak(winnerTeammate);
-            let wTGames = await gameFunctions.getGames(winnerTeammate);
-
-            let lLosses = await gameFunctions.getLosses(loserTeammate);
-            let lGames = await gameFunctions.getGames(loserTeammate);
-            let lTLosses = await gameFunctions.getLosses(loserTeammate);
-            let lTGames = await gameFunctions.getGames(loserTeammate);
+            let lLosses = await gameFunctions.getLosses(loser);
+            let lGames = await gameFunctions.getGames(loser);
             
             await gameFunctions.setWins(winner, wWins + 1);
             await gameFunctions.setLosses(loser, lLosses + 1);
@@ -152,25 +113,12 @@ module.exports.run = async (interaction) => {
             await gameFunctions.updateDivision(winner);
             await gameFunctions.updateDivision(loser);
 
-            await gameFunctions.setWins(winnerTeammate, wTWins + 1);
-            await gameFunctions.setLosses(loserTeammate, lTLosses + 1);
-            await gameFunctions.setWinstreak(winnerTeammate, wTWs + 1);
-            await gameFunctions.setWinstreak(loserTeammate, 0);
-            if (wTWs + 1 > wTBestws) {
-                await gameFunctions.setBestwinstreak(winnerTeammate, wTWs);
-            }
-            await gameFunctions.setUserGames(winnerTeammate, wTGames + 1);
-            await gameFunctions.setUserGames(loserTeammate, lTGames + 1);
-
-            await gameFunctions.updateDivision(winnerTeammate);
-            await gameFunctions.updateDivision(loserTeammate);
-
             await gameFunctions.setGame(winner, loser, calcElo[0], calcElo[1], gameNum);
 
             const gameEmbed = new Discord.EmbedBuilder()
-                .setColor("#2f3136")
+                .setColor('#36699c')
                 .setTitle("Game #" + gameNum)
-                .setDescription("**Winners:** [<@" + winner + "> - <@" + winnerTeammate + ">]\n[`" + wElo + "` -> `" + calcElo[0] + "` - `" + wTElo + "` -> `" + calcElo[1] + "`]\n**Losers:** [<@" + loser + "> - <@" + loserTeammate + ">]\n[`" + lElo + "` -> `" + calcElo[2] + "` - `" + lTElo + "` -> `" + calcElo[3] + "`]\n**Score:** `" + winnerScore + "-" + loserScore + "`")
+                .setDescription("**Winner:** [<@" + winner + ">]\n[`" + wElo + "` -> `" + calcElo[0] + "`]\n**Loser:** [<@" + loser + ">]\n[`" + lElo + "` -> `" + calcElo[1] + "`]\n**Score:** `" + winnerScore + "-" + loserScore + "`")
                 .setFooter({ text: "Scored by " + interaction.member.user.tag })
                 .setTimestamp();
             interaction.guild.channels.cache.get(channels.gamesChannel).send({ embeds: [gameEmbed] });

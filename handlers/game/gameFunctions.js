@@ -634,9 +634,11 @@ async function insertUser(id, name) {
 }
 
 async function updateName(id, name) {
-    con.query(`UPDATE rbridge SET id=? WHERE name=?`, [id, name], function (err, rows, fields) {
-        if (err) reject(err);
-        resolve(true);
+    return new Promise(async function (resolve, reject) {
+        con.query(`UPDATE rbridge SET id=? WHERE name=?`, [id, name], function (err, rows, fields) {
+            if (err) reject(err);
+            resolve(true);
+        });
     });
 }
 
@@ -904,87 +906,30 @@ async function getRole(guild, id) {
     });
 }
 
-async function calcElo(winner, winnerTeammate, loser, loserTeammate, winnerScore, loserScore) {
+async function calcElo(winner, loser, winnerScore, loserScore) {
     let p1 = await getELO(winner);
-    let p2 = await getELO(winnerTeammate);
-    let p3 = await getELO(loser);
-    let p4 = await getELO(loserTeammate);
+    let p2 = await getELO(loser);
 
     let additional = 1;
     if (variables.double) {
         additional = 2;
     }
 
-    let change1 = Math.round(p1 + 15 + (winnerScore / 4)) * additional;
-    let change2 = Math.round(p2 + 15 + (winnerScore / 4)) * additional;
-    
-    let change3 = Math.round(p3 - 10 + (loserScore / 2)) * additional;
-    let change4 = Math.round(p4 - 10 + (loserScore / 2));
+    let p1Ranking = ranking.makePlayer(p1);
+    let p2Ranking = ranking.makePlayer(p2);
+    var matches = [];
+    matches.push([p1Ranking, p2Ranking, 1])
+    ranking.updateRatings(matches);
 
-    if (p1 <= 1000) {
-        change1 = Math.round(p1 + (17 * additional) + (winnerScore / 4));
-    } else if (p1 >= 1001 && p1 <= 1050) {
-        change1 = Math.round(p1 + (13 * additional) + (winnerScore / 4));
-    } else if (p1 >= 1051 && p1 <= 1100) {
-        change1 = Math.round(p1 + (11 * additional) + (winnerScore / 4));
-    } else if (p1 >= 1101 && p1 <= 1150) {
-        change1 = Math.round(p1 + (8 * additional) + (winnerScore / 4));
-    } else if (p1 >= 1151 && p1 <= 1200) {
-        change1 = Math.round(p1 + (5 * additional) + (winnerScore / 4));
-    } else if (p1 >= 1201) {
-        change1 = Math.round(p1 + (4 * additional) + (winnerScore / 4));
-    }
+    var p1_elo = p1Ranking.getRating();
 
-    if (p2 <= 1000) {
-        change2 = Math.round(p2 + (17 * additional) + (winnerScore / 4));
-    } else if (p2 >= 1001 && p2 <= 1050) {
-        change2 = Math.round(p2 + (13 * additional) + (winnerScore / 4));
-    } else if (p2 >= 1051 && p2 <= 1100) {
-        change2 = Math.round(p2 + (11 * additional) + (winnerScore / 4));
-    } else if (p2 >= 1101 && p2 <= 1150) {
-        change2 = Math.round(p2 + (8 * additional) + (winnerScore / 4));
-    } else if (p2 >= 1151 && p2 <= 1200) {
-        change2 = Math.round(p2 + (5 * additional) + (winnerScore / 4));
-    } else if (p2 >= 1201) {
-        change2 = Math.round(p2 + (4 * additional) + (winnerScore / 4));
-    }
+    var eloChange = Math.abs(p1_elo - p1);
+    eloChange = eloChange * additional;
 
-    if (p3 <= 1000) {
-        change3 = Math.round(p3 - (5 * additional) + (loserScore / 2));
-    } else if (p3 >= 1001 && p3 <= 1050) {
-        change3 = Math.round(p3 - (7 * additional) + (loserScore / 2));
-    } else if (p3 >= 1051 && p3 <= 1100) {
-        change3 = Math.round(p3 - (9 * additional) + (loserScore / 2));
-    } else if (p3 >= 1101 && p3 <= 1150) {
-        change3 = Math.round(p3 - (11 * additional) + (loserScore / 2));
-    } else if (p3 >= 1151 && p3 <= 1200) {
-        change3 = Math.round(p3 - (12 * additional) + (loserScore / 2));
-    } else if (p3 >= 1201) {
-        change3 = Math.round(p3 - (15 * additional) + (loserScore / 2));
-    }
+    let change1 = Math.round(p1 + eloChange + (winnerScore / 4));
+    let change2 = Math.round(p2 - eloChange + (loserScore));
 
-    if (p4 <= 1000) {
-        change4 = Math.round(p4 - (5 * additional) + (loserScore / 2));
-    } else if (p4 >= 1001 && p4 <= 1050) {
-        change4 = Math.round(p4 - (7 * additional) + (loserScore / 2));
-    } else if (p4 >= 1051 && p4 <= 1100) {
-        change4 = Math.round(p4 - (9 * additional) + (loserScore / 2));
-    } else if (p4 >= 1101 && p4 <= 1150) {
-        change4 = Math.round(p4 - (11 * additional) + (loserScore / 2));
-    } else if (p4 >= 1151 && p4 <= 1200) {
-        change4 = Math.round(p4 - (12 * additional) + (loserScore / 2));
-    } else if (p4 >= 1201) {
-        change4 = Math.round(p4 - (15 * additional) + (loserScore / 2));
-    }
-
-    if (change3 > p3) {
-        change3 = p3 - 2;
-    }
-    if (change4 > p4) {
-        change4 = p4 - 2;
-    }
-    
-    return [change1, change2, change3, change4];
+    return [change1, change2];
 }
 
 async function getName(id) {
@@ -1355,8 +1300,8 @@ async function screenshareUser(guild, member, member2) {
     });
 }
 
-async function makeChannel(message, id, id2, id3, id4) {
-    let changed = await worker.changeNickname(message.guild, workerConfig.clientId, "[" + variables.queue.length + "/4]");
+async function makeChannel(message, id, id2) {
+    let changed = await worker.changeNickname(message.guild, workerConfig.clientId, "[" + variables.queue.length + "/2]");
     if (!changed) {
         console.log("Error setting the nickname!")
     }
@@ -1364,185 +1309,136 @@ async function makeChannel(message, id, id2, id3, id4) {
         if (user != null && user != undefined) {
             await getUser(message.guild, id2).then(async(user2) => {
                 if (user2 != null && user2 != undefined) {
-                    await getUser(message.guild, id3).then(async(user3) => {
-                        if (user3 != null && user3 != undefined) {
-                            await getUser(message.guild, id4).then(async(user4) => {
-                                if (user4 != null && user4 != undefined) {
-                                    console.log("Starting a game for ".yellow + user.user.tag + " and ".yellow + user2.user.tag + " vs ".yellow + user3.user.tag + " and ".yellow + user4.user.tag + "...".yellow);
-                                    let gameId = await getTotalGames();
-                                    gameId = parseInt(gameId + 1);
+                    console.log("Starting a game for ".yellow + user.user.tag + " vs ".yellow + user2.user.tag + "...".yellow);
+                    let gameId = await getTotalGames();
+                    gameId = parseInt(gameId + 1);
 
-                                    await message.guild.channels.create("game-" + gameId, {
-                                        permissionOverwrites: [
-                                            {
-                                                id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
-                                                deny: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] //Deny permissions
-                                            },
-                                            {
-                                                // But allow the two users to view the channel, send messages, and read the message history.
-                                                id: id,
-                                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
-                                            },
-                                            {
-                                                id: id2,
-                                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
-                                            },
-                                            {
-                                                id: id3,
-                                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
-                                            },
-                                            {
-                                                id: id4,
-                                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
-                                            },
-                                            {
-                                                id: roles.staff,
-                                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
-                                            },
-                                            {
-                                                id: roles.scorer,
-                                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
-                                            }
-                                        ],
-                                    });
-
-                                    await message.guild.channels.create("Game " + gameId + " Team 1", {
-                                        type: 2,
-                                        permissionOverwrites: [
-                                            {
-                                                id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
-                                                deny: ['Connect', 'Speak'] //Deny permissions
-                                            },
-                                            {
-                                                id: id,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            },
-                                            {
-                                                id: id2,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            },
-                                            {
-                                                id: id3,
-                                                allow: ['ViewChannel']
-                                            },
-                                            {
-                                                id: id4,
-                                                allow: ['ViewChannel']
-                                            },
-                                            {
-                                                id: roles.staff,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            },
-                                            {
-                                                id: roles.scorer,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            }
-                                        ],
-                                    });
-
-                                    await message.guild.channels.create("Game " + gameId + " Team 2", {
-                                        type: 2,
-                                        permissionOverwrites: [
-                                            {
-                                                id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
-                                                deny: ['Connect', 'Speak'] //Deny permissions
-                                            },
-                                            {
-                                                id: id,
-                                                allow: ['ViewChannel']
-                                            },
-                                            {
-                                                id: id2,
-                                                allow: ['ViewChannel']
-                                            },
-                                            {
-                                                id: id3,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            },
-                                            {
-                                                id: id4,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            },
-                                            {
-                                                id: roles.staff,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            },
-                                            {
-                                                id: roles.scorer,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            }
-                                        ],
-                                    });
-
-                                    var vc1 = message.guild.channels.cache.find(c => c.name === "Game " + gameId + " Team 1");
-                                    var vc2 = message.guild.channels.cache.find(c => c.name === "Game " + gameId + " Team 2");
-
-                                    if (!vc1) {
-                                        console.log("Can't get VC 1!".red);
-                                    }
-                                    if (!vc2) {
-                                        console.log("Can't get VC 2!".red);
-                                    }
-
-                                    let team1 = vc1.id;
-                                    let team2 = vc2.id;
-
-                                    var textChannel = message.guild.channels.cache.find(c => c.name === "game-" + gameId);
-                                    if (!textChannel) {
-                                        console.log("Can't get the message channel!".red);
-                                    }
-
-                                    let messageChannel = textChannel.id;
-
-                                    // Send the embed.
-                                    const channelEmbed = new Discord.EmbedBuilder()
-                                        .setColor('#36699c')
-                                        .setTitle(`Game #${gameId}`)
-                                        .setDescription('Duel the other team using `/duel <user> bridgedoubles`. Once the game is done, send a screenshot of the score using `/score`. Remember, **games are best of 1**.')
-                                        .setTimestamp()
-                                    message.guild.channels.cache.get(messageChannel).send({ content: "<@" + id + "> <@" + id2 + "> <@" + id3 + "> <@" + id4 + ">", embeds: [channelEmbed] });
-
-                                    await insertGame(id, id2, gameId);
-
-                                    variables.curGames.push([id, id2, messageChannel]);
-                                    variables.curGames.push([id2, id, messageChannel]);
-                                    variables.curGames.push([id3, id4, messageChannel]);
-                                    variables.curGames.push([id4, id3, messageChannel]);
-
-                                    await user.voice.setChannel(team1).catch((err) => console.error(err));
-                                    await user2.voice.setChannel(team1).catch((err) => console.error(err));
-                                    await user3.voice.setChannel(team2).catch((err) => console.error(err));
-                                    await user4.voice.setChannel(team2).catch((err) => console.error(err));
-
-                                    let invis1 = await message.guild.channels.cache.find((name) => name.name === id);
-                                    let invis2 = await message.guild.channels.cache.find((name) => name.name === id2);
-                                    let invis3 = await message.guild.channels.cache.find((name) => name.name === id3);
-                                    let invis4 = await message.guild.channels.cache.find((name) => name.name === id4);
-                                    
-                                    if (invis1 != undefined) {
-                                        invis1.delete().catch((err) => console.error(err));
-                                    }
-                                
-                                    if (invis2 != undefined) {
-                                        invis2.delete().catch((err) => console.error(err));
-                                    }
-
-                                    if (invis3 != undefined) {
-                                        invis3.delete().catch((err) => console.error(err));
-                                    }
-                                
-                                    if (invis4 != undefined) {
-                                        invis4.delete().catch((err) => console.error(err));
-                                    }
-                                    console.log("Game ".green + "#" + gameId + " has been started.".green);
-                                }
-                            }).catch((err) => {
-                                console.error(err);
-                            });
-                        }
-                    }).catch((err) => {
-                        console.error(err);
+                    await message.guild.channels.create("game-" + gameId, {
+                        permissionOverwrites: [
+                            {
+                                id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                                deny: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] //Deny permissions
+                            },
+                            {
+                                // But allow the two users to view the channel, send messages, and read the message history.
+                                id: id,
+                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
+                            },
+                            {
+                                id: id2,
+                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
+                            },
+                            {
+                                id: roles.staff,
+                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
+                            },
+                            {
+                                id: roles.scorer,
+                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
+                            }
+                        ],
                     });
+
+                    await message.guild.channels.create("Game " + gameId + " Team 1", {
+                        type: 2,
+                        permissionOverwrites: [
+                            {
+                                id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                                deny: ['Connect', 'Speak'] //Deny permissions
+                            },
+                            {
+                                id: id,
+                                allow: ['ViewChannel', 'Connect', 'Speak']
+                            },
+                            {
+                                id: id2,
+                                allow: ['ViewChannel']
+                            },
+                            {
+                                id: roles.staff,
+                                allow: ['ViewChannel', 'Connect', 'Speak']
+                            },
+                            {
+                                id: roles.scorer,
+                                allow: ['ViewChannel', 'Connect', 'Speak']
+                            }
+                        ],
+                    });
+
+                    await message.guild.channels.create("Game " + gameId + " Team 2", {
+                        type: 2,
+                        permissionOverwrites: [
+                            {
+                                id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                                deny: ['Connect', 'Speak'] //Deny permissions
+                            },
+                            {
+                                id: id,
+                                allow: ['ViewChannel']
+                            },
+                            {
+                                id: id2,
+                                allow: ['ViewChannel', 'Connect', 'Speak']
+                            },
+                            {
+                                id: roles.staff,
+                                allow: ['ViewChannel', 'Connect', 'Speak']
+                            },
+                            {
+                                id: roles.scorer,
+                                allow: ['ViewChannel', 'Connect', 'Speak']
+                            }
+                        ],
+                    });
+
+                    var vc1 = message.guild.channels.cache.find(c => c.name === "Game " + gameId + " Team 1");
+                    var vc2 = message.guild.channels.cache.find(c => c.name === "Game " + gameId + " Team 2");
+
+                    if (!vc1) {
+                        console.log("Can't get VC 1!".red);
+                    }
+                    if (!vc2) {
+                        console.log("Can't get VC 2!".red);
+                    }
+
+                    let team1 = vc1.id;
+                    let team2 = vc2.id;
+
+                    var textChannel = message.guild.channels.cache.find(c => c.name === "game-" + gameId);
+                    if (!textChannel) {
+                        console.log("Can't get the message channel!".red);
+                    }
+
+                    let messageChannel = textChannel.id;
+
+                    // Send the embed.
+                    const channelEmbed = new Discord.EmbedBuilder()
+                        .setColor('#36699c')
+                        .setTitle(`Game #${gameId}`)
+                        .setDescription('Duel the other player using `/duel <user> bridge`. Once the game is done, send a screenshot of the score using `/score`. Remember, **games are best of 1**.')
+                        .setTimestamp()
+                    message.guild.channels.cache.get(messageChannel).send({ content: "<@" + id + "> <@" + id2 + ">", embeds: [channelEmbed] });
+
+                    await insertGame(id, id2, gameId);
+
+                    variables.curGames.push([id, messageChannel]);
+                    variables.curGames.push([id2, messageChannel]);
+                    // functions.sendError(functions.objToString(error), interaction.guild, "Executing Command");
+                    await user.voice.setChannel(team1).catch((err) => functions.sendError(err, message.guild, "Moving to Channel"));
+                    await user2.voice.setChannel(team2).catch((err) => functions.sendError(err, message.guild, "Moving to Channel"));
+
+                    let invis1 = await message.guild.channels.cache.find((name) => name.name === id);
+                    let invis2 = await message.guild.channels.cache.find((name) => name.name === id2);
+                    
+                    if (invis1 != undefined) {
+                        invis1.delete().catch((err) => console.error(err));
+                    }
+                
+                    if (invis2 != undefined) {
+                        invis2.delete().catch((err) => console.error(err));
+                    }
+
+                    console.log("Game ".green + "#" + gameId + " has been started.".green);
                 }
             }).catch((err) => {
                 console.error(err);
