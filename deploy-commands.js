@@ -71,6 +71,7 @@ const commands = [
 	new SlashCommandBuilder().setName('fix').setDescription('Fixes an user\'s nick and roles.')
 		.addUserOption(option => option.setName('user').setDescription("The user to fix.").setRequired(true)),
 	new SlashCommandBuilder().setName('double').setDescription('Turns on/off double ELO.'),
+    //new SlashCommandBuilder().setName('reset').setDescription('Resets the season.'),
 ]
 	.map(command => command.toJSON());
 

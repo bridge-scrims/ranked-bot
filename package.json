@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "@discordjs/builders": "^0.15.0",
     "@discordjs/rest": "^0.1.0-canary.0",
     "@discordjs/voice": "^0.8.0",
     "axios": "^0.26.1",
