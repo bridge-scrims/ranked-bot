@@ -215,6 +215,152 @@ module.exports = async (client, message) => {
             return;
         }
     }
+    /*
+    if (cmd.startsWith("=asihjhijeowrhi")) {
+        if (!message.member.roles.cache.some((r) => r.name === "Staff")) {
+            return;
+        }
+        const fullPermissions = [
+            {
+                id: '957492114130890771', // scoregame
+                permissions: [{
+                    id: message.guild.roles.everyone.id,
+                    type: 'ROLE',
+                    permission: false,
+                    id: roles.scorer, // scorer
+                    type: 'ROLE',
+                    permission: true,
+                }],
+            },
+            {
+                id: '961368956856324116', // mute
+                permissions: [{
+                    id: message.guild.roles.everyone.id,
+                    type: 'ROLE',
+                    permission: false,
+                    id: roles.staff, // staff
+                    type: 'ROLE',
+                    permission: true,
+                }],
+            },
+            {
+                id: '961370083433787412', // unmute
+                permissions: [{
+                    id: message.guild.roles.everyone.id,
+                    type: 'ROLE',
+                    permission: false,
+                    id: roles.staff, // staff
+                    type: 'ROLE',
+                    permission: true,
+                }],
+            },
+            {
+                id: '959537390937079889', // ban
+                permissions: [{
+                    id: message.guild.roles.everyone.id,
+                    type: 'ROLE',
+                    permission: false,
+                    id: roles.moderator, // moderator
+                    type: 'ROLE',
+                    permission: true,
+                }],
+            },
+            {
+                id: '959540445585764402', // unban
+                permissions: [{
+                    id: message.guild.roles.everyone.id,
+                    type: 'ROLE',
+                    permission: false,
+                    id: roles.moderator, // moderator
+                    type: 'ROLE',
+                    permission: true,
+                }],
+            },
+            {
+                id: '966713708489359381', // strike
+                permissions: [{
+                    id: message.guild.roles.everyone.id,
+                    type: 'ROLE',
+                    permission: false,
+                    id: roles.staff, // staff
+                    type: 'ROLE',
+                    permission: true,
+                }],
+            },
+            {
+                id: '983084046378758154', // close
+                permissions: [{
+                    id: message.guild.roles.everyone.id,
+                    type: 'ROLE',
+                    permission: false,
+                    id: roles.staff, // staff
+                    type: 'ROLE',
+                    permission: true,
+                }],
+            },
+            {
+                id: '972365232355831919', // saturday
+                permissions: [{
+                    id: message.guild.roles.everyone.id,
+                    type: 'ROLE',
+                    permission: false,
+                    id: roles.staff, // staff
+                    type: 'ROLE',
+                    permission: true,
+                }],
+            },
+            {
+                id: '961364679391838299', // purge
+                permissions: [{
+                    id: message.guild.roles.everyone.id,
+                    type: 'ROLE',
+                    permission: false,
+                    id: roles.moderator, // staff
+                    type: 'ROLE',
+                    permission: true,
+                }],
+            },
+            {
+                id: '961364679391838299', // purge
+                permissions: [{
+                    id: message.guild.roles.everyone.id,
+                    type: 'ROLE',
+                    permission: false,
+                    id: roles.moderator, // staff
+                    type: 'ROLE',
+                    permission: true,
+                }],
+            },
+            {
+                id: '958030115978244137', // fregister
+                permissions: [{
+                    id: message.guild.roles.everyone.id,
+                    type: 'ROLE',
+                    permission: false,
+                    id: roles.staff, // staff
+                    type: 'ROLE',
+                    permission: true,
+                }],
+            },
+            {
+                id: '963449424598683718', // frename
+                permissions: [{
+                    id: message.guild.roles.everyone.id,
+                    type: 'ROLE',
+                    permission: false,
+                    id: roles.staff, // staff
+                    type: 'ROLE',
+                    permission: true,
+                }],
+            },
+            // call: 957492114130890770
+            // nick: 961121724861141032
+        ];
+
+        await client.guilds.cache.get(config.guildId)?.commands.permissions.set({ fullPermissions });
+        await message.reply("Done");
+    }
+    */
 
     if (cmd.toLowerCase().startsWith("=score")) {
         let isIG = false;
