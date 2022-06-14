@@ -21,7 +21,7 @@ module.exports = async (client, message) => {
                 message.reply({ embeds: [errorEmbed] });
                 return;
             }
-            if (message.member.voice.channel != channels.queueChannel) {
+            if (message.member.voice.channel != channels.queueChannel && message.member.voice.channel.name != message.member.id) {
                 const errorEmbed = new Discord.EmbedBuilder()
                     .setColor('#a84040')
                     .setDescription("You have to be in <#" + channels.queueChannel + "> to use `/ping`.")
