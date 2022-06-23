@@ -369,7 +369,7 @@ module.exports = async (client, message) => {
         let isIG = false;
         for (let i = 0; i < variables.curGames.length; i++) {
             if (variables.curGames[i][0] === message.member.id) {
-                if (variables.curGames[i][1] === message.channel.id) {
+                if (variables.curGames[i][2] === message.channel.id) {
                     isIG = true;
                     let canScore = true;
                     for (var j = 0; j < variables.score.length; j++) {
@@ -436,14 +436,14 @@ module.exports = async (client, message) => {
         if (!isIG) {
             const errorEmbed = new Discord.EmbedBuilder()
                 .setColor('#a84040')
-                .setDescription("You're not in a game.")
+                .setDescription("You're not in a game.\nIf this is a bug, ping a Scorer.")
                 .setTimestamp();
             message.reply({ embeds: [errorEmbed] });
             return;
         }
     }
-    /*
-    if (cmd.toLowerCase().startsWith("=party") || cmd.toLowerCase().startsWith("=p") && cmd.toLowerCase().includes("=ping")) {
+
+    if (cmd.toLowerCase().startsWith("=party") || cmd.toLowerCase().startsWith("=p") && !cmd.toLowerCase().includes("=ping")) {
         if (args.length < 2) {
             const errorEmbed = new Discord.EmbedBuilder()
                 .setColor('#a84040')
@@ -605,5 +605,4 @@ module.exports = async (client, message) => {
             }
         }
     }
-    */
 };
