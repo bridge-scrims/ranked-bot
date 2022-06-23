@@ -30,7 +30,10 @@ module.exports = async (client, message) => {
                 return;
             }
             if (!functions.exists(variables.pingCooldown, message.member.id)) {
-                message.reply("<@&" + roles.queuePing + ">");
+                if (message != undefined) {
+                    message.delete();
+                }
+                message.channel.send("<@&" + roles.queuePing + ">");
                 variables.pingCooldown.push(message.member.id);
                 setTimeout(function() {
                     for (let i = 0; i < variables.pingCooldown.length; i++) {
