@@ -1322,7 +1322,7 @@ async function makeChannel(message, id, id2, id3, id4) {
                                     let gameId = await getTotalGames();
                                     gameId = parseInt(gameId + 1);
 
-                                    await message.guild.channels.create("game-" + gameId, {
+                                    message.guild.channels.create("game-" + gameId, {
                                         permissionOverwrites: [
                                             {
                                                 id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
@@ -1354,135 +1354,128 @@ async function makeChannel(message, id, id2, id3, id4) {
                                                 allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory']
                                             }
                                         ],
+                                    }).then(async textChannel => {
+                                        message.guild.channels.create("Game " + gameId + " Team 1", {
+                                            type: 2,
+                                            permissionOverwrites: [
+                                                {
+                                                    id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                                                    deny: ['Connect', 'Speak'] //Deny permissions
+                                                },
+                                                {
+                                                    id: id,
+                                                    allow: ['ViewChannel', 'Connect', 'Speak']
+                                                },
+                                                {
+                                                    id: id2,
+                                                    allow: ['ViewChannel', 'Connect', 'Speak']
+                                                },
+                                                {
+                                                    id: id3,
+                                                    allow: ['ViewChannel']
+                                                },
+                                                {
+                                                    id: id4,
+                                                    allow: ['ViewChannel']
+                                                },
+                                                {
+                                                    id: roles.staff,
+                                                    allow: ['ViewChannel', 'Connect', 'Speak']
+                                                },
+                                                {
+                                                    id: roles.scorer,
+                                                    allow: ['ViewChannel', 'Connect', 'Speak']
+                                                }
+                                            ],
+                                        }).then(async vc1 => {
+                                            message.guild.channels.create("Game " + gameId + " Team 2", {
+                                                type: 2,
+                                                permissionOverwrites: [
+                                                    {
+                                                        id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
+                                                        deny: ['Connect', 'Speak'] //Deny permissions
+                                                    },
+                                                    {
+                                                        id: id,
+                                                        allow: ['ViewChannel']
+                                                    },
+                                                    {
+                                                        id: id2,
+                                                        allow: ['ViewChannel']
+                                                    },
+                                                    {
+                                                        id: id3,
+                                                        allow: ['ViewChannel', 'Connect', 'Speak']
+                                                    },
+                                                    {
+                                                        id: id4,
+                                                        allow: ['ViewChannel', 'Connect', 'Speak']
+                                                    },
+                                                    {
+                                                        id: roles.staff,
+                                                        allow: ['ViewChannel', 'Connect', 'Speak']
+                                                    },
+                                                    {
+                                                        id: roles.scorer,
+                                                        allow: ['ViewChannel', 'Connect', 'Speak']
+                                                    }
+                                                ],
+                                            }).then(async vc2 => {
+            
+                                                if (!vc1) {
+                                                    console.log("Can't get VC 1!".red);
+                                                }
+                                                if (!vc2) {
+                                                    console.log("Can't get VC 2!".red);
+                                                }
+            
+                                                let team1 = vc1.id;
+                                                let team2 = vc2.id;
+            
+                                                let messageChannel = textChannel.id;
+            
+                                                // Send the embed.
+                                                const channelEmbed = new Discord.EmbedBuilder()
+                                                    .setColor('#36699c')
+                                                    .setTitle(`Game #${gameId}`)
+                                                    .setDescription('Duel the other team using `/duel <user> bridgedoubles`. Once the game is done, send a screenshot of the score using `/score`. Remember, **games are best of 1**.')
+                                                    .setTimestamp()
+                                                message.guild.channels.cache.get(messageChannel).send({ content: "<@" + id + "> <@" + id2 + "> <@" + id3 + "> <@" + id4 + ">", embeds: [channelEmbed] });
+            
+                                                variables.curGames.push([id, id2, messageChannel]);
+                                                variables.curGames.push([id2, id, messageChannel]);
+                                                variables.curGames.push([id3, id4, messageChannel]);
+                                                variables.curGames.push([id4, id3, messageChannel]);
+            
+                                                await user.voice.setChannel(team1).catch((err) => console.error(err));
+                                                await user2.voice.setChannel(team1).catch((err) => console.error(err));
+                                                await user3.voice.setChannel(team2).catch((err) => console.error(err));
+                                                await user4.voice.setChannel(team2).catch((err) => console.error(err));
+            
+                                                let invis1 = await message.guild.channels.cache.find((name) => name.name === id);
+                                                let invis2 = await message.guild.channels.cache.find((name) => name.name === id2);
+                                                let invis3 = await message.guild.channels.cache.find((name) => name.name === id3);
+                                                let invis4 = await message.guild.channels.cache.find((name) => name.name === id4);
+                                                
+                                                if (invis1 != undefined) {
+                                                    invis1.delete().catch((err) => console.error(err));
+                                                }
+                                            
+                                                if (invis2 != undefined) {
+                                                    invis2.delete().catch((err) => console.error(err));
+                                                }
+            
+                                                if (invis3 != undefined) {
+                                                    invis3.delete().catch((err) => console.error(err));
+                                                }
+                                            
+                                                if (invis4 != undefined) {
+                                                    invis4.delete().catch((err) => console.error(err));
+                                                }
+                                                console.log("Game ".green + "#" + gameId + " has been started.".green);
+                                            });
+                                        });
                                     });
-
-                                    await message.guild.channels.create("Game " + gameId + " Team 1", {
-                                        type: 2,
-                                        permissionOverwrites: [
-                                            {
-                                                id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
-                                                deny: ['Connect', 'Speak'] //Deny permissions
-                                            },
-                                            {
-                                                id: id,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            },
-                                            {
-                                                id: id2,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            },
-                                            {
-                                                id: id3,
-                                                allow: ['ViewChannel']
-                                            },
-                                            {
-                                                id: id4,
-                                                allow: ['ViewChannel']
-                                            },
-                                            {
-                                                id: roles.staff,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            },
-                                            {
-                                                id: roles.scorer,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            }
-                                        ],
-                                    });
-
-                                    await message.guild.channels.create("Game " + gameId + " Team 2", {
-                                        type: 2,
-                                        permissionOverwrites: [
-                                            {
-                                                id: message.guild.roles.everyone, //To make it be seen by a certain role, user an ID instead
-                                                deny: ['Connect', 'Speak'] //Deny permissions
-                                            },
-                                            {
-                                                id: id,
-                                                allow: ['ViewChannel']
-                                            },
-                                            {
-                                                id: id2,
-                                                allow: ['ViewChannel']
-                                            },
-                                            {
-                                                id: id3,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            },
-                                            {
-                                                id: id4,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            },
-                                            {
-                                                id: roles.staff,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            },
-                                            {
-                                                id: roles.scorer,
-                                                allow: ['ViewChannel', 'Connect', 'Speak']
-                                            }
-                                        ],
-                                    });
-
-                                    var vc1 = message.guild.channels.cache.find(c => c.name === "Game " + gameId + " Team 1");
-                                    var vc2 = message.guild.channels.cache.find(c => c.name === "Game " + gameId + " Team 2");
-
-                                    if (!vc1) {
-                                        console.log("Can't get VC 1!".red);
-                                    }
-                                    if (!vc2) {
-                                        console.log("Can't get VC 2!".red);
-                                    }
-
-                                    let team1 = vc1.id;
-                                    let team2 = vc2.id;
-
-                                    var textChannel = message.guild.channels.cache.find(c => c.name === "game-" + gameId);
-                                    if (!textChannel) {
-                                        console.log("Can't get the message channel!".red);
-                                    }
-
-                                    let messageChannel = textChannel.id;
-
-                                    // Send the embed.
-                                    const channelEmbed = new Discord.EmbedBuilder()
-                                        .setColor('#36699c')
-                                        .setTitle(`Game #${gameId}`)
-                                        .setDescription('Duel the other team using `/duel <user> bridgedoubles`. Once the game is done, send a screenshot of the score using `/score`. Remember, **games are best of 1**.')
-                                        .setTimestamp()
-                                    message.guild.channels.cache.get(messageChannel).send({ content: "<@" + id + "> <@" + id2 + "> <@" + id3 + "> <@" + id4 + ">", embeds: [channelEmbed] });
-
-                                    variables.curGames.push([id, id2, messageChannel]);
-                                    variables.curGames.push([id2, id, messageChannel]);
-                                    variables.curGames.push([id3, id4, messageChannel]);
-                                    variables.curGames.push([id4, id3, messageChannel]);
-
-                                    await user.voice.setChannel(team1).catch((err) => console.error(err));
-                                    await user2.voice.setChannel(team1).catch((err) => console.error(err));
-                                    await user3.voice.setChannel(team2).catch((err) => console.error(err));
-                                    await user4.voice.setChannel(team2).catch((err) => console.error(err));
-
-                                    let invis1 = await message.guild.channels.cache.find((name) => name.name === id);
-                                    let invis2 = await message.guild.channels.cache.find((name) => name.name === id2);
-                                    let invis3 = await message.guild.channels.cache.find((name) => name.name === id3);
-                                    let invis4 = await message.guild.channels.cache.find((name) => name.name === id4);
-                                    
-                                    if (invis1 != undefined) {
-                                        invis1.delete().catch((err) => console.error(err));
-                                    }
-                                
-                                    if (invis2 != undefined) {
-                                        invis2.delete().catch((err) => console.error(err));
-                                    }
-
-                                    if (invis3 != undefined) {
-                                        invis3.delete().catch((err) => console.error(err));
-                                    }
-                                
-                                    if (invis4 != undefined) {
-                                        invis4.delete().catch((err) => console.error(err));
-                                    }
-                                    console.log("Game ".green + "#" + gameId + " has been started.".green);
                                 }
                             }).catch((err) => {
                                 console.error(err);
