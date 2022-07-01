@@ -365,6 +365,50 @@ module.exports = async (client, message) => {
     }
     */
 
+    if (cmd.toLowerCase().startsWith("=lb") || cmd.toLowerCase().startsWith("=leaderboard")) {
+        let type = args[1];
+        if (type === "winstreak" || type === "ws") {
+            type = "bestws";
+        }
+        if (!type || type != "elo" && type != "wins" && type != "losses" && type != "bestws" && type != "games") {
+            type = "elo";
+        }
+        let lb = await gameFunctions.getLeaderboard(type);
+        if (!lb) {
+            const errorEmbed = new Discord.EmbedBuilder()
+                .setColor('#a84040')
+                .setDescription("There isn't a current leaderboard matching `" + args[1] + "`!")
+                .setTimestamp();
+            interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            return;
+        }
+        let lbDesc = "```";
+        for (let i = 1; i <= 10; i++) {
+            if (type === "elo") {
+                lbDesc += `${i.toString().padEnd(3, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].elo.toString().padEnd(4, " ")}\n`;
+            }
+            if (type === "wins") {
+                lbDesc += `${i.toString().padEnd(3, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].wins.toString().padEnd(4, " ")}\n`;            
+            }
+            if (type === "losses") {
+                lbDesc += `${i.toString().padEnd(3, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].losses.toString().padEnd(4, " ")}\n`;
+            }
+            if (type === "bestws") {
+                lbDesc += `${i.toString().padEnd(3, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].bestws.toString().padEnd(4, " ")}\n`;
+            }
+            if (type === "games") {
+                lbDesc += `${i.toString().padEnd(3, " ")}${lb[i - 1].name.toString().padEnd(17, " ")} ${lb[i - 1].games.toString().padEnd(4, " ")}\n`;
+            }
+        }
+        lbDesc = lbDesc + "```";
+        const successEmbed = new Discord.EmbedBuilder()
+            .setColor('#36699c')
+            .setTitle("Leaderboard")
+            .setDescription(lbDesc)
+            .setTimestamp();
+        message.reply({ embeds: [successEmbed] });
+    }
+
     if (cmd.toLowerCase().startsWith("=i") || cmd.toLowerCase().startsWith("=info") || cmd.toLowerCase().startsWith("=stats")) {
         let id = message.author.id;
         if (args.length > 1) {
