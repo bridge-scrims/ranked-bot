@@ -165,3 +165,9 @@ uncaughtException
 [6/23/2022[11:29:23]] Error: ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '[object Promise]1)' at line 1
 
 uncaughtException
+[7/1/2022[13:10:9]] Error: Request failed with status code 405
+
+[object Promise]
+[7/1/2022[13:10:52]] Error: Request failed with status code 404
+
+[object Promise]

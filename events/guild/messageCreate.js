@@ -365,6 +365,54 @@ module.exports = async (client, message) => {
     }
     */
 
+    if (cmd.toLowerCase().startsWith("=i") || cmd.toLowerCase().startsWith("=info") || cmd.toLowerCase().startsWith("=stats")) {
+        let id = message.author.id;
+        if (args.length > 1) {
+            let mention = message.mentions.members.first();
+            if (!mention) {
+                id = await gameFunctions.getIdFromName(args[1]);
+                if (!id) {
+                    const errorEmbed = new Discord.EmbedBuilder()
+                        .setColor('#a84040')
+                        .setDescription("That user isn't in the database!")
+                        .setTimestamp();
+                    message.reply({ embeds: [errorEmbed] });
+                    return;
+                }
+            } else {
+                id = mention.id;
+            }
+        }
+        const loadingEmbed = new Discord.EmbedBuilder()
+            .setColor(0x2f3136)
+            .setTitle("Loading...")
+            .setDescription("This may take a few seconds.")
+            .setTimestamp();
+        message.reply({ embeds: [loadingEmbed] }).then((msg) => {
+            message.channel.messages.fetch(msg.id).then(async (message) => {
+                if (!message) {
+                    return;
+                }
+                let card = await gameFunctions.scoreCard(id);
+                if (!card) {
+                    const errorEmbed = new Discord.EmbedBuilder()
+                        .setColor('#a84040')
+                        .setDescription("That user isn't in the database!")
+                        .setTimestamp();
+                    message.edit({ embeds: [errorEmbed], ephemeral: true });
+                    return;
+                }
+                message.edit({ embeds: [], files: [card] });
+            }).catch((err) => {
+                functions.sendError(functions.objToString(err), interaction.guild, "General Message");
+                console.error(err);
+            });
+        }).catch((err) => {
+            functions.sendError(functions.objToString(err), interaction.guild, "General Message");
+            console.error(err);
+        });
+    }
+
     if (cmd.toLowerCase().startsWith("=score")) {
         let isIG = false;
         for (let i = 0; i < variables.curGames.length; i++) {

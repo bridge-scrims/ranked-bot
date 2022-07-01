@@ -44,6 +44,7 @@ let con = mysql.createPool({
     debug: false
 });
 
+module.exports.getIdFromName = getIdFromName;
 module.exports.getELO = getELO;
 module.exports.makeChannel = makeChannel;
 module.exports.getGames = getGames;
@@ -163,7 +164,7 @@ async function scoreCard(id) {
             const image = await loadImage("images/test.png").catch((err) => {
                 reject(err);
             });
-            const imagee = await loadImage("https://mc-heads.net/body/" + id + "/right").catch((err) => {
+            const imagee = await loadImage("https://mc-heads.net/body/" + id.uuid + "/right").catch((err) => {
                 reject(err);
             });
             if (!image || !imagee) {
@@ -652,7 +653,7 @@ async function getUUID(username) {
     return new Promise(async function (resolve, reject) {
         let uuidURL = "https://api.mojang.com/users/profiles/minecraft/" + username;
         axios.get(uuidURL, {
-        }).then(async (res) => {
+        }).then((res) => {
             resolve({ "name": res.data.name, "uuid": res.data.id })
         }).catch((err) => {
             reject(err);
@@ -682,6 +683,19 @@ async function isInDb(id) {
             }
     
             resolve(true);
+        });
+    });
+}
+
+async function getIdFromName(name) {
+    return new Promise(function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge WHERE name = '${name}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(null);
+                return;
+            }
+            resolve(rows[0].id);
         });
     });
 }
