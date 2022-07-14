@@ -18,7 +18,7 @@ const gameFunctions = require("../../handlers/game/gameFunctions.js");
 
 module.exports = async (client, oldState, newState) => {
     // If the user leaves a VC...
-    if (!oldState.channelID) {
+    if (!oldState.channelID && !newState.channelID) {
         let memberID = oldState.member.id;
         if (exists(queue, memberID) && !exists(isMoving, memberID)) {
             // Check whether the user is already in queue.
