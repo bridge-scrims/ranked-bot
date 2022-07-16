@@ -461,7 +461,7 @@ module.exports = async (client, message) => {
         let isIG = false;
         for (let i = 0; i < variables.curGames.length; i++) {
             if (variables.curGames[i][0] === message.member.id) {
-                if (variables.curGames[i][1] === message.channel.id) {
+                if (variables.curGames[i][2] === message.channel.id) {
                     isIG = true;
                     let canScore = true;
                     for (var j = 0; j < variables.score.length; j++) {
@@ -534,7 +534,6 @@ module.exports = async (client, message) => {
             return;
         }
     }
-    /*
     if (cmd.toLowerCase().startsWith("=party") || cmd.toLowerCase().startsWith("=p") && !cmd.toLowerCase().includes("=ping")) {
         if (args.length < 2) {
             const errorEmbed = new Discord.EmbedBuilder()
@@ -697,5 +696,4 @@ module.exports = async (client, message) => {
             }
         }
     }
-    */
 };

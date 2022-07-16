@@ -183,3 +183,15 @@ uncaughtException
 [7/1/2022[13:15:15]] Error: ER_BAD_FIELD_ERROR: Unknown column 'w' in 'order clause'
 
 uncaughtException
+[7/15/2022[22:44:23]] TypeError: member.setChannel is not a function
+
+[object Promise]
+[7/15/2022[22:45:10]] DiscordAPIError[40032]: Target user is not connected to voice.
+
+[object Promise]
+[7/15/2022[22:45:10]] DiscordAPIError[40032]: Target user is not connected to voice.
+
+[object Promise]
+[7/15/2022[22:45:10]] DiscordAPIError[40032]: Target user is not connected to voice.
+
+[object Promise]

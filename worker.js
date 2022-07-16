@@ -7,6 +7,7 @@ const fs = require("fs");
 const colors = require("colors");
 
 module.exports.changeNickname = changeNickname;
+module.exports.moveUser = moveUser;
 
 const client = new Discord.Client({
     shards: "auto",
@@ -46,6 +47,23 @@ async function changeNickname(guild, id, nickname) {
     });
     member.setNickname(nickname);
     return true;
+}
+
+async function moveUser(guild, id, channel) {
+    return new Promise((resolve, reject) => {
+        if (id === orConfig.clientId || id === "593882880854196228") {
+            console.log("Returned. Can't change nickname for this user.");
+            return true;
+        }
+        guild.members.fetch(id).then((member) => {
+            member.voice.setChannel(channel).then(() => {
+                resolve();
+            });
+        }).catch((err) => {
+            console.log(err);
+            reject(err);
+        });
+    })
 }
 
 client.login(config.token);
