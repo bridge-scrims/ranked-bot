@@ -22,9 +22,12 @@ module.exports = async (client, oldState, newState) => {
     }
 
     // If the user leaves a VC...
-    if (!oldState.channelID && !newState.channelID) {
+    if (!oldState.channelID) {
         let memberID = oldState.member.id;
         if (exists(queue, memberID) && !exists(isMoving, memberID)) {
+            if (newState.channel != undefined && newState.channel.name === memberID) {
+                return;
+            }
             // Check whether the user is already in queue.
             for (var i = 0; i < queue.length; i++) {
             // Loop through the array.
