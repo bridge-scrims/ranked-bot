@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 
-const gameFunctions = require("../../handlers/game/gameFunctions.js");
+const gameFunctions = require("../game/gameFunctions.js");
 const functions = require("../functions.js");
 const channels = require("../../config/channels.json");
 const roles = require("../../config/roles.json");
@@ -20,6 +20,29 @@ let con = mysql.createPool({
     timeout         : 60 * 60 * 1000,
     debug: false
 });
+/*
+con.query(`SELECT * FROM tickets WHERE channelid='${interaction.channel.id}'`, async (err, rows) => {
+    if (err) throw err;
+    if (rows.length < 1) {
+        const embed = new Discord.MessageEmbed()
+            .setColor("#2f3136")
+            .setTitle("Error!")
+            .setDescription("This isn't a ticket channel!")
+            .setTimestamp();
+        await interaction.reply({ embeds: [embed] });
+    } else {
+        transcribe(interaction.channel.id, "<b>" + interaction.member.user.username + "</b> closed the ticket.");
+        const cName = interaction.channel.name;
+        let splitThing = cName.split("-");
+        const idThing = rows[0].id;
+        sendTranscription(interaction, interaction.channel.id, splitThing[1], idThing);
+        con.query(`DELETE FROM tickets WHERE id='${rows[0].id}'`, async (erre, rowse) => {
+            if (erre) throw erre;
+            interaction.channel.delete();
+        });
+    }
+});
+*/
 
 module.exports.run = async (interaction) => {
     if (interaction.member.roles.cache.has(roles.staff)) {
@@ -34,24 +57,10 @@ module.exports.run = async (interaction) => {
                     .setTimestamp();
                 interaction.reply({ embeds: [embed] });
             } else {
-                const buttons = new Discord.ActionRowBuilder()
-                .addComponents(
-                    new Discord.ButtonBuilder()
-                        .setCustomId("tdeny-" + rows[0].id)
-                        .setLabel("❌ Deny & Keep Open")
-                        .setStyle(Discord.ButtonStyle.Primary),
-                    new Discord.ButtonBuilder()
-                        .setCustomId("taccept-" + rows[0].id)
-                        .setLabel("✅ Accept & Close")
-                        .setStyle(Discord.ButtonStyle.Primary)
-                );
-                const embed = new Discord.EmbedBuilder()
-                    .setColor("#5d9acf")
-                    .setTitle("Close Request")
-                    .setDescription("<@" + interaction.member.id + "> has requested to close this ticket. Reason:\n```" + reason + "```\nPlease accept or deny using the buttons below.")
-                    .setTimestamp();
-                await interaction.reply("<@" + rows[0].id + ">");
-                await interaction.channel.send({ embeds: [embed], components: [buttons] });
+                con.query(`DELETE FROM tickets WHERE id='${interaction.channel.id}'`, async (erre, rowse) => {
+                    if (erre) throw erre;
+                    interaction.channel.delete();
+                });
             }
         });
     } else {

@@ -6,6 +6,7 @@ const { Routes } = require('discord-api-types/v9');
 const { clientId, guildId, token } = require('./config/config.json');
 
 const commands = [
+    new SlashCommandBuilder().setName('forceclose').setDescription('Forcibly closes a ticket.'),
     new SlashCommandBuilder().setName('close').setDescription('Creates a close request.')
 		.addStringOption(option => option.setName('reason').setDescription('Reason for closing the ticket.')),
 	new SlashCommandBuilder().setName('help').setDescription('Displays a help menu.'),
