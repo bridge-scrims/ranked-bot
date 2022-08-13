@@ -103,7 +103,7 @@ module.exports = async (client, oldState, newState) => {
             }
 
             // Invisible queueing
-            if (!newState.member.roles.cache.has(invisible)) {
+            if (newState.member.roles.cache.has(invisible)) {
                 // Add the user to the moving array
                 isMoving.push(memberId);
                 // Create the channel with the name of the user's ID
