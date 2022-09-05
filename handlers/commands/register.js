@@ -46,7 +46,7 @@ module.exports.run = async (interaction) => {
                     interaction.member.roles.remove(unverifiedRole);
 
                     if (!isDb) {
-                        await gameFunctions.insertUser(interaction.member.id, data.name);
+                        await gameFunctions.insertUser(interaction.member.id, data.name, data.uuid);
                         let uuid = await gameFunctions.getUUID(data.name);
                         const successEmbed = new Discord.EmbedBuilder()
                             .setColor('#36699c')

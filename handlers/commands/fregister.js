@@ -10,20 +10,28 @@ module.exports.run = async (interaction) => {
     let isDb = await gameFunctions.isInDb(user.id);
     if (interaction.member.roles.cache.has(roles.staff)) {
         if (!isDb) {
-            await gameFunctions.insertUser(user.id, ign);
-            let member = await gameFunctions.getUser(interaction.guild, user.id);
-            let rankedRole = await gameFunctions.getRole(interaction.guild, roles.rankedPlayer);
-            let unverifiedRole = await gameFunctions.getRole(interaction.guild, roles.unverified);
-            let coalDiv = await gameFunctions.getRole(interaction.guild, roles.coalDivision);
-            member.roles.add(rankedRole);
-            member.roles.add(coalDiv);
-            member.roles.remove(unverifiedRole);
-            member.setNickname("[1000] " + ign);
-            const successEmbed = new Discord.EmbedBuilder()
-                .setColor('#36699c')
-                .setDescription("Registered <@" + user.id + "> as `" + ign + "`!")
-                .setTimestamp();
-            interaction.reply({ embeds: [successEmbed] });
+            await gameFunctions.getUUID(username).then(async (data) => {
+                await gameFunctions.insertUser(user.id, data.name, data.uuid);
+                let member = await gameFunctions.getUser(interaction.guild, user.id);
+                let rankedRole = await gameFunctions.getRole(interaction.guild, roles.rankedPlayer);
+                let unverifiedRole = await gameFunctions.getRole(interaction.guild, roles.unverified);
+                let coalDiv = await gameFunctions.getRole(interaction.guild, roles.coalDivision);
+                member.roles.add(rankedRole);
+                member.roles.add(coalDiv);
+                member.roles.remove(unverifiedRole);
+                member.setNickname("[1000] " + ign);
+                const successEmbed = new Discord.EmbedBuilder()
+                    .setColor('#36699c')
+                    .setDescription("Registered <@" + user.id + "> as `" + ign + "`!")
+                    .setTimestamp();
+                interaction.reply({ embeds: [successEmbed] });
+            }).catch((err) => {
+                const errorEmbed = new Discord.EmbedBuilder()
+                    .setColor('#a84040')
+                    .setDescription("That user doesn't exist! Please provide a valid username.")
+                    .setTimestamp();
+                interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+            })
         } else {
             const name = await gameFunctions.getName(user.id);
             let memberElo = await gameFunctions.getELO(user.id);

@@ -45,7 +45,9 @@ let con = mysql.createPool({
 });
 
 module.exports.getIdFromName = getIdFromName;
+module.exports.getIdFromUuid = getIdFromUuid;
 module.exports.getELO = getELO;
+module.exports.getELOFromUuid = getELOFromUuid;
 module.exports.makeChannel = makeChannel;
 module.exports.getGames = getGames;
 module.exports.setGames = setGames;
@@ -114,6 +116,35 @@ module.exports.getParty = getParty;
 module.exports.getPartyMember = getPartyMember;
 
 module.exports.scoreCard = scoreCard;
+
+module.exports.addToQueue = addToQueue;
+module.exports.removeFromQueue = removeFromQueue;
+module.exports.isInQueue = isInQueue;
+
+function addToQueue(id, elo, skips) {
+    variables.queue.push([id, elo, skips ? skips : 0]);
+}
+
+function removeFromQueue(id) {
+    let removedSuccessfully = false;
+    for (let i = 0; i < variables.queue.length; i++) {
+        if (variables.queue[i][0] === id) {
+            variables.queue.splice(i, 1);
+            removedSuccessfully = true;
+        }
+    }
+    return removedSuccessfully;
+}
+
+function isInQueue(id) {
+    let isInQueue = false;
+    for (let i = 0; i < variables.queue.length; i++) {
+        if (variables.queue[i][0] === id) {
+            isInQueue = true;
+        }
+    }
+    return isInQueue
+}
 
 async function scoreCard(id) {
     return new Promise(async function (resolve, reject) {
@@ -617,11 +648,12 @@ async function getLeaderboard(type) {
     });
 }
 
-async function insertUser(id, name) {
+async function insertUser(id, name, uuid) {
     return new Promise(async function (resolve, reject) {
         let isName = await nameInDb(name);
+        let uuid = await getUUID(name);
         if (!isName) {
-            con.query(`INSERT INTO rbridge (id, elo, name) VALUES (?, ?, ?)`, [id, 1000, name], function (err, rows, fields) {
+            con.query(`INSERT INTO rbridge (id, elo, name, uuid) VALUES (?, ?, ?, ?)`, [id, 1000, name, uuid], function (err, rows, fields) {
                 if (err) reject(err);
                 resolve(true);
             });
@@ -690,6 +722,19 @@ async function isInDb(id) {
 async function getIdFromName(name) {
     return new Promise(function (resolve, reject) {
         con.query(`SELECT * FROM rbridge WHERE name = '${name}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(null);
+                return;
+            }
+            resolve(rows[0].id);
+        });
+    });
+}
+
+async function getIdFromUuid(uuid) {
+    return new Promise(function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge WHERE uuid = '${uuid}'`, (err, rows) => {
             if (err) reject(err);
             if (!rows || rows.length === 0) {
                 resolve(null);
@@ -959,7 +1004,6 @@ async function getName(id) {
                 resolve(null);
                 return;
             }
-    
             resolve(rows[0].name);
         });
     });
@@ -974,6 +1018,19 @@ function getELO(id) {
                 return;
             }
     
+            resolve(rows[0].elo);
+        });
+    });
+}
+
+function getELOFromUuid(id) {
+    return new Promise(async function (resolve, reject) {
+        con.query(`SELECT * FROM rbridge WHERE uuid = '${id}'`, (err, rows) => {
+            if (err) reject(err);
+            if (!rows || rows.length === 0) {
+                resolve(null);
+                return;
+            }
             resolve(rows[0].elo);
         });
     });

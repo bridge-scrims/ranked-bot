@@ -9,5 +9,6 @@
 	"database": "rbridge",
 	"port": "3306",
 	"range": 25,
+    "api_port": 3406,
 	"antiCrash": true
 }
