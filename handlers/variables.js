@@ -1,6 +1,9 @@
 // [userID]
 let pingCooldown = [];
 
+// [uuid, id]
+let online = [];
+
 // [userID, ELO, skips]
 // Pushed when user joins VC
 // Spliced when game is created or when user leaves the VC>
@@ -39,6 +42,7 @@ let party = [];
 // Double ELO doubles the ELO of any game played.
 let double = false;
 
+module.exports.online = online;
 module.exports.queue = queue;
 module.exports.isMoving = isMoving;
 module.exports.pingCooldown = pingCooldown;
