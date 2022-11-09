@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 [4/1/2022[12:8:59]] [Fri Apr 01 2022 11:07:58] - Shard #0 Reconnecting...
 [4/1/2022[12:8:59]] [Fri Apr 01 2022 11:07:58] - Shard #0 Errored.
 [4/1/2022[12:8:59]] [Fri Apr 01 2022 11:07:58] - Shard #0 Reconnecting...
@@ -219,3 +220,5 @@ uncaughtException
 [11/9/2022[14:44:27]] TypeError: Cannot read properties of undefined (reading 'id')
 
 uncaughtException
+=======
+>>>>>>> 9c28d25ec5a9542573b5f3fd0223a2a4e8178db3

@@ -48,5 +48,4 @@ console.log(commands.length + ` commands loaded!`.dim.green);
 
 client.login(config.token);
 
-// HUGE CREDIT TO NITEBLOCK AND TOFAA FOR A LOT OF THE EVENTS CODE.
-// I couldn't have made the bot without seeing their code.
+// CREDIT TO NITEBLOCK AND TOFAA FOR A LOT OF THE EVENTS CODE.
