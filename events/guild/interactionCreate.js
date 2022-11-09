@@ -1,6 +1,7 @@
 ﻿const functions = require("../../handlers/functions.js");
 const variables = require("../../handlers/variables.js");
 const roles = require("../../config/roles.json");
+const configColors = require("../../config/colors.json");
 
 const gameFunctions = require("../../handlers/game/gameFunctions.js");
 
@@ -58,7 +59,7 @@ module.exports = async (client, interaction) => {
             let userID = splitID[1];
             if (userID != interaction.member.id) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor("#2f3136")
+                    .setColor(configColors.error)
                     .setTitle(`Error!`)
                     .setDescription("Only <@" + userID + "> can close this ticket. If you are Staff, use `/forceclose`.")
                     .setTimestamp();
@@ -66,7 +67,7 @@ module.exports = async (client, interaction) => {
             } else {
                 await interaction.editReply("Denied close request.");
                 const embed = new Discord.EmbedBuilder()
-                    .setColor("#ff2445")
+                    .setColor(configColors.denied)
                     .setTitle(`Close Request Denied`)
                     .setDescription("<@" + interaction.member.id + "> has denied the close request.")
                     .setTimestamp();
@@ -80,7 +81,7 @@ module.exports = async (client, interaction) => {
             let userID = splitID[1];
             if (userID != interaction.member.id) {
                 const channelEmbed = new Discord.EmbedBuilder()
-                    .setColor("#2f3136")
+                    .setColor(configColors.error)
                     .setTitle(`Error!`)
                     .setDescription("Only <@" + userID + "> can close this ticket. If you are Staff, use `/forceclose`.")
                     .setTimestamp();
@@ -90,7 +91,7 @@ module.exports = async (client, interaction) => {
                     if (err) throw err;
                     if (rows.length < 1) {
                         const embed = new Discord.EmbedBuilder()
-                        .setColor("#2f3136")
+                        .setColor(configColors.error)
                         .setTitle("Error!")
                         .setDescription("This isn't a ticket channel!")
                         .setTimestamp();
@@ -114,7 +115,7 @@ module.exports = async (client, interaction) => {
             if (user != interaction.member.id) {
                 await interaction.deferReply({ ephemeral: true });
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("Only <@" + user + "> can accept this party invite.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [errorEmbed] });
@@ -124,7 +125,7 @@ module.exports = async (client, interaction) => {
             if (gameFunctions.isInParty(otherUser)) {
                 await interaction.deferReply({ ephemeral: true });
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@" + otherUser + "> is already in a party.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [errorEmbed] });
@@ -134,7 +135,7 @@ module.exports = async (client, interaction) => {
             if (gameFunctions.isInParty(user)) {
                 await interaction.deferReply({ ephemeral: true });
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("You're already in a party.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [errorEmbed] });
@@ -149,7 +150,7 @@ module.exports = async (client, interaction) => {
                 }
             }
             const acceptEmbed = new Discord.EmbedBuilder()
-                .setColor('#36699c')
+                .setColor(configColors.success)
                 .setDescription('<@' + user + "> has accepted the party invite.")
                 .setTimestamp()
             if (interaction.message != undefined) {
@@ -167,7 +168,7 @@ module.exports = async (client, interaction) => {
             if (user != interaction.member.id) {
                 await interaction.deferReply({ ephemeral: true });
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("Only <@" + user + "> can deny this party invite.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [errorEmbed] });
@@ -180,7 +181,7 @@ module.exports = async (client, interaction) => {
                 }
             }
             const denyEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.denied)
                 .setDescription('<@' + user + "> has denied the party invite.")
                 .setTimestamp()
             if (interaction.message != undefined) {
@@ -194,7 +195,7 @@ module.exports = async (client, interaction) => {
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.invisible);
             if (hasRole === null) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@&" + roles.invisible + "> role doesn't exist. Please contact a staff member.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -202,13 +203,13 @@ module.exports = async (client, interaction) => {
             }
             if (!hasRole) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("Gave you the <@&" + roles.invisible + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.denied)
                     .setDescription("Removed the <@&" + roles.invisible + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -220,7 +221,7 @@ module.exports = async (client, interaction) => {
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.queuePing);
             if (hasRole === null) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@&" + roles.queuePing + "> role doesn't exist. Please contact a staff member.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -228,13 +229,13 @@ module.exports = async (client, interaction) => {
             }
             if (!hasRole) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("Gave you the <@&" + roles.queuePing + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.denied)
                     .setDescription("Removed the <@&" + roles.queuePing + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -246,7 +247,7 @@ module.exports = async (client, interaction) => {
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.announcementPing);
             if (hasRole === null) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@&" + roles.announcementPing + "> role doesn't exist. Please contact a staff member.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -254,13 +255,13 @@ module.exports = async (client, interaction) => {
             }
             if (!hasRole) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("Gave you the <@&" + roles.announcementPing + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.denied)
                     .setDescription("Removed the <@&" + roles.announcementPing + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -272,7 +273,7 @@ module.exports = async (client, interaction) => {
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.scorerPing);
             if (hasRole === null) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@&" + roles.scorerPing + "> role doesn't exist. Please contact a staff member.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -280,13 +281,13 @@ module.exports = async (client, interaction) => {
             }
             if (!hasRole) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("Gave you the <@&" + roles.scorerPing + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.denied)
                     .setDescription("Removed the <@&" + roles.scorerPing + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -298,7 +299,7 @@ module.exports = async (client, interaction) => {
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.eventPing);
             if (hasRole === null) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@&" + roles.eventPing + "> role doesn't exist. Please contact a staff member.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -306,13 +307,13 @@ module.exports = async (client, interaction) => {
             }
             if (!hasRole) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("Gave you the <@&" + roles.eventPing + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.denied)
                     .setDescription("Removed the <@&" + roles.eventPing + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -324,7 +325,7 @@ module.exports = async (client, interaction) => {
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterBlue);
             if (hasRole === null) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@&" + roles.boosterBlue + "> role doesn't exist. Please contact a staff member.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -332,13 +333,13 @@ module.exports = async (client, interaction) => {
             }
             if (!hasRole) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("Gave you the <@&" + roles.boosterBlue + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.denied)
                     .setDescription("Removed the <@&" + roles.boosterBlue + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -350,7 +351,7 @@ module.exports = async (client, interaction) => {
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterRed);
             if (hasRole === null) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@&" + roles.boosterRed + "> role doesn't exist. Please contact a staff member.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -358,13 +359,13 @@ module.exports = async (client, interaction) => {
             }
             if (!hasRole) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("Gave you the <@&" + roles.boosterRed + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.denied)
                     .setDescription("Removed the <@&" + roles.boosterRed + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -376,7 +377,7 @@ module.exports = async (client, interaction) => {
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterGreen);
             if (hasRole === null) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@&" + roles.boosterGreen + "> role doesn't exist. Please contact a staff member.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -384,13 +385,13 @@ module.exports = async (client, interaction) => {
             }
             if (!hasRole) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("Gave you the <@&" + roles.boosterGreen +"> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.denied)
                     .setDescription("Removed the <@&" + roles.boosterGreen + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -402,7 +403,7 @@ module.exports = async (client, interaction) => {
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterPurple);
             if (hasRole === null) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@&" + roles.boosterPurple + "> role doesn't exist. Please contact a staff member.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -410,13 +411,13 @@ module.exports = async (client, interaction) => {
             }
             if (!hasRole) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("Gave you the <@&" + roles.boosterPurple + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.denied)
                     .setDescription("Removed the <@&" + roles.boosterPurple + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -428,7 +429,7 @@ module.exports = async (client, interaction) => {
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterPink);
             if (hasRole === null) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@&" + roles.boosterPink + "> role doesn't exist. Please contact a staff member.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -436,13 +437,13 @@ module.exports = async (client, interaction) => {
             }
             if (!hasRole) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("Gave you the <@&" + roles.boosterPink + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.denied)
                     .setDescription("Removed the <@&" + roles.boosterPink + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -454,7 +455,7 @@ module.exports = async (client, interaction) => {
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterOrange);
             if (hasRole === null) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@&" + roles.boosterOrange + "> role doesn't exist. Please contact a staff member.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -462,13 +463,13 @@ module.exports = async (client, interaction) => {
             }
             if (!hasRole) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("Gave you the <@&" + roles.boosterOrange + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.denied)
                     .setDescription("Removed the <@&" + roles.boosterOrange + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -480,7 +481,7 @@ module.exports = async (client, interaction) => {
             let hasRole = await gameFunctions.toggleRole(interaction.guild, interaction.member, roles.boosterYellow);
             if (hasRole === null) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@&" + roles.boosterYellow + "> role doesn't exist. Please contact a staff member.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -488,13 +489,13 @@ module.exports = async (client, interaction) => {
             }
             if (!hasRole) {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("Gave you the <@&" + roles.boosterYellow + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
             } else {
                 const pingEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.denied)
                     .setDescription("Removed the <@&" + roles.boosterYellow + "> role.")
                     .setTimestamp();
                 interaction.editReply({ embeds: [pingEmbed], ephemeral: true });
@@ -506,7 +507,7 @@ module.exports = async (client, interaction) => {
             let channelId = await gameFunctions.supportTicket(interaction.guild, interaction.member);
             if (channelId) {
                 const supportEmbed = new Discord.EmbedBuilder()
-                    .setColor("#58f55d")
+                    .setColor(configColors.success)
                     .setDescription("<#" + channelId + ">")
                     .setTimestamp();
                 interaction.editReply({ embeds: [supportEmbed], ephemeral: true });
@@ -520,7 +521,7 @@ module.exports = async (client, interaction) => {
                     canScore = true;
                     if (variables.score[i][0] === interaction.member.id || variables.score[i][2] === interaction.member.id) {
                         const errorEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.error)
                             .setDescription("You can't score this game!")
                             .setTimestamp();
                         interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
@@ -571,7 +572,7 @@ module.exports = async (client, interaction) => {
             }
             if (!canScore) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("You can't score this game!")
                     .setTimestamp();
                 interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
@@ -586,7 +587,7 @@ module.exports = async (client, interaction) => {
                     canScore = true;
                     if (variables.score[i][0] === interaction.member.id || variables.score[i][2] === interaction.member.id) {
                         const errorEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.error)
                             .setDescription("You can't score this game!")
                             .setTimestamp();
                         interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
@@ -595,7 +596,7 @@ module.exports = async (client, interaction) => {
                         variables.score.splice(i, 1);
                         interaction.editReply("Done.");
                         const denyEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.error)
                             .setDescription("<@" + interaction.member.id + "> has denied the score request.")
                             .setTimestamp();
                         interaction.channel.send({ embeds: [denyEmbed] });
@@ -605,7 +606,7 @@ module.exports = async (client, interaction) => {
             }
             if (!canScore) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("You can't score this game!")
                     .setTimestamp();
                 interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
@@ -621,7 +622,7 @@ module.exports = async (client, interaction) => {
                     canVoid = true;
                     if (variables.voids[i][0] === interaction.member.id || variables.voids[i][2] === interaction.member.id) {
                         const errorEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.error)
                             .setDescription("You can't void this game!")
                             .setTimestamp();
                         interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
@@ -660,7 +661,7 @@ module.exports = async (client, interaction) => {
             }
             if (!canVoid) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("You can't void this game!")
                     .setTimestamp();
                 interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
@@ -675,7 +676,7 @@ module.exports = async (client, interaction) => {
                     canVoid = true;
                     if (variables.voids[i][0] === interaction.member.id || variables.voids[i][2] === interaction.member.id) {
                         const errorEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.error)
                             .setDescription("You can't void this game!")
                             .setTimestamp();
                         interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
@@ -684,7 +685,7 @@ module.exports = async (client, interaction) => {
                         variables.voids.splice(i, 1);
                         interaction.editReply("Done.");
                         const denyEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.denied)
                             .setDescription("<@" + interaction.member.id + "> has denied the void request.")
                             .setTimestamp();
                         interaction.channel.send({ embeds: [denyEmbed] });
@@ -694,7 +695,7 @@ module.exports = async (client, interaction) => {
             }
             if (!canVoid) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("You can't void this game!")
                     .setTimestamp();
                 interaction.editReply({ embeds: [errorEmbed], ephemeral: true });
@@ -709,7 +710,7 @@ module.exports = async (client, interaction) => {
         let isRateLimited = functions.isRateLimit(interaction.member.id);
         if (isRateLimited) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.error)
                 .setDescription("You are being rate limited. You can only send commands every 4 seconds.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });

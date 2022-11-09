@@ -1,11 +1,7 @@
 const Discord = require("discord.js");
 
-const variables = require("../variables.js");
-const channels = require("../../config/channels.json");
-const functions = require("../functions.js");
+const configColors = require("../../config/colors.json");
 const roles = require("../../config/roles.json");
-
-const gameFunctions = require("../../handlers/game/gameFunctions.js");
 
 module.exports.run = async (interaction) => {
 
@@ -31,13 +27,13 @@ module.exports.run = async (interaction) => {
         console.log("Done.");
         */
         const errorEmbed = new Discord.EmbedBuilder()
-            .setColor('#a84040')
+            .setColor(configColors.error)
             .setDescription("ratio")
             .setTimestamp();
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });
     } else {
         const errorEmbed = new Discord.EmbedBuilder()
-            .setColor('#a84040')
+            .setColor(configColors.error)
             .setDescription("You don't have permission to use this command!")
             .setTimestamp();
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });

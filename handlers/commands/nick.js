@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 
 const gameFunctions = require("../../handlers/game/gameFunctions.js");
-const functions = require("../functions.js");
+const configColors = require("../../config/colors.json");
 const channels = require("../../config/channels.json");
 const roles = require("../../config/roles.json");
 
@@ -12,7 +12,7 @@ module.exports.run = async (interaction) => {
             let isDb = await gameFunctions.isInDb(interaction.member.id);
             if (!isDb) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor("#a84040")
+                    .setColor(configColors.error)
                     .setDescription("You aren't registered! To reset your nick, please register in <#" + channels.registerChannel + ">.\n\nIf you're already registered, please contact <@" + roles.staff + ">.")
                     .setTimestamp();
                 interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -21,7 +21,7 @@ module.exports.run = async (interaction) => {
             await gameFunctions.resetName(interaction, interaction.member.id);
             await gameFunctions.fixRoles(interaction, interaction.member.id);
             const successEmbed = new Discord.EmbedBuilder()
-                .setColor("#36699c")
+                .setColor(configColors.success)
                 .setDescription("Reset your nick.")
                 .setTimestamp();
             interaction.reply({ embeds: [successEmbed], ephemeral: true });
@@ -30,7 +30,7 @@ module.exports.run = async (interaction) => {
             let nick = interaction.options.getString("nick");
             if (nick.length > 20) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor("#a84040")
+                    .setColor(configColors.error)
                     .setDescription("Please provide a valid nickname!")
                     .setTimestamp();
                 interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -38,7 +38,7 @@ module.exports.run = async (interaction) => {
             } else {
                 if ((curNick + " (" + nick + ")").length > 32) {
                     const errorEmbed = new Discord.EmbedBuilder()
-                        .setColor("#a84040")
+                        .setColor(configColors.error)
                         .setDescription("That nickname is too long!")
                         .setTimestamp();
                     interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -52,7 +52,7 @@ module.exports.run = async (interaction) => {
                     }
                     interaction.member.setNickname(curNick + " (" + nick + ")");
                     const nickEmbed = new Discord.EmbedBuilder()
-                        .setColor("#36699c")
+                        .setColor(configColors.success)
                         .setDescription("Set your nickname to `" + curNick + " (" + nick + ")`.\n\nYou can change your nickname again by using `/nick set [nickname]`.")
                         .setTimestamp();
                         interaction.reply({ embeds: [nickEmbed], ephemeral: true });
@@ -63,7 +63,7 @@ module.exports.run = async (interaction) => {
                     }
                     interaction.member.setNickname(curNick + " (" + nick + ")");
                     const nickEmbed = new Discord.EmbedBuilder()
-                        .setColor("#36699c")
+                        .setColor(configColors.success)
                         .setDescription("Set your nickname to `" + curNick + " (" + nick + ")`.\n\nYou can change your nickname again by using `/nick set [nickname]`.")
                         .setTimestamp();
                     interaction.reply({ embeds: [nickEmbed], ephemeral: true });
@@ -76,7 +76,7 @@ module.exports.run = async (interaction) => {
                 if (nickSplit[1] != undefined) {
                     interaction.member.setNickname(nickSplit[1]);
                     const nickEmbed = new Discord.EmbedBuilder()
-                        .setColor("#36699c")
+                        .setColor(configColors.success)
                         .setDescription("Hid your nickname.\n\nYou can change your nickname again by using `/nick set [nickname]`.")
                         .setTimestamp();
                     interaction.reply({ embeds: [nickEmbed], ephemeral: true });
@@ -84,7 +84,7 @@ module.exports.run = async (interaction) => {
             } else {
                 interaction.member.setNickname(name);
                 const nickEmbed = new Discord.EmbedBuilder()
-                    .setColor("#36699c")
+                    .setColor(configColors.success)
                     .setDescription("Hid your nickname.\n\nYou can change your nickname again by using `/nick set [nickname]`.")
                     .setTimestamp();
                 interaction.reply({ embeds: [nickEmbed], ephemeral: true });
@@ -92,7 +92,7 @@ module.exports.run = async (interaction) => {
         }
     } else {
         const errorEmbed = new Discord.EmbedBuilder()
-            .setColor('#a84040')
+            .setColor(configColors.error)
             .setDescription("You don't have permsision to use this command! You need to be an <@" + roles.booster + ">.")
             .setTimestamp();
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });

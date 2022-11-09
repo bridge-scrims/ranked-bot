@@ -1,15 +1,14 @@
 const Discord = require("discord.js");
 
 const gameFunctions = require("../../handlers/game/gameFunctions.js");
-const channels = require("../../config/channels.json");
-const roles = require("../../config/roles.json");
+const configColors = require("../../config/colors.json");
 
 module.exports.run = async (interaction) => {
     let user = interaction.options.getString("user");
     let member = await gameFunctions.getUser(interaction.guild, user);
     if (!member) {
         const errorEmbed = new Discord.EmbedBuilder()
-            .setColor('#a84040')
+            .setColor(configColors.error)
             .setDescription("<@" + user + "> isn't in the server!")
             .setTimestamp();
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -17,7 +16,7 @@ module.exports.run = async (interaction) => {
     } else {
         await gameFunctions.screenshareUser(interaction.guild, member, interaction.member).then((channelId) => {
             const successEmbed = new Discord.EmbedBuilder()
-                .setColor('#36699c')
+                .setColor(configColors.success)
                 .setDescription("<#" + channelId + ">")
                 .setTimestamp();
             interaction.reply({ embeds: [successEmbed], ephemeral: true });

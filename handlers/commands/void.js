@@ -3,7 +3,7 @@ const Discord = require("discord.js");
 const variables = require("../variables.js");
 const channels = require("../../config/channels.json");
 const functions = require("../functions.js");
-const roles = require("../../config/roles.json");
+const configColors = require("../../config/colors.json");
 
 module.exports.run = async (interaction) => {
     let isIG = false;
@@ -15,7 +15,7 @@ module.exports.run = async (interaction) => {
                 for (var j = 0; j < variables.voids.length; j++) {
                     if (variables.voids[j][1] === interaction.channel.id) {
                         const errorEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.error)
                             .setDescription("Someone's already voiding this game!")
                             .setTimestamp();
                         interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -27,7 +27,7 @@ module.exports.run = async (interaction) => {
                 if (canVoid) {
                     variables.voids.push([interaction.member.id, interaction.channel.id, variables.curGames[i][1]]);
                     const voidEmbed = new Discord.EmbedBuilder()
-                        .setColor('#36699c')
+                        .setColor(configColors.neutral)
                         .setTitle('Void Request')
                         .setDescription("<@" + interaction.member.id + "> has requested to void this game.")
                         .setTimestamp()
@@ -51,7 +51,7 @@ module.exports.run = async (interaction) => {
 
     if (!isIG) {
         const errorEmbed = new Discord.EmbedBuilder()
-            .setColor('#a84040')
+            .setColor(configColors.error)
             .setDescription("You're not in a game.")
             .setTimestamp();
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });

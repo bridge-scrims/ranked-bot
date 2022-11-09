@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 
 const gameFunctions = require("../../handlers/game/gameFunctions.js");
-const functions = require("../functions.js");
+const configColors = require("../../config/colors.json");
 const channels = require("../../config/channels.json");
 const roles = require("../../config/roles.json");
 const variables = require("../variables.js");
@@ -12,7 +12,7 @@ module.exports.run = async (interaction) => {
         let user = interaction.options.getUser("user");
         if (interaction.member.id === user.id) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("You can't party yourself!")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -22,7 +22,7 @@ module.exports.run = async (interaction) => {
 
         if (!isDb) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("You aren't registered! To party other people, please register in <#" + channels.registerChannel + ">.\n\nIf you're already registered, please contact <@" + roles.staff + ">.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -30,7 +30,7 @@ module.exports.run = async (interaction) => {
         }
         if (!userIsDb) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("<@" + user.id + "> isn't registered! To party them they need to register in <#" + channels.registerChannel + ">.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -39,7 +39,7 @@ module.exports.run = async (interaction) => {
 
         if (gameFunctions.isInParty(interaction.member.id)) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("You're already in a party!")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -60,7 +60,7 @@ module.exports.run = async (interaction) => {
         */
         if (gameFunctions.isInParty(user.id)) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("<@" + user.id + "> is already in a party!")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -68,7 +68,7 @@ module.exports.run = async (interaction) => {
         }
         if (gameFunctions.isPending(interaction.member.id, user.id)) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("There's already an invite outgoing/incoming from <@" + user.id + ">!")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -77,7 +77,7 @@ module.exports.run = async (interaction) => {
         variables.pendingParty.push([interaction.member.id, user.id]);
 
         const partyEmbed = new Discord.EmbedBuilder()
-            .setColor('#36699c')
+            .setColor(configColors.neutral)
             .setTitle('Party Invite')
             .setDescription('<@' + interaction.member.id + "> has invited <@" + user.id + "> to a party.\n\nTo accept this invite, click the button below.")
             .setTimestamp()
@@ -103,7 +103,7 @@ module.exports.run = async (interaction) => {
                     return;
                 }
                 const expiredEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setTitle('Party Invite')
                     .setDescription('<@' + interaction.member.id + "> invite to <@" + user.id + "> has expired.")
                     .setTimestamp()
@@ -115,7 +115,7 @@ module.exports.run = async (interaction) => {
         let isDb = await gameFunctions.isInDb(interaction.member.id);
         if (!isDb) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("You aren't registered! To party other people, please register in <#" + channels.registerChannel + ">.\n\nIf you're already registered, please contact <@" + roles.staff + ">.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -124,14 +124,14 @@ module.exports.run = async (interaction) => {
         let party = gameFunctions.getParty(interaction.member.id);
         if (party.length === 0 || !party) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("You aren't in a party!")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
             return;
         }
         let partyEmbed = new Discord.EmbedBuilder()
-            .setColor('#36699c')
+            .setColor(configColors.neutral)
             .setDescription('**<@' + party[0] + ">'s Party**:\n- <@" + party[1] + ">")
             .setTimestamp();
         interaction.reply({ embeds: [partyEmbed] });
@@ -139,7 +139,7 @@ module.exports.run = async (interaction) => {
         let party = gameFunctions.getParty(interaction.member.id);
         if (party.length === 0 || !party) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("You aren't in a party!")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -159,7 +159,7 @@ module.exports.run = async (interaction) => {
             return;
         }
         let partyEmbed = new Discord.EmbedBuilder()
-            .setColor('#a84040')
+            .setColor(configColors.error)
             .setDescription('The party has been disbanded.')
             .setTimestamp();
         interaction.reply({ content: "<@" + partyMembers[0][0] + "> <@" + partyMembers[0][1] + ">", embeds: [partyEmbed] });

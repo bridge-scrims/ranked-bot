@@ -4,13 +4,14 @@ const gameFunctions = require("../../handlers/game/gameFunctions.js");
 const functions = require("../functions.js");
 const channels = require("../../config/channels.json");
 const roles = require("../../config/roles.json");
+const configColors = require("../../config/colors.json");
 
 module.exports.run = async (interaction) => {
     let username = interaction.options.getString("ign");
         await gameFunctions.getUUID(username).then(async (data) => {
             if (!data.name) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("`" + username + "` isn't a valid username!")
                     .setTimestamp();
                 interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -20,7 +21,7 @@ module.exports.run = async (interaction) => {
                 let socialMedia = hypixel.player.socialMedia;
                 if (!socialMedia || !socialMedia.links || !socialMedia.links.DISCORD) {
                     const errorEmbed = new Discord.EmbedBuilder()
-                        .setColor('#a84040')
+                        .setColor(configColors.error)
                         .setDescription("`" + data.name + "` hasn't linked their Discord!")
                         .setTimestamp();
                     interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -30,7 +31,7 @@ module.exports.run = async (interaction) => {
                     let linkedDiscord = socialMedia.links.DISCORD;
                     if (linkedDiscord != interaction.member.user.tag) {
                         const errorEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.error)
                             .setDescription("`" + data.name + "`'s account is linked to `" + linkedDiscord + "`!")
                             .setTimestamp();
                         interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -46,7 +47,7 @@ module.exports.run = async (interaction) => {
 
                     if (!isDb) {
                         const errorEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.error)
                             .setDescription("<@" + interaction.member.id + ">, you're not registered! Please register in <#" + channels.registerChannel + ">.")
                             .setTimestamp();
                         interaction.channel.send({ embeds: [errorEmbed], ephemeral: true })
@@ -55,7 +56,7 @@ module.exports.run = async (interaction) => {
                         await gameFunctions.updateName(interaction.member.id, data.name);
                         let uuid = await gameFunctions.getUUID(data.name);
                         const successEmbed = new Discord.EmbedBuilder()
-                            .setColor('#36699c')
+                            .setColor(configColors.neutral)
                             .setAuthor({ name: "Renamed you as " + data.name + "!", iconURL: "https://mc-heads.net/avatar/" + uuid.uuid + "/64"})
                             .setTimestamp();
                         interaction.reply({ embeds: [successEmbed], ephemeral: true });
@@ -66,7 +67,7 @@ module.exports.run = async (interaction) => {
             }).catch((err) => {
                 functions.sendError(functions.objToString(err), interaction.guild, "Hypixel API")
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("<@" + interaction.member.id + ">, an error occurred! Please try again.")
                     .setTimestamp();
                 interaction.channel.send({ embeds: [errorEmbed] }).then((msg) => {
@@ -83,7 +84,7 @@ module.exports.run = async (interaction) => {
         }).catch((err) => {
             functions.sendError(functions.objToString(err), interaction.guild, "Mojang API")
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.error)
                 .setDescription("An error occurred! Please try again.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });

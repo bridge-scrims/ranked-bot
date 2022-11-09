@@ -3,7 +3,7 @@ const Discord = require("discord.js");
 const gameFunctions = require("../game/gameFunctions.js");
 const functions = require("../functions.js");
 const channels = require("../../config/channels.json");
-const roles = require("../../config/roles.json");
+const configColors = require("../../config/colors.json");
 
 module.exports.run = async (interaction) => {
     let username = interaction.options.getString("user");
@@ -14,7 +14,7 @@ module.exports.run = async (interaction) => {
         id = username;
     }
     const loadingEmbed = new Discord.EmbedBuilder()
-        .setColor(0x2f3136)
+        .setColor(configColors.neutral)
         .setTitle("Loading...")
         .setDescription("This may take a few seconds.")
         .setTimestamp();
@@ -26,7 +26,7 @@ module.exports.run = async (interaction) => {
             let card = await gameFunctions.scoreCard(id);
             if (!card) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("That user isn't in the database!")
                     .setTimestamp();
                 message.edit({ embeds: [errorEmbed], ephemeral: true });

@@ -3,7 +3,7 @@ const Discord = require("discord.js");
 const gameFunctions = require("../../handlers/game/gameFunctions.js");
 const functions = require("../functions.js");
 const channels = require("../../config/channels.json");
-const roles = require("../../config/roles.json");
+const configColors = require("../../config/colors.json");
 
 module.exports.run = async (interaction) => {
     let type = interaction.options.getString("type");
@@ -13,7 +13,7 @@ module.exports.run = async (interaction) => {
     let lb = await gameFunctions.getLeaderboard(type);
     if (!lb) {
         const errorEmbed = new Discord.EmbedBuilder()
-            .setColor('#a84040')
+            .setColor(configColors.error)
             .setDescription("There isn't a current leaderboard!")
             .setTimestamp();
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -39,7 +39,7 @@ module.exports.run = async (interaction) => {
     }
     lbDesc = lbDesc + "```";
     const successEmbed = new Discord.EmbedBuilder()
-        .setColor('#36699c')
+        .setColor(configColors.neutral)
         .setTitle("Leaderboard")
         .setDescription(lbDesc)
         .setTimestamp();

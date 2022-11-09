@@ -4,12 +4,13 @@ const variables = require("../variables.js");
 const channels = require("../../config/channels.json");
 const functions = require("../functions.js");
 const roles = require("../../config/roles.json");
+const configColors = require("../../config/colors.json");
 
 module.exports.run = async (interaction) => {
     if (interaction.channel.id === channels.queueChatChannel) {
         if (!interaction.member.voice || !interaction.member.voice.channel) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.error)
                 .setDescription("You have to be in <#" + channels.queueChannel + "> to use `/ping`.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -17,7 +18,7 @@ module.exports.run = async (interaction) => {
         }
         if (interaction.member.voice.channel != channels.queueChannel && interaction.member.voice.channel.name != interaction.member.id) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.error)
                 .setDescription("You have to be in <#" + channels.queueChannel + "> to use `/ping`.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -25,7 +26,7 @@ module.exports.run = async (interaction) => {
         }
         if (!functions.exists(variables.pingCooldown, interaction.member.id)) {
             const pingEmbed = new Discord.EmbedBuilder()
-                .setColor("#36699c")
+                .setColor(configColors.neutral)
                 .setDescription("Pinged <@&" + roles.queuePing + ">.")
                 .setTimestamp();
             interaction.reply({ embeds: [pingEmbed], ephemeral: true });
@@ -40,7 +41,7 @@ module.exports.run = async (interaction) => {
             }, 60000);
         } else {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.error)
                 .setDescription("You can only ping <@&" + roles.queuePing + "> once every minute.")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -48,7 +49,7 @@ module.exports.run = async (interaction) => {
         }
     } else {
         const errorEmbed = new Discord.EmbedBuilder()
-            .setColor('#a84040')
+            .setColor(configColors.error)
             .setDescription("You can only use `/ping` in <#" + channels.queueChatChannel + ">.")
             .setTimestamp();
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });

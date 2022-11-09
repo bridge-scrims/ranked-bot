@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 
 const gameFunctions = require("../../handlers/game/gameFunctions.js");
 const functions = require("../functions.js");
-const channels = require("../../config/channels.json");
+const configColors = require("../../config/colors.json");
 const roles = require("../../config/roles.json");
 
 const config = require("../../config/config.json");
@@ -28,7 +28,7 @@ module.exports.run = async (interaction) => {
         con.query(`SELECT * FROM tickets WHERE channelid='${interaction.channel.id}'`, async (err, rows) => {
             if (rows.length < 1) {
                 const embed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setTitle("Error!")
                     .setDescription("This isn't a ticket channel!")
                     .setTimestamp();
@@ -46,7 +46,7 @@ module.exports.run = async (interaction) => {
                         .setStyle(Discord.ButtonStyle.Primary)
                 );
                 const embed = new Discord.EmbedBuilder()
-                    .setColor("#5d9acf")
+                    .setColor(configColors.neutral)
                     .setTitle("Close Request")
                     .setDescription("<@" + interaction.member.id + "> has requested to close this ticket. Reason:\n```" + reason + "```\nPlease accept or deny using the buttons below.")
                     .setTimestamp();
@@ -56,7 +56,7 @@ module.exports.run = async (interaction) => {
         });
     } else {
         const errorEmbed = new Discord.EmbedBuilder()
-            .setColor('#a84040')
+            .setColor(configColors.error)
             .setDescription("You don't have permission to use this command!")
             .setTimestamp();
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });

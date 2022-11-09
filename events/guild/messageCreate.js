@@ -5,17 +5,62 @@ const variables = require("../../handlers/variables.js");
 const channels = require("../../config/channels.json");
 const functions = require("../../handlers/functions.js");
 const roles = require("../../config/roles.json");
+const configColors = require("../../config/colors.json");
 const gameFunctions = require("../../handlers/game/gameFunctions.js");
 
 module.exports = async (client, message) => {
     const args = message.content.trim().split(/ +/g);
     const cmd = args[0].slice().toLowerCase();
 
+    /*
+    if (cmd.toLowerCase() === "ahhh") {
+        const queueEmbed = new Discord.EmbedBuilder()
+            .setColor(configColors.neutral)
+            .setTitle('Queue Ping')
+            .setDescription('If you wish to get pinged when someone is queueing, get this role. Note that this role will be pinged often, but only in <#948701864432660601>.')
+            .setTimestamp()
+        const queueButton = new Discord.ActionRowBuilder()
+        .addComponents(
+            new Discord.ButtonBuilder()
+                .setCustomId("queue-ping")
+                .setLabel('Toggle Role')
+                .setStyle(Discord.ButtonStyle.Success),
+        );
+        const announcementEmbed = new Discord.EmbedBuilder()
+            .setColor(configColors.neutral)
+            .setTitle('Announcement Ping')
+            .setDescription('Get pinged when announcements happen. Includes major updates in the server as well as when queues go down or major bugs are reported. Different from Event Ping, which is for more important events like Double ELO.')
+            .setTimestamp()
+        const announcementButton = new Discord.ActionRowBuilder()
+        .addComponents(
+            new Discord.ButtonBuilder()
+                .setCustomId("announcement-ping")
+                .setLabel('Toggle Role')
+                .setStyle(Discord.ButtonStyle.Success),
+        );
+        const eventEmbed = new Discord.EmbedBuilder()
+            .setColor(configColors.neutral)
+            .setTitle('Event Ping')
+            .setDescription('This role will get pinged when a giveaway, event, or Double ELO happens.')
+            .setTimestamp()
+        const eventButton = new Discord.ActionRowBuilder()
+        .addComponents(
+            new Discord.ButtonBuilder()
+                .setCustomId("announcement-ping")
+                .setLabel('Toggle Role')
+                .setStyle(Discord.ButtonStyle.Success),
+        );
+        message.channel.send({ embeds: [queueEmbed], components: [queueButton] });
+        message.channel.send({ embeds: [announcementEmbed], components: [announcementButton] });
+        message.channel.send({ embeds: [eventEmbed], components: [eventButton] });
+    }
+    */
+
     if (cmd.toLowerCase() === "=ping") {
         if (message.channel.id === channels.queueChatChannel) {
             if (!message.member.voice || !message.member.voice.channel) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("You have to be in <#" + channels.queueChannel + "> to use `/ping`.")
                     .setTimestamp();
                 message.reply({ embeds: [errorEmbed] });
@@ -23,7 +68,7 @@ module.exports = async (client, message) => {
             }
             if (message.member.voice.channel != channels.queueChannel && message.member.voice.channel.name != message.member.id) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("You have to be in <#" + channels.queueChannel + "> to use `/ping`.")
                     .setTimestamp();
                 message.reply({ embeds: [errorEmbed] });
@@ -44,7 +89,7 @@ module.exports = async (client, message) => {
                 }, 60000);
             } else {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("You can only ping <@&" + roles.queuePing + "> once every minute.")
                     .setTimestamp();
                 message.reply({ embeds: [errorEmbed] });
@@ -52,7 +97,7 @@ module.exports = async (client, message) => {
             }
         } else {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.error)
                 .setDescription("You can only use `=ping` in <#" + channels.queueChatChannel + ">.")
                 .setTimestamp();
             message.reply({ embeds: [errorEmbed] });
@@ -62,7 +107,7 @@ module.exports = async (client, message) => {
 
     if (cmd.toLowerCase() === "=help") {
         const helpEmbed = new Discord.EmbedBuilder()
-            .setColor("#36699c")
+            .setColor(configColors.neutral)
             .setDescription(
             "```\n" +
             "[DEFAULT CMDS]\n" +
@@ -116,7 +161,7 @@ module.exports = async (client, message) => {
         if (message.channel.id === channels.registerChannel) {
             if (args.length < 2) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("You need to provide an username!")
                     .setTimestamp();
                 message.reply({ embeds: [errorEmbed] });
@@ -126,7 +171,7 @@ module.exports = async (client, message) => {
             await gameFunctions.getUUID(username).then(async (data) => {
                 if (!data.name) {
                     const errorEmbed = new Discord.EmbedBuilder()
-                        .setColor('#a84040')
+                        .setColor(configColors.error)
                         .setDescription("`" + username + "` isn't a valid username!")
                         .setTimestamp();
                     message.reply({ embeds: [errorEmbed] });
@@ -136,7 +181,7 @@ module.exports = async (client, message) => {
                     let socialMedia = hypixel.player.socialMedia;
                     if (!socialMedia || !socialMedia.links || !socialMedia.links.DISCORD) {
                         const errorEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.error)
                             .setDescription("`" + data.name + "` hasn't linked their Discord!")
                             .setTimestamp();
                         message.reply({ embeds: [errorEmbed] });
@@ -146,7 +191,7 @@ module.exports = async (client, message) => {
                         let linkedDiscord = socialMedia.links.DISCORD;
                         if (linkedDiscord != message.member.user.tag) {
                             const errorEmbed = new Discord.EmbedBuilder()
-                                .setColor('#a84040')
+                                .setColor(configColors.error)
                                 .setDescription("`" + data.name + "`'s account is linked to `" + linkedDiscord + "`!")
                                 .setTimestamp();
                             message.reply({ embeds: [errorEmbed] });
@@ -164,7 +209,7 @@ module.exports = async (client, message) => {
                             await gameFunctions.insertUser(message.member.id, data.name, data.uuid);
                             let uuid = await gameFunctions.getUUID(data.name);
                             const successEmbed = new Discord.EmbedBuilder()
-                                .setColor('#36699c')
+                                .setColor(configColors.neutral)
                                 .setAuthor({ name: "Registered you as " + data.name + "!", iconURL: "https://mc-heads.net/avatar/" + uuid.uuid + "/64"})
                                 .setTimestamp();
                             message.reply({ embeds: [successEmbed], ephemeral: true });
@@ -173,7 +218,7 @@ module.exports = async (client, message) => {
                         } else {
                             let uuid = await gameFunctions.getUUID(data.name);
                             const successEmbed = new Discord.EmbedBuilder()
-                                .setColor('#36699c')
+                                .setColor(configColors.neutral)
                                 .setAuthor({ name: "Welcome back " + data.name + "!", iconURL: "https://mc-heads.net/avatar/" + uuid.uuid + "/64"})
                                 .setTimestamp();
                             message.reply({ embeds: [successEmbed], ephemeral: true });
@@ -185,7 +230,7 @@ module.exports = async (client, message) => {
                 }).catch((err) => {
                     functions.sendError(functions.objToString(err), message.guild, "Hypixel API")
                     const errorEmbed = new Discord.EmbedBuilder()
-                        .setColor('#a84040')
+                        .setColor(configColors.error)
                         .setDescription("<@" + message.member.id + ">, an error occurred! Please try again.")
                         .setTimestamp();
                     message.channel.send({ embeds: [errorEmbed] }).then((msg) => {
@@ -202,7 +247,7 @@ module.exports = async (client, message) => {
             }).catch((err) => {
                 functions.sendError(functions.objToString(err), message.guild, "Mojang API")
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("An error occurred! Please try again.")
                     .setTimestamp();
                 message.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -211,7 +256,7 @@ module.exports = async (client, message) => {
             });
         } else {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.denied)
                 .setDescription("You can only use `=register` in <#" + channels.registerChannel + ">.")
                 .setTimestamp();
             message.reply({ embeds: [errorEmbed] });
@@ -376,7 +421,7 @@ module.exports = async (client, message) => {
         let lb = await gameFunctions.getLeaderboard(type);
         if (!lb) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.error)
                 .setDescription("There isn't a current leaderboard matching `" + args[1] + "`!")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -402,7 +447,7 @@ module.exports = async (client, message) => {
         }
         lbDesc = lbDesc + "```";
         const successEmbed = new Discord.EmbedBuilder()
-            .setColor('#36699c')
+            .setColor(configColors.neutral)
             .setTitle("Leaderboard")
             .setDescription(lbDesc)
             .setTimestamp();
@@ -417,7 +462,7 @@ module.exports = async (client, message) => {
                 id = await gameFunctions.getIdFromName(args[1]);
                 if (!id) {
                     const errorEmbed = new Discord.EmbedBuilder()
-                        .setColor('#a84040')
+                        .setColor(configColors.error)
                         .setDescription("That user isn't in the database!")
                         .setTimestamp();
                     message.reply({ embeds: [errorEmbed] });
@@ -440,7 +485,7 @@ module.exports = async (client, message) => {
                 let card = await gameFunctions.scoreCard(id);
                 if (!card) {
                     const errorEmbed = new Discord.EmbedBuilder()
-                        .setColor('#a84040')
+                        .setColor(configColors.error)
                         .setDescription("That user isn't in the database!")
                         .setTimestamp();
                     message.edit({ embeds: [errorEmbed], ephemeral: true });
@@ -467,7 +512,7 @@ module.exports = async (client, message) => {
                     for (var j = 0; j < variables.score.length; j++) {
                         if (variables.score[j][1] === message.channel.id) {
                             const errorEmbed = new Discord.EmbedBuilder()
-                                .setColor('#a84040')
+                                .setColor(configColors.error)
                                 .setDescription("Someone's already scoring this!")
                                 .setTimestamp();
                             message.reply({ embeds: [errorEmbed] });
@@ -479,7 +524,7 @@ module.exports = async (client, message) => {
                     if (canScore) {
                         if (!message.attachments.first()) {
                             const errorEmbed = new Discord.EmbedBuilder()
-                                .setColor('#a84040')
+                                .setColor(configColors.error)
                                 .setDescription("Please provide a valid image! Correct file types include `.jpeg`, `.png`, and `.jpg`.")
                                 .setTimestamp();
                             message.reply({ embeds: [errorEmbed] });
@@ -491,7 +536,7 @@ module.exports = async (client, message) => {
                                     if (file.toLowerCase().endsWith(".jpg") || file.toLowerCase().endsWith(".png") || file.toLowerCase().endsWith(".jpeg")) {
                                         variables.score.push([message.member.id, message.channel.id, variables.curGames[i][1]]);
                                         const scoreEmbed = new Discord.EmbedBuilder()
-                                            .setColor('#36699c')
+                                            .setColor(configColors.neutral)
                                             .setTitle('Score Request')
                                             .setDescription('Please click the button if the screenshot is correct! If it isn\'t, then deny the score request.')
                                             .setImage(file.url)
@@ -514,7 +559,7 @@ module.exports = async (client, message) => {
                             });
                             if (fileB) {
                                 const errorEmbed = new Discord.EmbedBuilder()
-                                    .setColor('#a84040')
+                                    .setColor(configColors.error)
                                     .setDescription("Please provide a valid image! Correct file types include `.jpeg`, `.png`, and `.jpg`.")
                                     .setTimestamp();
                                 message.reply({ embeds: [errorEmbed] });
@@ -527,7 +572,7 @@ module.exports = async (client, message) => {
 
         if (!isIG) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.error)
                 .setDescription("You're not in a game.")
                 .setTimestamp();
             message.reply({ embeds: [errorEmbed] });
@@ -537,7 +582,7 @@ module.exports = async (client, message) => {
     if (cmd.toLowerCase().startsWith("=party") || cmd.toLowerCase().startsWith("=p") && !cmd.toLowerCase().includes("=ping")) {
         if (args.length < 2) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.error)
                 .setDescription("Invalid arguments!")
                 .setTimestamp();
             message.reply({ embeds: [errorEmbed] });
@@ -547,7 +592,7 @@ module.exports = async (client, message) => {
             let party = gameFunctions.getParty(message.member.id);
             if (party.length === 0 || !party) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor("#a84040")
+                    .setColor(configColors.error)
                     .setDescription("You aren't in a party!")
                     .setTimestamp();
                 message.reply({ embeds: [errorEmbed] });
@@ -567,7 +612,7 @@ module.exports = async (client, message) => {
                 return;
             }
             let partyEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.error)
                 .setDescription('The party has been disbanded.')
                 .setTimestamp();
             message.reply({ content: "<@" + partyMembers[0][0] + "> <@" + partyMembers[0][1] + ">", embeds: [partyEmbed] });
@@ -575,7 +620,7 @@ module.exports = async (client, message) => {
             let isDb = await gameFunctions.isInDb(message.member.id);
             if (!isDb) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor("#a84040")
+                    .setColor(configColors.error)
                     .setDescription("You aren't registered! To party other people, please register in <#" + channels.registerChannel + ">.\n\nIf you're already registered, please contact <@" + roles.staff + ">.")
                     .setTimestamp();
                 message.reply({ embeds: [errorEmbed] });
@@ -584,14 +629,14 @@ module.exports = async (client, message) => {
             let party = gameFunctions.getParty(message.member.id);
             if (party.length === 0 || !party) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor("#a84040")
+                    .setColor(configColors.error)
                     .setDescription("You aren't in a party!")
                     .setTimestamp();
                 message.reply({ embeds: [errorEmbed] });
                 return;
             }
             let partyEmbed = new Discord.EmbedBuilder()
-                .setColor('#36699c')
+                .setColor(configColors.neutral)
                 .setDescription('**<@' + party[0] + ">'s Party**:\n- <@" + party[1] + ">")
                 .setTimestamp();
             message.reply({ embeds: [partyEmbed] });
@@ -599,7 +644,7 @@ module.exports = async (client, message) => {
             let mention = message.mentions.members.first();
             if (!mention) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("You need to mention an user to party!")
                     .setTimestamp();
                 message.reply({ embeds: [errorEmbed] });
@@ -608,7 +653,7 @@ module.exports = async (client, message) => {
                 let isDb = await gameFunctions.isInDb(message.member.id);
                 if (message.member.id === mention.id) {
                     const errorEmbed = new Discord.EmbedBuilder()
-                        .setColor("#a84040")
+                        .setColor(configColors.error)
                         .setDescription("You can't party yourself!")
                         .setTimestamp();
                     message.reply({ embeds: [errorEmbed] });
@@ -617,7 +662,7 @@ module.exports = async (client, message) => {
                 let userIsDb = await gameFunctions.isInDb(mention.id);
                 if (!isDb) {
                     const errorEmbed = new Discord.EmbedBuilder()
-                        .setColor("#a84040")
+                        .setColor(configColors.error)
                         .setDescription("You aren't registered! To party other people, please register in <#" + channels.registerChannel + ">.\n\nIf you're already registered, please contact <@" + roles.staff + ">.")
                         .setTimestamp();
                     message.reply({ embeds: [errorEmbed] });
@@ -625,7 +670,7 @@ module.exports = async (client, message) => {
                 }
                 if (!userIsDb) {
                     const errorEmbed = new Discord.EmbedBuilder()
-                        .setColor("#a84040")
+                        .setColor(configColors.error)
                         .setDescription("<@" + mention.id + "> isn't registered! To party them they need to register in <#" + channels.registerChannel + ">.")
                         .setTimestamp();
                     message.reply({ embeds: [errorEmbed] });
@@ -634,7 +679,7 @@ module.exports = async (client, message) => {
         
                 if (gameFunctions.isInParty(message.member.id)) {
                     const errorEmbed = new Discord.EmbedBuilder()
-                        .setColor("#a84040")
+                        .setColor(configColors.error)
                         .setDescription("You're already in a party!")
                         .setTimestamp();
                     message.reply({ embeds: [errorEmbed] });
@@ -643,7 +688,7 @@ module.exports = async (client, message) => {
                 
                 if (gameFunctions.isInParty(mention.id)) {
                     const errorEmbed = new Discord.EmbedBuilder()
-                        .setColor("#a84040")
+                        .setColor(configColors.error)
                         .setDescription("<@" + mention.id + "> is already in a party!")
                         .setTimestamp();
                     message.reply({ embeds: [errorEmbed] });
@@ -651,7 +696,7 @@ module.exports = async (client, message) => {
                 }
                 if (gameFunctions.isPending(message.member.id, mention.id)) {
                     const errorEmbed = new Discord.EmbedBuilder()
-                        .setColor("#a84040")
+                        .setColor(configColors.error)
                         .setDescription("There's already an invite outgoing/incoming from <@" + mention.id + ">!")
                         .setTimestamp();
                     message.reply({ embeds: [errorEmbed] });
@@ -660,7 +705,7 @@ module.exports = async (client, message) => {
                 variables.pendingParty.push([message.member.id, mention.id]);
         
                 const partyEmbed = new Discord.EmbedBuilder()
-                    .setColor('#36699c')
+                    .setColor(configColors.neutral)
                     .setTitle('Party Invite')
                     .setDescription('<@' + message.member.id + "> has invited <@" + mention.id + "> to a party.\n\nTo accept this invite, click the button below.")
                     .setTimestamp()
@@ -686,7 +731,7 @@ module.exports = async (client, message) => {
                             return;
                         }
                         const expiredEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.error)
                             .setTitle('Party Invite')
                             .setDescription('<@' + message.member.id + "> invite to <@" + mention.id + "> has expired.")
                             .setTimestamp()

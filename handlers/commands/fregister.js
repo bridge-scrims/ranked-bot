@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 
 const gameFunctions = require("../../handlers/game/gameFunctions.js");
-const channels = require("../../config/channels.json");
+const configColors = require("../../config/colors.json");
 const roles = require("../../config/roles.json");
 
 module.exports.run = async (interaction) => {
@@ -21,13 +21,13 @@ module.exports.run = async (interaction) => {
                 member.roles.remove(unverifiedRole);
                 member.setNickname("[1000] " + ign);
                 const successEmbed = new Discord.EmbedBuilder()
-                    .setColor('#36699c')
+                    .setColor(configColors.neutral)
                     .setDescription("Registered <@" + user.id + "> as `" + ign + "`!")
                     .setTimestamp();
                 interaction.reply({ embeds: [successEmbed] });
             }).catch((err) => {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor('#a84040')
+                    .setColor(configColors.error)
                     .setDescription("That user doesn't exist! Please provide a valid username.")
                     .setTimestamp();
                 interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -43,14 +43,14 @@ module.exports.run = async (interaction) => {
             await gameFunctions.fixRoles(interaction, user.id);
             member.setNickname("[" + memberElo + "] " + name);
             const successEmbed = new Discord.EmbedBuilder()
-                .setColor('#36699c')
+                .setColor(configColors.neutral)
                 .setDescription("<@" + user.id + "> was already in the database, so fixed their roles and nickname.")
                 .setTimestamp();
             interaction.reply({ embeds: [successEmbed] });
         }
     } else {
         const errorEmbed = new Discord.EmbedBuilder()
-            .setColor('#a84040')
+            .setColor(configColors.error)
             .setDescription("You don't have permission to use this command!")
             .setTimestamp();
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });

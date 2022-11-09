@@ -2,10 +2,11 @@ const channels = require("../../config/channels.json");
 const roles = require("../../config/roles.json");
 const gameFunctions = require("../../handlers/game/gameFunctions.js");
 const Discord = require("discord.js");
+const configColors = require("../../config/colors.json");
 
 module.exports = async (client, member) => {
     const joinEmbed = new Discord.EmbedBuilder()
-        .setColor('#36699c')
+        .setColor(configColors.neutral)
         .setDescription("**Welcome " + member.user.tag + "!**\n\nPlease use the `/register <ign>` command to register yourself and view other channels! If you are having trouble registering, open a ticket in <#948697996692946975>.")
         .setImage("https://media.giphy.com/media/GkBJtdg7avYshmfcFi/giphy.gif")
         .setTimestamp();

@@ -4,6 +4,7 @@ const variables = require("../variables.js");
 const channels = require("../../config/channels.json");
 const functions = require("../functions.js");
 const roles = require("../../config/roles.json");
+const configColors = require("../../config/colors.json");
 
 const gameFunctions = require("../../handlers/game/gameFunctions.js");
 
@@ -25,7 +26,7 @@ module.exports.run = async (interaction) => {
         
         if (!wDb) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("Please provide a valid winner!")
                 .setTimestamp();
             // Send the embd.
@@ -35,7 +36,7 @@ module.exports.run = async (interaction) => {
 
         if (!lDb) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("Please provide a valid loser!")
                 .setTimestamp();
             // Send the embd.
@@ -45,7 +46,7 @@ module.exports.run = async (interaction) => {
 
         if (!wDb) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("Please provide a valid winner teammate!")
                 .setTimestamp();
             // Send the embd.
@@ -55,7 +56,7 @@ module.exports.run = async (interaction) => {
 
         if (!lDb) {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor("#a84040")
+                .setColor(configColors.error)
                 .setDescription("Please provide a valid loser teammate!")
                 .setTimestamp();
             // Send the embd.
@@ -69,7 +70,7 @@ module.exports.run = async (interaction) => {
 
             if (winnerScore > 5 || winnerScore < 1) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor("#a84040")
+                    .setColor(configColors.error)
                     .setDescription("Please provide a valid winner score!")
                     .setTimestamp();
                 // Send the embd.
@@ -78,7 +79,7 @@ module.exports.run = async (interaction) => {
             }
             if (loserScore > 4 || loserScore < 0) {
                 const errorEmbed = new Discord.EmbedBuilder()
-                    .setColor("#a84040")
+                    .setColor(configColors.error)
                     .setDescription("Please provide a valid loser score!")
                     .setTimestamp();
                 // Send the embd.
@@ -168,7 +169,7 @@ module.exports.run = async (interaction) => {
             await gameFunctions.setGame(winner, loser, calcElo[0], calcElo[1], gameNum);
 
             const gameEmbed = new Discord.EmbedBuilder()
-                .setColor('#36699c')
+                .setColor(configColors.neutral)
                 .setTitle("Game #" + gameNum)
                 .setDescription("**Winners:** [<@" + winner + "> - <@" + winnerTeammate + ">]\n[`" + wElo + "` -> `" + calcElo[0] + "` - `" + wTElo + "` -> `" + calcElo[1] + "`]\n**Losers:** [<@" + loser + "> - <@" + loserTeammate + ">]\n[`" + lElo + "` -> `" + calcElo[2] + "` - `" + lTElo + "` -> `" + calcElo[3] + "`]\n**Score:** `" + winnerScore + "-" + loserScore + "`")
                 .setFooter({ text: "Scored by " + interaction.member.user.tag })
@@ -196,14 +197,14 @@ module.exports.run = async (interaction) => {
             channel2.delete().catch((err) => functions.sendError(functions.objToString(err), interaction.guild, "Deleting Channels"));
         } else {
             const errorEmbed = new Discord.EmbedBuilder()
-                .setColor('#a84040')
+                .setColor(configColors.error)
                 .setDescription("You can only use this command in game channels!")
                 .setTimestamp();
             interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
     } else {
         const errorEmbed = new Discord.EmbedBuilder()
-            .setColor('#a84040')
+            .setColor(configColors.error)
             .setDescription("You don't have permission to use this command!")
             .setTimestamp();
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });

@@ -3,7 +3,7 @@ const Discord = require("discord.js");
 const variables = require("../variables.js");
 const channels = require("../../config/channels.json");
 const functions = require("../functions.js");
-const roles = require("../../config/roles.json");
+const configColors = require("../../config/colors.json");
 
 module.exports.run = async (interaction) => {
     let isIG = false;
@@ -15,7 +15,7 @@ module.exports.run = async (interaction) => {
                 for (var j = 0; j < variables.score.length; j++) {
                     if (variables.score[j][1] === interaction.channel.id) {
                         const errorEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.error)
                             .setDescription("Someone's already scoring this!")
                             .setTimestamp();
                         interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -29,7 +29,7 @@ module.exports.run = async (interaction) => {
                     if (file.name.toLowerCase().endsWith(".jpg") || file.name.toLowerCase().endsWith(".png") || file.name.toLowerCase().endsWith(".jpeg")) {
                         variables.score.push([interaction.member.id, interaction.channel.id, variables.curGames[i][1]]);
                         const scoreEmbed = new Discord.EmbedBuilder()
-                            .setColor('#36699c')
+                            .setColor(configColors.neutral)
                             .setTitle('Score Request')
                             .setDescription('Please click the button if the screenshot is correct! If it isn\'t, then deny the score request.')
                             .setImage(file.url)
@@ -49,7 +49,7 @@ module.exports.run = async (interaction) => {
                         break;
                     } else {
                         const errorEmbed = new Discord.EmbedBuilder()
-                            .setColor('#a84040')
+                            .setColor(configColors.error)
                             .setDescription("Please provide a valid image! Correct file types include `.jpeg`, `.png`, and `.jpg`.")
                             .setTimestamp();
                         interaction.reply({ embeds: [errorEmbed], ephemeral: true });
@@ -62,7 +62,7 @@ module.exports.run = async (interaction) => {
 
     if (!isIG) {
         const errorEmbed = new Discord.EmbedBuilder()
-            .setColor('#a84040')
+            .setColor(configColors.error)
             .setDescription("You're not in a game.\nIf this is a bug, ping a scorer.")
             .setTimestamp();
         interaction.reply({ embeds: [errorEmbed], ephemeral: true });

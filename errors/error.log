@@ -195,3 +195,27 @@ uncaughtException
 [7/15/2022[22:45:10]] DiscordAPIError[40032]: Target user is not connected to voice.
 
 [object Promise]
+[11/9/2022[14:19:34]] TypeError: Cannot read properties of undefined (reading 'id')
+
+uncaughtException
+[11/9/2022[14:19:34]] TypeError: Cannot read properties of undefined (reading 'id')
+
+uncaughtException
+[11/9/2022[14:20:4]] DiscordAPIError[50013]: Missing Permissions
+
+[object Promise]
+[11/9/2022[14:20:6]] DiscordAPIError[50013]: Missing Permissions
+
+[object Promise]
+[11/9/2022[14:22:58]] TypeError: Cannot read properties of undefined (reading 'id')
+
+uncaughtException
+[11/9/2022[14:22:58]] TypeError: Cannot read properties of undefined (reading 'id')
+
+uncaughtException
+[11/9/2022[14:44:27]] TypeError: Cannot read properties of undefined (reading 'id')
+
+uncaughtException
+[11/9/2022[14:44:27]] TypeError: Cannot read properties of undefined (reading 'id')
+
+uncaughtException

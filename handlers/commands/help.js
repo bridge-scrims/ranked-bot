@@ -3,11 +3,11 @@ const Discord = require("discord.js");
 const gameFunctions = require("../game/gameFunctions.js");
 const functions = require("../functions.js");
 const channels = require("../../config/channels.json");
-const roles = require("../../config/roles.json");
+const configColors = require("../../config/colors.json");
 
 module.exports.run = async (interaction) => {
     const helpEmbed = new Discord.EmbedBuilder()
-        .setColor("#36699c")
+        .setColor(configColors.neutral)
         .setDescription(
         "```\n" +
         "[DEFAULT CMDS]\n" +
