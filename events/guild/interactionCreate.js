@@ -519,7 +519,7 @@ module.exports = async (client, interaction) => {
             for (let i = 0; i < variables.score.length; i++) {
                 if (variables.score[i][1] === interaction.channel.id) {
                     canScore = true;
-                    if (variables.score[i][0] === interaction.member.id || variables.score[i][2] === interaction.member.id) {
+                    if (variables.score[i][0] === interaction.member.id) {
                         const errorEmbed = new Discord.EmbedBuilder()
                             .setColor(configColors.error)
                             .setDescription("You can't score this game!")
@@ -529,12 +529,12 @@ module.exports = async (client, interaction) => {
                     } else {
                         variables.score.splice(i, 1);
                         for (let j = 0; j < variables.curGames.length; j++) {
-                            if (variables.curGames[j][2] === interaction.channel.id || variables.curGames[j][0] === interaction.member.id || variables.curGames[j][1] === interaction.member.id) {
+                            if (variables.curGames[j][1] === interaction.channel.id || variables.curGames[j][0] === interaction.member.id) {
                                 variables.curGames.splice(j, 1);
                             }
                         }
                         for (let j = 0; j < variables.curGames.length; j++) {
-                            if (variables.curGames[j][2] === interaction.channel.id || variables.curGames[j][0] === interaction.member.id || variables.curGames[j][1] === interaction.member.id) {
+                            if (variables.curGames[j][1] === interaction.channel.id || variables.curGames[j][0] === interaction.member.id) {
                                 variables.curGames.splice(j, 1);
                             }
                         }
@@ -585,7 +585,7 @@ module.exports = async (client, interaction) => {
             for (let i = 0; i < variables.score.length; i++) {
                 if (variables.score[i][1] === interaction.channel.id) {
                     canScore = true;
-                    if (variables.score[i][0] === interaction.member.id || variables.score[i][2] === interaction.member.id) {
+                    if (variables.score[i][0] === interaction.member.id) {
                         const errorEmbed = new Discord.EmbedBuilder()
                             .setColor(configColors.error)
                             .setDescription("You can't score this game!")
@@ -620,7 +620,7 @@ module.exports = async (client, interaction) => {
             for (let i = 0; i < variables.voids.length; i++) {
                 if (variables.voids[i][1] === interaction.channel.id) {
                     canVoid = true;
-                    if (variables.voids[i][0] === interaction.member.id || variables.voids[i][2] === interaction.member.id) {
+                    if (variables.voids[i][0] === interaction.member.id) {
                         const errorEmbed = new Discord.EmbedBuilder()
                             .setColor(configColors.error)
                             .setDescription("You can't void this game!")
@@ -630,12 +630,12 @@ module.exports = async (client, interaction) => {
                     } else {
                         variables.voids.splice(i, 1);
                         for (let j = 0; j < variables.curGames.length; j++) {
-                            if (variables.curGames[j][2] === interaction.channel.id || variables.curGames[j][0] === interaction.member.id || variables.curGames[j][1] === interaction.member.id) {
+                            if (variables.curGames[j][1] === interaction.channel.id || variables.curGames[j][0] === interaction.member.id) {
                                 variables.curGames.splice(j, 1);
                             }
                         }
                         for (let j = 0; j < variables.curGames.length; j++) {
-                            if (variables.curGames[j][2] === interaction.channel.id || variables.curGames[j][0] === interaction.member.id || variables.curGames[j][1] === interaction.member.id) {
+                            if (variables.curGames[j][1] === interaction.channel.id || variables.curGames[j][0] === interaction.member.id) {
                                 variables.curGames.splice(j, 1);
                             }
                         }
@@ -674,7 +674,7 @@ module.exports = async (client, interaction) => {
             for (let i = 0; i < variables.voids.length; i++) {
                 if (variables.voids[i][1] === interaction.channel.id) {
                     canVoid = true;
-                    if (variables.voids[i][0] === interaction.member.id || variables.voids[i][2] === interaction.member.id) {
+                    if (variables.voids[i][0] === interaction.member.id) {
                         const errorEmbed = new Discord.EmbedBuilder()
                             .setColor(configColors.error)
                             .setDescription("You can't void this game!")
