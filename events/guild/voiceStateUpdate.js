@@ -17,8 +17,12 @@ const { queueChannel, queueCategory, queueChatChannel, registerChannel } = requi
 const gameFunctions = require("../../handlers/game/gameFunctions.js");
 
 module.exports = async (client, oldState, newState) => {
+    // Deal with voice updates.
+    if ((!oldState.streaming && newState.streaming) || (oldState.streaming && !newState.streaming) || (!oldState.serverDeaf && newState.serverDeaf) || (oldState.serverDeaf && !newState.serverDeaf) || (!oldState.serverMute && newState.serverMute) || (oldState.serverMute && !newState.serverMute) || (!oldState.selfDeaf && newState.selfDeaf) || (oldState.selfDeaf && !newState.selfDeaf) || (!oldState.selfMute && newState.selfMute) || (oldState.selfMute && !newState.selfMute) || (!oldState.selfVideo && newState.selfVideo) || (oldState.selfVideo && !newState.selfVideo)) {
+    }
+
     // If the user leaves a VC...
-    if (!oldState.channelID && !newState.channelID) {
+    if (!oldState.channelID) {
         let memberID = oldState.member.id;
         if (exists(queue, memberID) && !exists(isMoving, memberID)) {
             if (newState.channel != undefined && newState.channel.name === memberID) {
@@ -31,7 +35,8 @@ module.exports = async (client, oldState, newState) => {
                     // If the ID of the current loop is equal to the memberID...
                     console.log(oldState.member.user.tag + " left the queue.".dim);
                     queue.splice(i, 1);
-                    let changed = await worker.changeNickname(newState.guild, workerConfig.clientId, "[" + queue.length + "/2]");
+
+                    let changed = await worker.changeNickname(newState.guild, workerConfig.clientId, "[" + queue.length + "/4]");
                     if (!changed) {
                         console.log("Error setting the nickname of the bot!")
                     }
@@ -85,19 +90,20 @@ module.exports = async (client, oldState, newState) => {
                 return;
             }
 
+            // User's skips
             let skips = 0;
 
             // Add the user to the queue array
             queue.push([memberId, userELO, 0]);
 
             // Set the bot's nickname
-            let changed = await worker.changeNickname(newState.guild, workerConfig.clientId, "[" + queue.length + "/2]");
+            let changed = await worker.changeNickname(newState.guild, workerConfig.clientId, "[" + queue.length + "/4]");
             if (!changed) {
                 console.log("Error setting the nickname of the bot!")
             }
 
             // Invisible queueing
-            if (!newState.member.roles.cache.has(invisible)) {
+            if (newState.member.roles.cache.has(invisible)) {
                 // Add the user to the moving array
                 isMoving.push(memberId);
                 // Create the channel with the name of the user's ID
@@ -122,92 +128,77 @@ module.exports = async (client, oldState, newState) => {
                 });
             }
 
-            // Repeat
-            var timer = setInterval(function () {
-                // If there is more than one person in queue...
-                if (queue.length > 1) {
-                    // Sort the array based on ELO.
-                    queue.sort((a, b) => a[1] - b[1]);
+            if (queue.length > 3) {
+                // Sort the array based on ELO.
+                queue.sort((a, b) => a[1] - b[1]);
 
-                    // memberIndex is the index of the member.
-                    var memberIndex;
-
-                    // Set the difference of the two people we're comparing. If the current index we're looping through is 0 or the last index,
-                    // then the difference will be the following:
-                    var diff1 = 10000000;
-                    var diff2 = 10000000;
-
-                    // Loop through the queue array.
-                    for (var i = 0; i < queue.length; i++) {
-                        // If the current index is the member...
-                        if (queue[i][0] === memberId) {
-                            // Set the memberIndex.
-                            memberIndex = i;
-
-                            // If the memberIndex is not equal to 0...
-                            if (memberIndex != 0) {
-                                // The difference is the absolute value of the current user's ELO and the user with the ELO closest to the current user.
-                                // (Hence why we sorted the queue)
-                                diff1 = Math.abs(queue[memberIndex][1] - queue[memberIndex - 1][1]);
+                let canQueue = true;
+                
+                let partyQueue = [];
+                let noParty = [];
+                let lastIndex = queue.length - 1;
+                for (let i = 0; i < queue.length; i++) {
+                    let curUser = queue[i][0];
+                    if (gameFunctions.isInParty(curUser)) {
+                        let partyMember = gameFunctions.getPartyMember(curUser);
+                        let isInQ = false;
+                        let pMemberIndex = 0;
+                        for (let j = 0; j < queue.length; j++) {
+                            if (queue[j][0] === partyMember) {
+                                isInQ = true;
+                                pMemberIndex = j;
+                                break;
                             }
-
-                            // If the memberIndex + 1 is less than the queue length (if you can get the user closest to the user AFTER the current user)
-                            if (memberIndex + 1 < queue.length) {
-                                // Get the absolute value of the current user's ELO and the user AFTER the current user
-                                // (Hence why we sorted the queue)
-                                diff2 = Math.abs(queue[memberIndex][1] - queue[memberIndex + 1][1]);
-                            }
-
-                            // If the difference of the user BEFORE the user is less than or equal to the difference of the user AFTER the user...
-                            if (diff1 <= diff2) {
-                                // If newMember elo is closest to elo above it...
-                                if (diff1 < (range + (queue[memberIndex - 1][2] + queue[memberIndex][2]) * skips * 5)) {
-                                    // If the difference is less than 25 and accounts for skips...
-                                    // Get the two users.
-                                    const user1 = queue[memberIndex - 1][0];
-                                    const user2 = queue[memberIndex][0];
-                                    // Remove them from the array.
-                                    queue.splice(memberIndex - 1, 2);
-                                    // Create the channels.
-                                    makeChannel(newState.member, user1, user2);
-
-                                    // Break the loop
-                                    clearInterval(timer);
+                        }
+                        if (isInQ) {
+                            let canPush = true;
+                            for (let k = 0; k < partyQueue.length; k++) {
+                                if (partyQueue[k][0] === partyMember || partyQueue[k][1] === partyMember || partyQueue[k][0] === curUser || partyQueue[k][1] === curUser) {
+                                    canPush = false;
                                     break;
-                                } else {
-                                    // If we can't match the users, then add skips to both users.
-                                    queue[memberIndex][2]++;
-                                    queue[memberIndex - 1][2]++;
-                                    skips++;
                                 }
                             }
-
-                            // If the difference is closest to the ELO below it...
-                            if (diff2 < diff1) {
-                                if (diff2 < (range + (queue[memberIndex + 1][2] + queue[memberIndex][2]) * skips * 5)) {
-                                    // If the difference is less than 25 and accounts for skips...
-                                    // Get the two users.
-                                    const user1 = queue[memberIndex + 1][0];
-                                    const user2 = queue[memberIndex][0];
-                                    // Remove them from the array.
-                                    queue.splice(memberIndex, 2);
-                                    // Create the channels.
-                                    makeChannel(newState.member, user1, user2);
-
-                                    // Break the loop
-                                    clearInterval(timer);
-                                    break;
-                                } else {
-                                    // If we can't match the users, then add skips to both users.
-                                    queue[memberIndex][2]++;
-                                    queue[memberIndex + 1][2]++;
-                                    skips++;
+                            if (canPush) {
+                                partyQueue.push([partyMember, curUser]);
+                                if (partyQueue.length >= 2) {
+                                    canQueue = true;
                                 }
                             }
                         }
+                    } else {
+                        noParty.push(curUser);
                     }
                 }
-            }, 2000);
+                if (noParty.length > 1) {
+                    partyQueue.push([noParty[0], noParty[1]]);
+                    noParty.splice(0, 2);
+                }
+                if (noParty.length > 1) {
+                    partyQueue.push([noParty[0], noParty[1]]);
+                    noParty.splice(0, 2);
+                }
+                
+                if (partyQueue.length >= 2) {
+                    let user1 = partyQueue[0][0];
+                    let user2 = partyQueue[0][1];
+                    let user3 = partyQueue[1][0];
+                    let user4 = partyQueue[1][1];
+                    for (let i = 0; i < queue.length; i++) {
+                        if (queue[i][0] === user1 || queue[i][0] === user2 || queue[i][0] === user3 || queue[i][0] === user4) {
+                            queue.splice(i, 1);
+                        }
+                    }
+                    partyQueue.splice(0, 2);
+                    for (let i = 0; i < partyQueue.length; i++) {
+                        if (partyQueue[i][0] === user1 || partyQueue[i][1] === user1 || partyQueue[i][0] === user2 || partyQueue[i][1] === user2 || partyQueue[i][0] === user3 || partyQueue[i][1] === user3 || partyQueue[i][0] === user4 || partyQueue[i][1] === user4) {
+                            partyQueue.splice(i, 1);
+                        }
+                    }
+                    let games = await gameFunctions.getTotalGames();
+                    await gameFunctions.insertGame(user1, user2, games + 1);
+                    makeChannel(newState.member, user1, user2, user3, user4);
+                }
+            }
         } else {
             // idk
         }
