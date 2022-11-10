@@ -652,7 +652,6 @@ async function getLeaderboard(type) {
 async function insertUser(id, name, uuid) {
     return new Promise(async function (resolve, reject) {
         let isName = await nameInDb(name);
-        let uuid = await getUUID(name);
         if (!isName) {
             con.query(`INSERT INTO rbridge (id, elo, name, uuid) VALUES (?, ?, ?, ?)`, [id, 1000, name, uuid], function (err, rows, fields) {
                 if (err) reject(err);

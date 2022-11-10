@@ -222,3 +222,18 @@ uncaughtException
 uncaughtException
 =======
 >>>>>>> 9c28d25ec5a9542573b5f3fd0223a2a4e8178db3
+[11/9/2022[17:11:60]] Error [AuthenticationFailed]: An invalid token was provided.
+
+[object Promise]
+[11/9/2022[17:12:5]] DiscordAPIError[40060]: Interaction has already been acknowledged.
+
+[object Promise]
+[11/9/2022[17:12:19]] TypeError: Cannot read properties of undefined (reading 'send')
+
+[object Promise]
+[11/9/2022[17:12:58]] TypeError: Cannot read properties of undefined (reading 'send')
+
+[object Promise]
+[11/9/2022[17:13:36]] Error [AuthenticationFailed]: An invalid token was provided.
+
+[object Promise]
