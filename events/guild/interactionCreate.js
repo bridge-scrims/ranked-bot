@@ -61,7 +61,7 @@ module.exports = async (client, interaction) => {
             timeTill = parseInt(timeTill);
             
             const suggestEmbed = new Discord.EmbedBuilder()
-                .setColor(colorConfig.success)
+                .setColor(configColors.success)
                 .setDescription("Make your suggestion now! You have until <t:" + timeTill + ":R> to make your suggestion.")
                 .setTimestamp()
             interaction.editReply({ embeds: [suggestEmbed], ephemeral: true });
