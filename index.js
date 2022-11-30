@@ -16,9 +16,15 @@ const client = new Discord.Client({
         Discord.GatewayIntentBits.GuildMessageReactions,
     ],
     presence: {
-        status: "dnd",
-        activities: [{ name: "Ranked Bridge" }]
-    }
+        activities: [{ name: "Bridge", type: Discord.ActivityType.Competing }],
+        status: "online"
+    },
+    partials: [
+        Discord.Partials.Message,
+        Discord.Partials.Channel,
+        Discord.Partials.Reaction,
+        Discord.Partials.GuildMember,
+    ]
 });
 
 let amount = 0;
