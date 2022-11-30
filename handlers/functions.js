@@ -12,6 +12,7 @@ const wait = require("util").promisify(setTimeout);
 const https = require("https");
 
 let rL = []; // Rate limit array of people who are currently rate limited
+let suggestion = [];
 
 module.exports.exists = exists;
 
@@ -33,6 +34,8 @@ module.exports.objToString = objToString;
 module.exports.makeId = makeId;
 
 module.exports.similarity = similarity;
+
+module.exports.suggestion = suggestion;
 
 function similarity(s1, s2) {
     var longer = s1;

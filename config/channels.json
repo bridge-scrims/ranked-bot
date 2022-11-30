@@ -3,7 +3,7 @@
 	"registerChannel": "948692565492891648",
 	"commandsChannel": "948698934145077288",
 	"queueChatChannel": "948701864432660601",
-	"suggestionsChannel": "948699107235606558",
+	"suggestionsChannel": "1047605558649294908",
 	"screenshareChannel": "948701739647909980",
 	"bansChannel": "948698614568456193",
 	"punishmentsChannel": "948698582800793670",
@@ -11,6 +11,6 @@
 	"generalMuted": "948727396419371040",
 	"reportChannel": "948701769968529438",
 	"queueCategory": "948697410241187840",
-    "errorChannel": "884519918358376448"
+    "errorChannel": "1047605652505239612"
   }
   

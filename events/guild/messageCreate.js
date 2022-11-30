@@ -56,6 +56,50 @@ module.exports = async (client, message) => {
     }
     */
 
+    if (message.channel.id === channels.suggestions) {
+        const messageDelete = message.channel.messages.cache.get(functions.suggestion[functions.suggestion.length - 1]);
+        functions.suggestion = [];
+
+        let avatarUrl = message.author.id && message.author.avatar ? `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png` : "https://images-ext-2.discordapp.net/external/vw_T6qT_QzryXRCu7sl-L3HEO6OTxtGHvAV2QgpCzGw/https/anify.club/images/Ranked_Bridge.png";
+        const suggestEmbed = new Discord.EmbedBuilder()
+            .setColor(configColors.neutral)
+            .setTitle('Suggestion By ' + message.member.user.tag)
+            .setDescription(message.content)
+            .setFooter({ text: message.member.user.tag, iconURL: avatarUrl })
+            .setTimestamp()
+        const makeSuggestEmbed = new Discord.EmbedBuilder()
+            .setColor(configColors.neutral)
+            .setTitle("Make a Suggestion")
+            .setDescription("You will have **10 minutes** to finish making your suggestion before the channel will lock for you. Please also make sure your suggestion has not been made before. Troll suggestions will get deleted!")
+            .setFooter({ text: "Ranked Bridge#7340", iconURL: "https/cdn.discordapp.com/avatars/429659644634333195/d5e7b761be2c1822a6bd05695caf4783.png" })
+            .setTimestamp()
+        const suggestButton = new Discord.ActionRowBuilder()
+        .addComponents(
+            new Discord.ButtonBuilder()
+                .setCustomId("suggestion-" + message.id)
+                .setLabel('Suggest Something')
+                .setStyle(Discord.ButtonStyle.Success),
+        );
+        if (messageDelete != undefined) {
+            messageDelete.delete();
+        }
+        message.channel.send({ embeds: [suggestEmbed], fetchReply: true }).then((msg) => {
+            message.channel.send({ embeds: [makeSuggestEmbed], components: [suggestButton], fetchReply: true }).then((mssg) => {
+                functions.suggestion.push(mssg.id);
+            })
+            message.delete();
+
+            message.channel.messages.fetch(msg.id).then((mssg) => {
+                if (!mssg) {
+                    return;
+                }
+                mssg.react("👍");
+                mssg.react("👎");
+            });
+            message.channel.permissionOverwrites.edit(message.member.id, { SendMessages: false });
+        });
+    }
+
     if (cmd.toLowerCase() === "=ping") {
         if (message.channel.id === channels.queueChatChannel) {
             if (!message.member.voice || !message.member.voice.channel) {
