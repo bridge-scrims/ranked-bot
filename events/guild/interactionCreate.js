@@ -53,6 +53,24 @@ module.exports = async (client, interaction) => {
     }
 
     if (interaction.isButton()) {
+        if (interaction.customId.includes("suggest")) {
+            await interaction.deferReply({ ephemeral: true });
+            let time = 600000;
+            let timeTill = Date.now() / 1000;
+            timeTill += (time / 1000);
+            timeTill = parseInt(timeTill);
+            
+            const suggestEmbed = new Discord.EmbedBuilder()
+                .setColor(colorConfig.success)
+                .setDescription("Make your suggestion now! You have until <t:" + timeTill + ":R> to make your suggestion.")
+                .setTimestamp()
+            interaction.editReply({ embeds: [suggestEmbed], ephemeral: true });
+            interaction.channel.permissionOverwrites.edit(interaction.member.id, { SendMessages: true });
+            setTimeout(() => {
+                interaction.channel.permissionOverwrites.edit(interaction.member.id, { SendMessages: false });
+            }, time)
+        }
+
         if (interaction.customId.startsWith("tdeny")) {
             await interaction.deferReply({ ephemeral: true });
             let splitID = interaction.customId.split("-");

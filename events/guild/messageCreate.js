@@ -56,11 +56,11 @@ module.exports = async (client, message) => {
     }
     */
 
-    if (message.channel.id === channels.suggestions) {
+    if (message.channel.id === channels.suggestionsChannel && message.author.id != config.clientId) {
         const messageDelete = message.channel.messages.cache.get(functions.suggestion[functions.suggestion.length - 1]);
         functions.suggestion = [];
 
-        let avatarUrl = message.author.id && message.author.avatar ? `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png` : "https://images-ext-2.discordapp.net/external/vw_T6qT_QzryXRCu7sl-L3HEO6OTxtGHvAV2QgpCzGw/https/anify.club/images/Ranked_Bridge.png";
+        let avatarUrl = message.author.id && message.author.avatar ? `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png` : "https://cdn.discordapp.com/avatars/429659644634333195/d5e7b761be2c1822a6bd05695caf4783.png";
         const suggestEmbed = new Discord.EmbedBuilder()
             .setColor(configColors.neutral)
             .setTitle('Suggestion By ' + message.member.user.tag)
@@ -71,7 +71,7 @@ module.exports = async (client, message) => {
             .setColor(configColors.neutral)
             .setTitle("Make a Suggestion")
             .setDescription("You will have **10 minutes** to finish making your suggestion before the channel will lock for you. Please also make sure your suggestion has not been made before. Troll suggestions will get deleted!")
-            .setFooter({ text: "Ranked Bridge#7340", iconURL: "https/cdn.discordapp.com/avatars/429659644634333195/d5e7b761be2c1822a6bd05695caf4783.png" })
+            .setFooter({ text: "Ranked Bridge#7340", iconURL: "https://cdn.discordapp.com/avatars/429659644634333195/d5e7b761be2c1822a6bd05695caf4783.png" })
             .setTimestamp()
         const suggestButton = new Discord.ActionRowBuilder()
         .addComponents(
