@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } from "discord.js";
 import { env } from "../env";
-import emitter, { Events } from "../lib";
+import emitter, { Events } from "../events";
 
 export const client = new Client({
     shards: "auto",

@@ -1,5 +1,5 @@
-import QueueExecutor from "../../lib/executor";
-import { createEntry } from "../../lib/impl/entry";
+import QueueExecutor from "../../events/executor";
+import { createEntry } from "../../events/impl/entry";
 import colors from "colors";
 
 const executor = new QueueExecutor<{ toInsert: any }>("database-executor")
