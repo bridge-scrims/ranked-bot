@@ -16,7 +16,7 @@
     "@types/pg": "^8.10.7",
     "@typescript-eslint/eslint-plugin": "^8.0.1",
     "bun-types": "latest",
-    "eslint": "^8.56.0",
+    "eslint": "^9.8.0",
     "prettier": "^3.0.3",
     "tsc": "^2.0.4"
   },
