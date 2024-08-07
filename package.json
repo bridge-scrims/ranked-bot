@@ -1,23 +1,34 @@
 {
-  "name": "RankedBridge",
-  "version": "1.0.0",
-  "main": "index.js",
-  "dependencies": {
-    "@discordjs/builders": "^0.15.0",
-    "@discordjs/rest": "^0.1.0-canary.0",
-    "@discordjs/voice": "^0.8.0",
-    "axios": "^0.26.1",
-    "canvas": "^2.9.1",
-    "colors": "^1.4.0",
-    "discord.js": "^14.0.0-dev.1648166883.cedd053",
-    "glicko2": "^0.8.7",
-    "mysql": "^2.18.1"
-  },
+  "name": "scrims-ranked",
+  "description": "Bridge Scrims ranked ELO system.",
+  "module": "index.ts",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "bun run dist/index.js",
+    "dev": "bun src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "build:db": "bun run src/scripts/buildDb.ts",
+    "prettier": "bunx prettier --write .",
+    "eslint": "bunx eslint --fix .",
+    "lint": "bun run prettier && bun run eslint"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "devDependencies": {
+    "@types/pg": "^8.10.7",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "bun-types": "latest",
+    "eslint": "^8.56.0",
+    "prettier": "^3.0.3",
+    "tsc": "^2.0.4"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.3.1",
+    "eventemitter2": "latest",
+    "ioredis": "^5.3.2",
+    "pg": "^8.11.3"
+  }
 }
