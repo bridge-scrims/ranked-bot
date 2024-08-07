@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } from "discord.js";
+import { ApplicationCommandOptionType, Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } from "discord.js";
 import { env } from "../env";
 import emitter, { Events } from "../events";
 
@@ -11,8 +11,8 @@ export const client = new Client({
     },
 });
 
-export const commands = [await import("./impl/commands/ping")];
-export const events = [await import("./impl/events/ready"), await import("./impl/events/interactionCreate")];
+export const commands = [await import("./impl/commands/ping"), await import("./impl/commands/createQueue")];
+export const events = [await import("./impl/events/ready"), await import("./impl/events/interactionCreate"), await import("./impl/events/voiceStateUpdate")];
 
 export const init = async () => {
     await registerEvents();
@@ -28,7 +28,43 @@ export const registerCommands = async () => {
 
     for (const command of commands) {
         await client.application?.commands.set([command.default]);
-        commandList.push(new SlashCommandBuilder().setName(command.default.name).setDescription(command.default.description));
+
+        const slashCommand = new SlashCommandBuilder().setName((command.default as { name: string }).name).setDescription((command.default as { description: string }).description);
+
+        if (
+            (
+                command.default as {
+                    options: { name: string; description: string; type: ApplicationCommandOptionType; required?: boolean }[];
+                }
+            ).options.length > 0
+        ) {
+            for (const option of (
+                command.default as {
+                    options: { name: string; description: string; type: ApplicationCommandOptionType; required?: boolean }[];
+                }
+            ).options) {
+                switch (option.type) {
+                    case ApplicationCommandOptionType.String:
+                        slashCommand.addStringOption((opt) =>
+                            opt
+                                .setName(option.name)
+                                .setDescription(option.description)
+                                .setRequired(option.required || false),
+                        );
+                        break;
+                    case ApplicationCommandOptionType.Channel:
+                        slashCommand.addChannelOption((opt) =>
+                            opt
+                                .setName(option.name)
+                                .setDescription(option.description)
+                                .setRequired(option.required || false),
+                        );
+                        break;
+                }
+            }
+        }
+
+        commandList.push(slashCommand);
 
         await emitter.emit(Events.DISCORD_COMMAND_REGISTER, command.default);
     }
