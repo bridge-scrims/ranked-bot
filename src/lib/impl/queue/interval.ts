@@ -1,15 +1,12 @@
 import { getQueue } from "../../../database/impl/queues/impl/get";
+import { startGame } from "../game/startGame";
 import { remove } from "./remove";
 
 export const interval = async (guildId: string, channelId: string, memberId: string, skips: number) => {
     const timer = setInterval(async () => {
-        console.log("FOR LOGGIN: Starting interval");
-
         const queue = await getQueue(guildId, channelId);
         const players = queue?.players || [];
         if (players.length <= 1) return clearInterval(timer);
-
-        console.log("FOR LOGGIN: Players in queue: ", players.length);
 
         // Sort based on ELO
         players.sort((a, b) => a.elo - b.elo);
@@ -64,7 +61,7 @@ export const interval = async (guildId: string, channelId: string, memberId: str
 
                         // Create the channels.
                         // Start game
-                        console.log("gg can start game");
+                        await startGame(guildId, user1, user2);
 
                         // Break the loop
                         clearInterval(timer);
@@ -73,8 +70,6 @@ export const interval = async (guildId: string, channelId: string, memberId: str
                         // If we can't match the users, then add skips to both users.
                         (players[memberIndex] as any as { skips: number }).skips++;
                         (players[memberIndex - 1] as any as { skips: number }).skips++;
-
-                        console.log("FOR LOGGIN: Skips added");
 
                         skips++;
                     }

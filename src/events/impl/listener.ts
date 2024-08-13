@@ -18,12 +18,20 @@ export const listener = async () => {
         console.log(colors.gray(`Player created for guild ${data.guildId} with user ${data.userId} and Minecraft UUId ${data.mcUUID}`));
     });
 
+    emitter.on(Events.DATABASE_GAMES_CREATE, async (data) => {
+        console.log(colors.gray(`Game created for guild ${data.guildId} with players ${data.player1} and ${data.player2}`));
+    });
+
     emitter.on(Events.QUEUE_PLAYER_ADD, async (data) => {
         console.log(colors.gray(`Player ${data.memberId} added to queue for guild ${data.guildId} in channel ${data.channelId}`));
     });
 
     emitter.on(Events.QUEUE_PLAYER_REMOVE, async (data) => {
         console.log(colors.gray(`Player ${data.memberId} removed from queue for guild ${data.guildId} in channel ${data.channelId}`));
+    });
+
+    emitter.on(Events.GAME_CREATE, async (data) => {
+        console.log(colors.gray(`Game created for guild ${data.guildId} with players ${data.player1} and ${data.player2}`));
     });
 
     emitter.on(Events.DISCORD_READY, async () => {

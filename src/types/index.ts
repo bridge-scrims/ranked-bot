@@ -75,3 +75,14 @@ export type ScrimsGameData = {
     secondsSpentPlaying: number;
     draws: number;
 };
+
+export type Game = {
+    id: string;
+    game_id: string;
+    guild_id: string;
+    player1_id: string;
+    player2_id: string;
+    player1_score: number;
+    player2_score: number;
+    created_at: Date;
+};

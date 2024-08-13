@@ -7,8 +7,10 @@ export enum Events {
     DATABASE_INITIATED = "database.initiated",
     DATABASE_QUEUE_CREATE = "database.queue.create",
     DATABASE_PLAYER_CREATE = "database.player.create",
+    DATABASE_GAMES_CREATE = "database.games.create",
     QUEUE_PLAYER_ADD = "queue.player.add",
     QUEUE_PLAYER_REMOVE = "queue.player.remove",
+    GAME_CREATE = "game.create",
 }
 
 const emitter = new EventEmitter2({});

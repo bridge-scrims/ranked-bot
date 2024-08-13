@@ -2,7 +2,7 @@ import { ApplicationCommandDataResolvable, ApplicationCommandOptionType, EmbedBu
 import { colors } from "../..";
 import { getUser } from "../../../lib/impl/minecraft/scrims/user";
 import { getPlayer } from "../../../database/impl/players/impl/get";
-import { register } from "../../../lib/impl/elo/register";
+import { register } from "../../../lib/impl/game/register";
 
 export default {
     name: "register",
