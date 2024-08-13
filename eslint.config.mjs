@@ -29,7 +29,7 @@ export default [
             sourceType: "script",
 
             parserOptions: {
-                project: "/Users/eltik/Documents/Coding/Ranked-Bridge/tsconfig.json",
+                project: "tsconfig.json",
             },
         },
 
