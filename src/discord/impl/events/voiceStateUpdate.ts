@@ -1,4 +1,6 @@
 import { VoiceState } from "discord.js";
+import { add } from "../../../lib/impl/queue/add";
+import { remove } from "../../../lib/impl/queue/remove";
 
 export default {
     name: "voiceStateUpdate",
@@ -6,15 +8,10 @@ export default {
     execute: async (oldState: VoiceState, newState: VoiceState) => {
         if (!oldState.channelId && newState.channelId) {
             console.log("User joined a channel");
-            const memberId = oldState.member?.id;
-
-            console.log(memberId);
+            await add(newState.guild.id, newState.channelId, newState.member?.id ?? oldState.member?.id ?? "");
         } else if (oldState.channelId && !newState.channelId) {
             console.log("User left a channel");
-
-            const memberId = oldState.member?.id;
-
-            console.log(memberId);
+            await remove(newState.guild.id, newState.channelId ?? oldState.channelId ?? "", newState.member?.id ?? oldState.member?.id ?? "");
         }
     },
 };

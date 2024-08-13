@@ -11,8 +11,14 @@ export const client = new Client({
     },
 });
 
-export const commands = [await import("./impl/commands/ping"), await import("./impl/commands/createQueue")];
+export const commands = [await import("./impl/commands/ping"), await import("./impl/commands/createQueue"), await import("./impl/commands/getQueue"), await import("./impl/commands/register")];
 export const events = [await import("./impl/events/ready"), await import("./impl/events/interactionCreate"), await import("./impl/events/voiceStateUpdate")];
+
+export const colors = {
+    baseColor: 0x5ca3f5,
+    successColor: 0xbc77fc,
+    errorColor: 0xff003c,
+};
 
 export const init = async () => {
     await registerEvents();
@@ -29,18 +35,21 @@ export const registerCommands = async () => {
     for (const command of commands) {
         await client.application?.commands.set([command.default]);
 
-        const slashCommand = new SlashCommandBuilder().setName((command.default as { name: string }).name).setDescription((command.default as { description: string }).description);
+        const slashCommand = new SlashCommandBuilder()
+            .setName((command.default as { name: string }).name)
+            .setDescription((command.default as { description: string }).description)
+            .setDefaultMemberPermissions((command.default as { defaultMemberPermissions: string }).defaultMemberPermissions);
 
         if (
             (
                 command.default as {
-                    options: { name: string; description: string; type: ApplicationCommandOptionType; required?: boolean }[];
+                    options: { name: string; description: string; type: ApplicationCommandOptionType; autocomplete?: boolean; required?: boolean }[];
                 }
             ).options.length > 0
         ) {
             for (const option of (
                 command.default as {
-                    options: { name: string; description: string; type: ApplicationCommandOptionType; required?: boolean }[];
+                    options: { name: string; description: string; type: ApplicationCommandOptionType; autocomplete?: boolean; required?: boolean }[];
                 }
             ).options) {
                 switch (option.type) {
@@ -49,6 +58,7 @@ export const registerCommands = async () => {
                             opt
                                 .setName(option.name)
                                 .setDescription(option.description)
+                                .setAutocomplete(option.autocomplete || false)
                                 .setRequired(option.required || false),
                         );
                         break;

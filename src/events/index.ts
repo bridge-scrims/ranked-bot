@@ -6,6 +6,9 @@ export enum Events {
     DATABASE_CONNECT = "database.connect",
     DATABASE_INITIATED = "database.initiated",
     DATABASE_QUEUE_CREATE = "database.queue.create",
+    DATABASE_PLAYER_CREATE = "database.player.create",
+    QUEUE_PLAYER_ADD = "queue.player.add",
+    QUEUE_PLAYER_REMOVE = "queue.player.remove",
 }
 
 const emitter = new EventEmitter2({});

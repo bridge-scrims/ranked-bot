@@ -5,20 +5,17 @@ export default {
     name: "interactionCreate",
     once: false,
     execute: async (interaction: Interaction) => {
-        if (!interaction.isCommand()) {
-            // Do something
-            return;
-        }
+        if (interaction.isCommand()) {
+            const { commandName } = interaction;
 
-        const { commandName } = interaction;
+            for (const command of commands) {
+                if ((command.default as { name: string }).name !== commandName) {
+                    continue;
+                }
 
-        for (const command of commands) {
-            if (command.default.name !== commandName) {
-                continue;
+                await (command.default as any).execute(interaction);
+                break;
             }
-
-            await command.default.execute(interaction);
-            break;
         }
     },
 };

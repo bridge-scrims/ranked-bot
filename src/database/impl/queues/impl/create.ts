@@ -1,11 +1,12 @@
 import { QueryConfig } from "pg";
 import { postgres } from "../../..";
 import emitter, { Events } from "../../../../events";
+import { tableName } from "..";
 
 export const createQueue = async (guildId: string, channelId: string, channelName: string) => {
     const query: QueryConfig = {
         text: `
-            INSERT INTO queues (
+            INSERT INTO ${tableName} (
                 guild_id,
                 channel_id,
                 channel_name,
