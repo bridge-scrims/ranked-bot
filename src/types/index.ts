@@ -84,5 +84,10 @@ export type Game = {
     player2_id: string;
     player1_score: number;
     player2_score: number;
+    channel_ids: {
+        textChannel: string;
+        vc1: string;
+        vc2: string;
+    };
     created_at: Date;
 };

@@ -2,26 +2,35 @@ import { QueryConfig } from "pg";
 import { postgres } from "../../..";
 import emitter, { Events } from "../../../../events";
 import { tableName } from "..";
-import { getGames } from "./get";
 
-export const createGame = async (guildId: string, player1: string, player2: string): Promise<number> => {
-    const games = await getGames(guildId);
-
+export const createGame = async (
+    guildId: string,
+    gameId: number,
+    player1: string,
+    player2: string,
+    channelIds: {
+        textChannel: string;
+        vc1: string;
+        vc2: string;
+    },
+) => {
     const query: QueryConfig = {
         text: `
             INSERT INTO ${tableName} (
                 guild_id,
                 game_id,
                 player1_id,
-                player2_id
+                player2_id,
+                channel_ids
             ) VALUES (
                 $1,
                 $2,
                 $3,
-                $4
+                $4,
+                $5
             )
         `,
-        values: [guildId, games.length + 1, player1, player2],
+        values: [guildId, gameId, player1, player2, JSON.stringify(channelIds)],
     };
 
     await postgres.query(query);
@@ -30,7 +39,6 @@ export const createGame = async (guildId: string, player1: string, player2: stri
         guildId,
         player1,
         player2,
+        channelIds,
     });
-
-    return games.length + 1;
 };

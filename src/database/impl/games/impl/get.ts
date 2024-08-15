@@ -39,7 +39,7 @@ export const getGame = async (guildId: string, id: string): Promise<Game | undef
     return result.rows[0];
 };
 
-export const getGameByGameId = async (guildId: string, gameId: string): Promise<Game | undefined> => {
+export const getGameByGameId = async (guildId: string, gameId: number): Promise<Game | undefined> => {
     const query: QueryConfig = {
         text: `
             SELECT

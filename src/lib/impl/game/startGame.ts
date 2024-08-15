@@ -2,12 +2,13 @@ import { ChannelType, EmbedBuilder, Guild, PermissionsBitField } from "discord.j
 import { createGame } from "../../../database/impl/games/impl/create";
 import { client, colors } from "../../../discord";
 import emitter, { Events } from "../../../events";
+import { getGameByGameId, getGames } from "../../../database/impl/games/impl/get";
 
 export const startGame = async (guildId: string, player1: string, player2: string) => {
     const guild: Guild = await client.guilds.fetch(guildId);
     if (!guild) return;
 
-    const gameId = await createGame(guild.id, player1, player2);
+    const gameId = (await getGames(guildId)).length + 1;
 
     const user1 = await guild.members.fetch(player1);
     const user2 = await guild.members.fetch(player2);
@@ -72,8 +73,17 @@ export const startGame = async (guildId: string, player1: string, player2: strin
         ],
     });
 
+    await createGame(guild.id, gameId, player1, player2, {
+        textChannel: textChannel.id,
+        vc1: vc1.id,
+        vc2: vc2.id,
+    });
+
+    const mainGameId = (await getGameByGameId(guildId, gameId))?.id;
+
     const channelEmbed = new EmbedBuilder().setColor(colors.baseColor).setTitle(`Game #${gameId}`).setDescription("Duel the other player using `/duel <user> bridge`. Once the game is done, send a screenshot of the score using `/score`. Remember, **games are best of 1**.").setTimestamp();
     await textChannel.send({ content: "<@" + player1 + "> <@" + player2 + ">", embeds: [channelEmbed] });
+    await textChannel.send(`Game ID: \`${mainGameId}\``);
 
     await user1.voice.setChannel(vc1);
     await user2.voice.setChannel(vc2);

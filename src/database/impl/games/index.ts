@@ -12,6 +12,7 @@ export const table = `
         player2_id TEXT NOT NULL,
         player1_score INT NOT NULL DEFAULT 0,
         player2_score INT NOT NULL DEFAULT 0,
+        channel_ids JSONB NOT NULL DEFAULT '[]',
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
 `;

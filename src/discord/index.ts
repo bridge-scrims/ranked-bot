@@ -11,7 +11,9 @@ export const client = new Client({
     },
 });
 
-export const commands = [await import("./impl/commands/ping"), await import("./impl/commands/createQueue"), await import("./impl/commands/getQueue"), await import("./impl/commands/register")];
+export const commands = [await import("./impl/commands/ping"), await import("./impl/commands/createQueue"), await import("./impl/commands/getQueue"), await import("./impl/commands/register"), await import("./impl/commands/void")];
+export const buttons = [await import("./impl/buttons/void")];
+export const modals: any[] = [];
 export const events = [await import("./impl/events/ready"), await import("./impl/events/interactionCreate"), await import("./impl/events/voiceStateUpdate")];
 
 export const colors = {
