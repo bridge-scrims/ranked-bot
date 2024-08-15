@@ -9,7 +9,11 @@ export const table = `
         guild_id TEXT NOT NULL,
         user_id TEXT NOT NULL,
         mc_uuid TEXT NOT NULL,
-        elo INTEGER NOT NULL DEFAULT 1000,
+        elo DECIMAL NOT NULL DEFAULT 1000.0,
+        wins INTEGER NOT NULL DEFAULT 0,
+        losses INTEGER NOT NULL DEFAULT 0,
+        win_streak INTEGER NOT NULL DEFAULT 0,
+        best_win_streak INTEGER NOT NULL DEFAULT 0,
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
 `;

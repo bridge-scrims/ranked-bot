@@ -13,6 +13,10 @@ export type Player = {
     user_id: string;
     mc_uuid: string;
     elo: number;
+    wins: number;
+    losses: number;
+    win_streak: number;
+    best_win_streak: number;
     created_at: Date;
 };
 

@@ -31,12 +31,12 @@ export default {
             const id = interaction.customId;
 
             for (const button of buttons) {
-                if ((button.default as { id: string }).id.startsWith(id)) {
+                if (id.startsWith((button.default as { id: string }).id)) {
+                    await (button.default as any).execute(interaction);
+                    break;
+                } else {
                     continue;
                 }
-
-                await (button.default as any).execute(interaction);
-                break;
             }
         } else if (interaction.isModalSubmit()) {
             const id = interaction.customId;

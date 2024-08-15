@@ -15,7 +15,11 @@ export const listener = async () => {
     });
 
     emitter.on(Events.DATABASE_PLAYER_CREATE, async (data) => {
-        console.log(colors.gray(`Player created for guild ${data.guildId} with user ${data.userId} and Minecraft UUId ${data.mcUUID}`));
+        console.log(colors.gray(`Player created for guild ${data.guildId} with user ${data.userId} and Minecraft UUID ${data.mcUUID}`));
+    });
+
+    emitter.on(Events.DATABASE_PLAYER_UPDATE, async (data) => {
+        console.log(colors.gray(`Player updated for guild ${data.guildId} and player ${data.playerId}`));
     });
 
     emitter.on(Events.DATABASE_GAMES_CREATE, async (data) => {
@@ -36,6 +40,14 @@ export const listener = async () => {
 
     emitter.on(Events.GAME_CREATE, async (data) => {
         console.log(colors.gray(`Game created for guild ${data.guildId} with players ${data.player1} and ${data.player2}`));
+    });
+
+    emitter.on(Events.GAME_FINISH, async (data) => {
+        console.log(colors.gray(`Game finished for guild ${data.guildId} and game ${data.gameId}. Ready to score.`));
+    });
+
+    emitter.on(Events.GAME_SCORED, async (data) => {
+        console.log(colors.gray(`Game scored for guild ${data.guildId} and game ${data.game.id}. Player 1 elo change: ${data.p1EloChange}. Player 2 elo change: ${data.p2EloChange}`));
     });
 
     emitter.on(Events.DISCORD_READY, async () => {

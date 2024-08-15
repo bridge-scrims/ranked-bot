@@ -1,6 +1,6 @@
 import { ApplicationCommandDataResolvable, ApplicationCommandOptionType, EmbedBuilder, Interaction, PermissionFlagsBits } from "discord.js";
 import { colors } from "../..";
-import { getUser } from "../../../lib/impl/minecraft/scrims/user";
+import { getUserByUsername } from "../../../lib/impl/minecraft/scrims/user";
 import { getPlayer } from "../../../database/impl/players/impl/get";
 import { register } from "../../../lib/impl/game/register";
 
@@ -26,7 +26,7 @@ export default {
                 return interaction.editReply({ embeds: [embed] });
             }
 
-            const user = await getUser(String(username.value));
+            const user = await getUserByUsername(String(username.value));
             if (!user) {
                 const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription(`User \`${username.value}\` not found on Bridge Scrims. Please join the server and use \`/verify\` to link your Minecraft account.`);
                 return interaction.editReply({ embeds: [embed] });

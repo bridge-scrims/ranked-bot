@@ -11,8 +11,16 @@ export const client = new Client({
     },
 });
 
-export const commands = [await import("./impl/commands/ping"), await import("./impl/commands/createQueue"), await import("./impl/commands/getQueue"), await import("./impl/commands/register"), await import("./impl/commands/void")];
-export const buttons = [await import("./impl/buttons/void")];
+export const commands = [
+    await import("./impl/commands/ping"),
+    await import("./impl/commands/createQueue"),
+    await import("./impl/commands/getQueue"),
+    await import("./impl/commands/register"),
+    await import("./impl/commands/void"),
+    await import("./impl/commands/score"),
+    await import("./impl/commands/scoreGame"),
+];
+export const buttons = [await import("./impl/buttons/void"), await import("./impl/buttons/score")];
 export const modals: any[] = [];
 export const events = [await import("./impl/events/ready"), await import("./impl/events/interactionCreate"), await import("./impl/events/voiceStateUpdate")];
 
@@ -72,12 +80,67 @@ export const registerCommands = async () => {
                                 .setRequired(option.required || false),
                         );
                         break;
+                    case ApplicationCommandOptionType.Attachment:
+                        slashCommand.addAttachmentOption((opt) =>
+                            opt
+                                .setName(option.name)
+                                .setDescription(option.description)
+                                .setRequired(option.required || false),
+                        );
+                        break;
+                    case ApplicationCommandOptionType.Boolean:
+                        slashCommand.addBooleanOption((opt) =>
+                            opt
+                                .setName(option.name)
+                                .setDescription(option.description)
+                                .setRequired(option.required || false),
+                        );
+                        break;
+                    case ApplicationCommandOptionType.Integer:
+                        slashCommand.addIntegerOption((opt) =>
+                            opt
+                                .setName(option.name)
+                                .setDescription(option.description)
+                                .setRequired(option.required || false),
+                        );
+                        break;
+                    case ApplicationCommandOptionType.Mentionable:
+                        slashCommand.addMentionableOption((opt) =>
+                            opt
+                                .setName(option.name)
+                                .setDescription(option.description)
+                                .setRequired(option.required || false),
+                        );
+                        break;
+                    case ApplicationCommandOptionType.Number:
+                        slashCommand.addNumberOption((opt) =>
+                            opt
+                                .setName(option.name)
+                                .setDescription(option.description)
+                                .setRequired(option.required || false),
+                        );
+                        break;
+                    case ApplicationCommandOptionType.Role:
+                        slashCommand.addRoleOption((opt) =>
+                            opt
+                                .setName(option.name)
+                                .setDescription(option.description)
+                                .setRequired(option.required || false),
+                        );
+                        break;
+                    case ApplicationCommandOptionType.User:
+                        slashCommand.addUserOption((opt) =>
+                            opt
+                                .setName(option.name)
+                                .setDescription(option.description)
+                                .setRequired(option.required || false),
+                        );
+                        break;
                 }
             }
         }
 
         commandList.push(slashCommand);
-
         await emitter.emit(Events.DISCORD_COMMAND_REGISTER, command.default);
     }
 

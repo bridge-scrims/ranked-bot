@@ -1,41 +1,23 @@
-import { ActionRowBuilder, ApplicationCommandDataResolvable, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, Interaction, PermissionFlagsBits } from "discord.js";
+import { ActionRowBuilder, ApplicationCommandDataResolvable, ButtonBuilder, ButtonStyle, EmbedBuilder, Interaction, PermissionFlagsBits } from "discord.js";
 import { colors } from "../..";
-import { getGame } from "../../../database/impl/games/impl/get";
+import { getGameByChannelId } from "../../../database/impl/games/impl/get";
 
 export default {
     name: "void",
     description: "Voids a game.",
-    options: [
-        {
-            name: "game-id",
-            description: "The game ID to void.",
-            type: ApplicationCommandOptionType.String,
-            required: true,
-        },
-    ],
+    options: [],
     defaultMemberPermissions: PermissionFlagsBits.UseApplicationCommands,
     execute: async (interaction: Interaction) => {
         if (interaction.isCommand()) {
             await interaction.deferReply({ ephemeral: true });
 
-            const gameId = interaction.options.get("game-id");
-            if (!gameId || !gameId.value) {
-                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("No game ID provided.");
+            const game = await getGameByChannelId(interaction.guildId ?? "", interaction.channelId, "textChannel");
+            if (!game) {
+                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("You can only void the game in the game channel.");
                 return interaction.editReply({ embeds: [embed] });
             }
 
             try {
-                const game = await getGame(interaction.guildId ?? "", String(gameId.value));
-                if (!game) {
-                    const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("Please submit a valid game ID. The game ID is posted at the top of this channel.");
-                    return interaction.editReply({ embeds: [embed] });
-                }
-
-                if (game.channel_ids.textChannel !== interaction.channelId) {
-                    const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("You can only void the game in the game channel.");
-                    return interaction.editReply({ embeds: [embed] });
-                }
-
                 if (game?.player1_id === interaction.user.id || game?.player2_id === interaction.user.id) {
                     const otherPlayer = game.player1_id === interaction.user.id ? game.player2_id : game.player1_id;
                     const voidEmbed = new EmbedBuilder().setColor(colors.baseColor).setTitle("Void Request").setDescription(`<@${interaction.user.id}> has requested to void the game. Do you agree?`);
