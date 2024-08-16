@@ -7,3 +7,19 @@ export const ranking = new Glicko2({
     rd: 16 * 4.69,
     vol: 0.06,
 });
+
+/**
+ * @description Credit to NiteBlock and Tofaa. Used for preventing the Discord bot from dying lol
+ */
+export const antiCrash = () => {
+    process.on("uncaughtException", (err) => {
+        console.error(err);
+    });
+    process.on("unhandledRejection", (err) => {
+        console.error(err);
+    });
+
+    process.on("SIGINT", () => {
+        process.exit();
+    });
+};
