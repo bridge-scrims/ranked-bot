@@ -13,6 +13,8 @@ export const addToQueue = async (guildId: string, channelId: string, memberId: s
     const currentQueue = await getQueue(guildId, channelId);
     const players = currentQueue?.players || [];
 
+    if (currentQueue?.channel_id !== channelId) return;
+
     if (players.find((p) => p.user_id === memberId)) return;
 
     const newPlayers = [...players, player];

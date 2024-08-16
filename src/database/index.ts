@@ -17,6 +17,8 @@ export const init = async () => {
     await emitter.emit(Events.DATABASE_CONNECT);
 
     await createTables();
+
+    await emitter.emit(Events.DATABASE_INITIATED);
 };
 
 const createTables = async () => {

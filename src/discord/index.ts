@@ -19,8 +19,9 @@ export const commands = [
     await import("./impl/commands/void"),
     await import("./impl/commands/score"),
     await import("./impl/commands/scoreGame"),
+    await import("./impl/commands/leaderboard"),
 ];
-export const buttons = [await import("./impl/buttons/void"), await import("./impl/buttons/score")];
+export const buttons = [await import("./impl/buttons/void"), await import("./impl/buttons/score"), await import("./impl/buttons/leaderboard")];
 export const modals: any[] = [];
 export const events = [await import("./impl/events/ready"), await import("./impl/events/interactionCreate"), await import("./impl/events/voiceStateUpdate")];
 
@@ -59,7 +60,7 @@ export const registerCommands = async () => {
         ) {
             for (const option of (
                 command.default as {
-                    options: { name: string; description: string; type: ApplicationCommandOptionType; autocomplete?: boolean; required?: boolean }[];
+                    options: { name: string; description: string; type: ApplicationCommandOptionType; autocomplete?: boolean; required?: boolean; choices?: any }[];
                 }
             ).options) {
                 switch (option.type) {
@@ -69,6 +70,7 @@ export const registerCommands = async () => {
                                 .setName(option.name)
                                 .setDescription(option.description)
                                 .setAutocomplete(option.autocomplete || false)
+                                .setChoices(option.choices || [])
                                 .setRequired(option.required || false),
                         );
                         break;
