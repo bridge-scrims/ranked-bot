@@ -15,13 +15,13 @@ export default {
             await interaction.deferReply({ ephemeral: true });
 
             if (interaction.user.id !== otherPlayer) {
-                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("You can't void this game.");
+                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription(`<@${otherPlayer}> must accept the void request.`);
                 return await interaction.editReply({ embeds: [embed] });
             }
 
             const game = await getGame(interaction.guildId ?? "", gameId);
             if (game?.player1_score !== 0 && game?.player2_score !== 0) {
-                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("You can't void this game.");
+                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("The game has already been scored or voided.");
                 return await interaction.editReply({ embeds: [embed] });
             }
 

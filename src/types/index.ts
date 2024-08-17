@@ -4,7 +4,7 @@ export type Queue = {
     channel_id: string;
     channel_name: string;
     players: Player[];
-    created_at: Date;
+    created_at: string;
 };
 
 export type Player = {
@@ -17,7 +17,7 @@ export type Player = {
     losses: number;
     win_streak: number;
     best_win_streak: number;
-    created_at: Date;
+    created_at: string;
 };
 
 export type ScrimsUserData = {
@@ -93,5 +93,5 @@ export type Game = {
         vc1: string;
         vc2: string;
     };
-    created_at: Date;
+    created_at: string;
 };

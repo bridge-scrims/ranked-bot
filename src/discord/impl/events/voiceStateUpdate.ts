@@ -12,6 +12,10 @@ export default {
             await interval(newState.guild.id, newState.channelId, newState.member?.id ?? oldState.member?.id ?? "", 0);
         } else if (oldState.channelId && !newState.channelId) {
             await remove(newState.guild.id, newState.channelId ?? oldState.channelId ?? "", newState.member?.id ?? oldState.member?.id ?? "");
+        } else if (newState.channelId) {
+            // HANDLE MOVING
+            //await add(newState.guild.id, newState.channelId, newState.member?.id ?? oldState.member?.id ?? "");
+            //await interval(newState.guild.id, newState.channelId, newState.member?.id ?? oldState.member?.id ?? "", 0);
         }
     },
 };

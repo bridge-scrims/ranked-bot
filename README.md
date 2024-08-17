@@ -13,7 +13,7 @@ cd Ranked Bridge
 4. Copy the application ID and put it in your `.env` file.
 5. On the `Bot` section of the application, click `Reset Token` and copy it. Put it in your `.env` file.
 6. Enable the following intents: **Presence Intent, Server Members Intent, and Message Content Intent**.
-7. Invite the bot to your server via the `Installation` section of the application. Click "Discord Provided Link" and visit the URL provided.
+7. Invite the bot to your server via the `Installation` section of the application. Click "Discord Provided Link" and visit the URL provided. An example URL is `https://discord.com/oauth2/authorize?client_id=1234567891234567890&permissions=0&scope=bot`.
 8. Run `bun dev` to start the Discord bot.
 
 ## How it Works

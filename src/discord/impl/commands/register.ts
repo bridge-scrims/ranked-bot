@@ -39,7 +39,7 @@ export default {
 
             const player = await getPlayer(interaction.guildId ?? "", interaction.user.id);
             if (player) {
-                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription(`\`${user.username}\` is already registered on Ranked Bridge.`);
+                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription(`You are already registered on Ranked Bridge.`);
                 return interaction.editReply({ embeds: [embed] });
             }
 

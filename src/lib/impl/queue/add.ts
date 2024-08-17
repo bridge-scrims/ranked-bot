@@ -7,5 +7,4 @@ export const add = async (guildId: string, channelId: string, memberId: string) 
     }
 
     await addToQueue(guildId, channelId, memberId);
-    return;
 };

@@ -8,13 +8,12 @@ import { getQueue } from "./get";
 export const addToQueue = async (guildId: string, channelId: string, memberId: string) => {
     const player = await getPlayer(guildId, memberId);
 
-    if (!player) return console.log("Can't find player");
+    if (!player) return;
 
     const currentQueue = await getQueue(guildId, channelId);
     const players = currentQueue?.players || [];
 
     if (currentQueue?.channel_id !== channelId) return;
-
     if (players.find((p) => p.user_id === memberId)) return;
 
     const newPlayers = [...players, player];

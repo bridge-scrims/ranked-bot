@@ -32,6 +32,10 @@ export const closeChannel = async (guildId: string, gameId: string) => {
                     id: game.player2_id,
                     deny: PermissionsBitField.Flags.ViewChannel,
                 },
+                {
+                    id: guild.roles.everyone.id,
+                    deny: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
+                },
             ],
         });
 

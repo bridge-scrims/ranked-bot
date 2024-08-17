@@ -31,7 +31,7 @@ export default {
                     const embed = new EmbedBuilder().setColor(colors.successColor).setDescription("Void request sent. The other player must click the button to successfully void the game.");
                     return interaction.editReply({ embeds: [embed] });
                 } else {
-                    const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("You can't void this game.");
+                    const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("You can't send a void request for this game.");
                     return interaction.editReply({ embeds: [embed] });
                 }
             } catch (e) {

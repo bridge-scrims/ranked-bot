@@ -48,7 +48,7 @@ export default {
                     const embed = new EmbedBuilder().setColor(colors.successColor).setDescription("Score request sent. The other player must click the button to successfully score the game.");
                     return interaction.editReply({ embeds: [embed] });
                 } else {
-                    const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("You can't score this game.");
+                    const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("You can't send a score request for this game.");
                     return interaction.editReply({ embeds: [embed] });
                 }
             } catch (e) {

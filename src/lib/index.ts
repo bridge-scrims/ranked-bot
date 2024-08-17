@@ -8,6 +8,8 @@ export const ranking = new Glicko2({
     vol: 0.06,
 });
 
+export const makingGame: any[] = [];
+
 /**
  * @description Credit to NiteBlock and Tofaa. Used for preventing the Discord bot from dying lol
  */
