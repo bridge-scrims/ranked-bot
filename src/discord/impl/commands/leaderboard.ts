@@ -41,17 +41,17 @@ export default {
     defaultMemberPermissions: PermissionFlagsBits.ManageChannels,
     execute: async (interaction: Interaction) => {
         if (interaction.isCommand()) {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply();
             const type = interaction.options.get("type") ? (interaction.options.get("type")?.value as string) : "elo";
             const page = interaction.options.get("page") ? (interaction.options.get("page")?.value as number) : 0;
 
             const leaderboard = await getLeaderboard(interaction.guildId ?? "", type as "elo" | "wins" | "losses" | "best_win_streak", page);
             if (!leaderboard || leaderboard.length === 0) {
-                await interaction.editReply("No games found.");
+                await interaction.editReply("No players found.");
                 return;
             }
 
-            const embed = new EmbedBuilder().setTitle(`Leaderboard | ${type.toUpperCase()}`).setColor(colors.baseColor).setFooter({ text: "Page 1" }).setTimestamp();
+            const embed = new EmbedBuilder().setTitle(`Leaderboard | ${type.toUpperCase()}`).setColor(colors.baseColor).setFooter({ text: `Page ${page + 1}` }).setTimestamp();
 
             let description = "```";
 

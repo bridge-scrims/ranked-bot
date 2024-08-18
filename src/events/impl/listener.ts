@@ -39,7 +39,7 @@ export const listener = async () => {
     });
 
     emitter.on(Events.GAME_CREATE, async (data) => {
-        console.log(colors.gray(`Game created for guild ${data.guildId} with players ${data.player1} and ${data.player2}`));
+        console.log(colors.gray(`Game finished being created for guild ${data.guildId} with players ${data.player1} and ${data.player2}`));
     });
 
     emitter.on(Events.GAME_FINISH, async (data) => {

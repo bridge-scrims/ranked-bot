@@ -1,4 +1,5 @@
 import { ranking } from "../..";
+import { updateGame } from "../../../database/impl/games/impl/update";
 import { getPlayer } from "../../../database/impl/players/impl/get";
 import { updatePlayer } from "../../../database/impl/players/impl/update";
 import { client } from "../../../discord";
@@ -32,6 +33,11 @@ export const scoreGame = async (guildId: string, game: Game, player1Score: numbe
 
     const p1Update = p1EloChange > 0 ? p1Elo + player1Score / 4 : p1Elo + player1Score;
     const p2Update = p2EloChange > 0 ? p2Elo + player2Score / 4 : p2Elo + player2Score;
+
+    await updateGame(guildId, game.id, {
+        player1_score: player1Score,
+        player2_score: player2Score,
+    });
 
     await updatePlayer(guildId, p1.id, {
         elo: p1Update,

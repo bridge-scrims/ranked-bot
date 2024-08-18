@@ -76,3 +76,49 @@ export const getGames = async (guildId: string): Promise<Game[]> => {
     const result = await postgres.query(query);
     return result.rows;
 };
+
+export const getGamesByPage = async (guildId: string, page: number = 0): Promise<Game[]> => {
+    const query: QueryConfig = {
+        text: `
+            SELECT
+                *
+            FROM
+                ${tableName}
+            WHERE
+                guild_id = $1
+            ORDER BY
+                created_at DESC
+            LIMIT 10
+            OFFSET $2
+        `,
+        values: [guildId, page * 10],
+    };
+
+    const result = await postgres.query(query);
+    return result.rows;
+}
+
+export const getGamesByPlayer = async (guildId: string, playerId: string, page: number = 0): Promise<Game[]> => {
+    const query: QueryConfig = {
+        text: `
+            SELECT
+                *
+            FROM
+                ${tableName}
+            WHERE
+                guild_id = $1
+            AND
+                player1_id = $2
+            OR
+                player2_id = $2
+            ORDER BY
+                created_at DESC
+            LIMIT 10
+            OFFSET $3
+        `,
+        values: [guildId, playerId, page * 10],
+    };
+
+    const result = await postgres.query(query);
+    return result.rows;
+};

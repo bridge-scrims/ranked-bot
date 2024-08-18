@@ -53,7 +53,7 @@ export const interval = async (guildId: string, channelId: string, memberId: str
 
                 // If the difference of the user BEFORE the user is less than or equal to the difference of the user AFTER the user...
                 if (diff1 <= diff2) {
-                    if (diff1 < range + ((players[memberIndex - 1] as any as { skips: number }).skips + (players[memberIndex] as any as { skips: number }).skips * skips * 5)) {
+                    if (diff1 < (range + ((players[memberIndex - 1] as any as { skips: number })?.skips + (players[memberIndex] as any as { skips: number })?.skips * skips * 5))) {
                         // If the difference is less than 25 and accounts for skips...
                         // Get the two users.
                         const user1 = players[memberIndex - 1].user_id;
@@ -93,7 +93,7 @@ export const interval = async (guildId: string, channelId: string, memberId: str
                 }
 
                 if (diff2 < diff1) {
-                    if (diff2 < range + ((players[memberIndex + 1] as any as { skips: number }).skips + (players[memberIndex] as any as { skips: number }).skips) * skips * 5) {
+                    if (diff2 < (range + ((players[memberIndex + 1] as any as { skips: number })?.skips + (players[memberIndex] as any as { skips: number })?.skips) * skips * 5)) {
                         // If the difference is less than 25 and accounts for skips...
                         // Get the two users.
                         const user1 = players[memberIndex + 1].user_id;

@@ -1,4 +1,4 @@
-import { Interaction } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Interaction } from "discord.js";
 import { getLeaderboard } from "../../../database/impl/players/impl/get";
 import { getUser } from "../../../lib/impl/minecraft/scrims/user";
 
@@ -6,11 +6,12 @@ export default {
     id: "leaderboard",
     execute: async (interaction: Interaction) => {
         if (interaction.isButton()) {
+            await interaction.deferUpdate();
+
             const id = interaction.customId;
 
             const page = id.split(":")[1];
             const type = id.split(":")[3];
-            //const direction = id.split(":")[2] as "next" | "previous";
 
             const leaderboard = await getLeaderboard(interaction.guildId ?? "", type as "elo" | "wins" | "losses" | "best_win_streak", parseInt(page));
 
@@ -18,7 +19,22 @@ export default {
                 return;
             }
 
-            const embed = interaction.message.embeds[0];
+            const previousPageButton = new ButtonBuilder()
+                .setCustomId(`leaderboard:${String(parseInt(page) - 1)}:previous:${type}`)
+                .setLabel("Previous Page")
+                .setStyle(ButtonStyle.Success)
+                .setDisabled(parseInt(page) === 0);
+            const nextPageButton = new ButtonBuilder()
+                .setCustomId(`leaderboard:${String(parseInt(page) + 1)}:next:${type}`)
+                .setLabel("Next Page")
+                .setStyle(ButtonStyle.Success)
+                .setDisabled(leaderboard.length < 10);
+
+            const actionBuilder = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);            
+
+            const embed = new EmbedBuilder()
+                .setTitle(interaction.message.embeds[0]?.title ?? "")
+                .setColor(interaction.message.embeds[0]?.color ?? null)
 
             let description = "```";
 
@@ -46,12 +62,12 @@ export default {
                 }
             }
 
-            Object.assign(embed, {
-                description: `${description}\`\`\``,
-                footer: { text: `Page ${parseInt(page) + 1}` },
-            });
+            description += "```";
 
-            await interaction.update({ embeds: [embed] });
+            embed.setDescription(description);
+            embed.setFooter({ text: `Page ${parseInt(page) + 1}` });
+
+            await interaction.message.edit({ embeds: [embed], components: [actionBuilder as ActionRowBuilder<any>] });
         }
     },
 };

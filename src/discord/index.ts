@@ -20,8 +20,9 @@ export const commands = [
     await import("./impl/commands/score"),
     await import("./impl/commands/scoreGame"),
     await import("./impl/commands/leaderboard"),
+    await import("./impl/commands/games"),
 ];
-export const buttons = [await import("./impl/buttons/void"), await import("./impl/buttons/score"), await import("./impl/buttons/leaderboard")];
+export const buttons = [await import("./impl/buttons/void"), await import("./impl/buttons/score"), await import("./impl/buttons/leaderboard"), await import("./impl/buttons/games")];
 export const modals: any[] = [];
 export const events = [await import("./impl/events/ready"), await import("./impl/events/interactionCreate"), await import("./impl/events/voiceStateUpdate")];
 
