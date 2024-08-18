@@ -96,7 +96,7 @@ export const getGamesByPage = async (guildId: string, page: number = 0): Promise
 
     const result = await postgres.query(query);
     return result.rows;
-}
+};
 
 export const getGamesByPlayer = async (guildId: string, playerId: string, page: number = 0): Promise<Game[]> => {
     const query: QueryConfig = {

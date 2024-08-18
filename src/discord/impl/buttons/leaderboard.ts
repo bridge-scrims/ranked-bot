@@ -30,11 +30,9 @@ export default {
                 .setStyle(ButtonStyle.Success)
                 .setDisabled(leaderboard.length < 10);
 
-            const actionBuilder = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);            
+            const actionBuilder = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);
 
-            const embed = new EmbedBuilder()
-                .setTitle(interaction.message.embeds[0]?.title ?? "")
-                .setColor(interaction.message.embeds[0]?.color ?? null)
+            const embed = new EmbedBuilder().setTitle(interaction.message.embeds[0]?.title ?? "").setColor(interaction.message.embeds[0]?.color ?? null);
 
             let description = "```";
 

@@ -51,7 +51,11 @@ export default {
                 return;
             }
 
-            const embed = new EmbedBuilder().setTitle(`Leaderboard | ${type.toUpperCase()}`).setColor(colors.baseColor).setFooter({ text: `Page ${page + 1}` }).setTimestamp();
+            const embed = new EmbedBuilder()
+                .setTitle(`Leaderboard | ${type.toUpperCase()}`)
+                .setColor(colors.baseColor)
+                .setFooter({ text: `Page ${page + 1}` })
+                .setTimestamp();
 
             let description = "```";
 

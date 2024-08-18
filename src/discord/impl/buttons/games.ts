@@ -31,11 +31,9 @@ export default {
                 .setStyle(ButtonStyle.Success)
                 .setDisabled(games.length < 10);
 
-            const actionBuilder = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);            
+            const actionBuilder = new ActionRowBuilder().addComponents(previousPageButton, nextPageButton);
 
-            const embed = new EmbedBuilder()
-                .setTitle(interaction.message.embeds[0]?.title ?? "")
-                .setColor(interaction.message.embeds[0]?.color ?? null)
+            const embed = new EmbedBuilder().setTitle(interaction.message.embeds[0]?.title ?? "").setColor(interaction.message.embeds[0]?.color ?? null);
 
             let description = "```";
 
@@ -44,7 +42,7 @@ export default {
                 const player1 = await getUser(user?.mc_uuid ?? "");
                 const user2 = await getPlayer(interaction.guildId ?? "", games[i].player2_id);
                 const player2 = await getUser(user2?.mc_uuid ?? "");
-                
+
                 if (games[i].player1_score === -1 || games[i].player2_score === -1) {
                     description += `${parseInt(page) * 10 + i + 1}. ${player1?.username} vs ${player2?.username}. GAME VOIDED\n`;
                 } else {

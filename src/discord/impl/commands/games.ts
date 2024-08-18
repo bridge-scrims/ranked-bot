@@ -34,7 +34,11 @@ export default {
                 return;
             }
 
-            const embed = new EmbedBuilder().setTitle("Games").setColor(colors.baseColor).setFooter({ text: `Page ${page + 1}` }).setTimestamp();
+            const embed = new EmbedBuilder()
+                .setTitle("Games")
+                .setColor(colors.baseColor)
+                .setFooter({ text: `Page ${page + 1}` })
+                .setTimestamp();
 
             let description = "```";
 
@@ -43,7 +47,7 @@ export default {
                 const player1 = await getUser(user?.mc_uuid ?? "");
                 const user2 = await getPlayer(interaction.guildId ?? "", games[i].player2_id);
                 const player2 = await getUser(user2?.mc_uuid ?? "");
-                
+
                 if (games[i].player1_score === -1 || games[i].player2_score === -1) {
                     description += `${page * 10 + i + 1}. ${player1?.username} vs ${player2?.username}. GAME VOIDED\n`;
                 } else {
