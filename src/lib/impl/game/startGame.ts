@@ -47,10 +47,6 @@ export const startGame = async (guildId: string, player1: string, player2: strin
                 id: player1,
                 allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak],
             },
-            {
-                id: player2,
-                allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak],
-            },
         ],
     });
 
@@ -61,10 +57,6 @@ export const startGame = async (guildId: string, player1: string, player2: strin
             {
                 id: guild.roles.everyone.id,
                 deny: [PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak],
-            },
-            {
-                id: player1,
-                allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.Connect, PermissionsBitField.Flags.Speak],
             },
             {
                 id: player2,

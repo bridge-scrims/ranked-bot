@@ -42,12 +42,12 @@ export default {
             const id = interaction.customId;
 
             for (const modal of modals) {
-                if ((modal.default as { id: string }).id.startsWith(id)) {
-                    continue;
+                if (id.startsWith((modal.default as { id: string }).id)) {
+                    await (modal.default as any).execute(interaction);
+                    break;
                 }
 
-                await (modal.default as any).execute(interaction);
-                break;
+                continue;
             }
         } else {
             console.log("uh oh");

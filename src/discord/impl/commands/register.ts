@@ -1,4 +1,4 @@
-import { ApplicationCommandDataResolvable, ApplicationCommandOptionType, EmbedBuilder, Interaction, PermissionFlagsBits } from "discord.js";
+import { ApplicationCommandDataResolvable, ApplicationCommandOptionType, EmbedBuilder, Interaction } from "discord.js";
 import { colors } from "../..";
 import { getUserByUsername } from "../../../lib/impl/minecraft/scrims/user";
 import { getPlayer } from "../../../database/impl/players/impl/get";
@@ -15,7 +15,6 @@ export default {
             required: true,
         },
     ],
-    defaultMemberPermissions: PermissionFlagsBits.UseApplicationCommands,
     execute: async (interaction: Interaction) => {
         if (interaction.isCommand()) {
             await interaction.deferReply({ ephemeral: true });
@@ -28,12 +27,12 @@ export default {
 
             const user = await getUserByUsername(String(username.value));
             if (!user) {
-                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription(`User \`${username.value}\` not found on Bridge Scrims. Please join the server and use \`/verify\` to link your Minecraft account.`);
+                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription(`User \`${username.value}\` not found on Bridge Scrims. Please join the Scrims server and use \`/verify\` to link your Minecraft account.`);
                 return interaction.editReply({ embeds: [embed] });
             }
 
             if (user.discordId !== interaction.user.id) {
-                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription(`This username is linked to <@${user.discordId}>. Please try again.`);
+                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("This username is linked to someone else's account. Please try again.");
                 return interaction.editReply({ embeds: [embed] });
             }
 

@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ApplicationCommandDataResolvable, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, Interaction, PermissionFlagsBits } from "discord.js";
+import { ActionRowBuilder, ApplicationCommandDataResolvable, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, Interaction } from "discord.js";
 import { colors } from "../..";
 import { getPlayer } from "../../../database/impl/players/impl/get";
 import { getUser } from "../../../lib/impl/minecraft/scrims/user";
@@ -21,7 +21,6 @@ export default {
             required: false,
         },
     ],
-    defaultMemberPermissions: PermissionFlagsBits.ManageChannels,
     execute: async (interaction: Interaction) => {
         if (interaction.isCommand()) {
             await interaction.deferReply();
@@ -30,8 +29,13 @@ export default {
 
             const games = player ? await getGamesByPlayer(interaction.guildId ?? "", player.id, page) : await getGamesByPage(interaction.guildId ?? "", page);
             if (!games || games.length === 0) {
-                await interaction.editReply("No games found.");
-                return;
+                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("No games found for that page.");
+                return interaction.editReply({ embeds: [embed] });
+            }
+
+            if (Number(page) !== 0 && Number(page) < 0) {
+                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("You need to provide a valid page number.");
+                return interaction.editReply({ embeds: [embed] });
             }
 
             const embed = new EmbedBuilder()

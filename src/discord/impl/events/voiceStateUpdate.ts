@@ -1,7 +1,6 @@
 import { VoiceState } from "discord.js";
 import { add } from "../../../lib/impl/queue/add";
 import { remove } from "../../../lib/impl/queue/remove";
-import { interval } from "../../../lib/impl/queue/interval";
 import { getQueue } from "../../../database/impl/queues/impl/get";
 
 export default {
@@ -11,7 +10,6 @@ export default {
         if (!oldState.channelId && newState.channelId) {
             // If the player joins a VC
             await add(newState.guild.id, newState.channelId, newState.member?.id ?? oldState.member?.id ?? "");
-            await interval(newState.guild.id, newState.channelId, newState.member?.id ?? oldState.member?.id ?? "", 0);
         } else if (oldState.channelId && !newState.channelId) {
             // If the player leaves a VC
             await remove(newState.guild.id, newState.channelId ?? oldState.channelId ?? "", newState.member?.id ?? oldState.member?.id ?? "");
@@ -20,7 +18,6 @@ export default {
             const queue = await getQueue(newState.guild.id, newState.channelId);
             if (queue) {
                 await add(newState.guild.id, newState.channelId, newState.member?.id ?? oldState.member?.id ?? "");
-                await interval(newState.guild.id, newState.channelId, newState.member?.id ?? oldState.member?.id ?? "", 0);
             } else if (oldState.channelId) {
                 const queue = await getQueue(newState.guild.id, oldState.channelId);
                 if (queue) {

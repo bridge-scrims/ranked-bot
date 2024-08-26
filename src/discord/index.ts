@@ -1,6 +1,7 @@
 import { ApplicationCommandOptionType, Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } from "discord.js";
 import { env } from "../env";
 import emitter, { Events } from "../events";
+import { initQueue } from "../lib";
 
 export const client = new Client({
     shards: "auto",
@@ -37,6 +38,10 @@ export const init = async () => {
     await registerCommands();
 
     await client.login(env.CLIENT_TOKEN);
+
+    for (const guild of client.guilds.cache.values()) {
+        await initQueue(guild.id);
+    }
 };
 
 export const registerCommands = async () => {

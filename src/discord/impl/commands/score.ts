@@ -23,8 +23,14 @@ export default {
                 return interaction.editReply({ embeds: [embed] });
             }
 
-            if (!screenshot.attachment?.name.toLowerCase().endsWith(".jpg") && !screenshot.attachment?.name.toLowerCase().endsWith(".png") && !screenshot.attachment?.name.toLowerCase().endsWith(".jpeg") && !screenshot.attachment?.name.toLowerCase().endsWith(".gif")) {
-                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("Invalid file format. Please provide a `.jpg`, `.jpeg`, `.png`, or `.gif` file.");
+            if (
+                !screenshot.attachment?.name.toLowerCase().endsWith(".jpg") &&
+                !screenshot.attachment?.name.toLowerCase().endsWith(".heic") &&
+                !screenshot.attachment?.name.toLowerCase().endsWith(".png") &&
+                !screenshot.attachment?.name.toLowerCase().endsWith(".jpeg") &&
+                !screenshot.attachment?.name.toLowerCase().endsWith(".gif")
+            ) {
+                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("Invalid file format. Please provide a `.jpg`, `.jpeg`, `.heic`, `.png`, or `.gif` file.");
                 return interaction.editReply({ embeds: [embed] });
             }
 

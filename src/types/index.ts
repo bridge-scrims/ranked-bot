@@ -1,3 +1,12 @@
+export type Worker = {
+    id: string;
+    guild_id: string;
+    credentials: {
+        client_id: string;
+        client_token: string;
+    };
+};
+
 export type Queue = {
     id: string;
     guild_id: string;
@@ -18,6 +27,11 @@ export type Player = {
     win_streak: number;
     best_win_streak: number;
     created_at: string;
+};
+
+export type PlayerQueue = Player & {
+    skips: number;
+    matched: boolean;
 };
 
 export type ScrimsUserData = {

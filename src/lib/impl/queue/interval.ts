@@ -1,144 +1,107 @@
-import { makingGame } from "../..";
+import { DEFAULT_RANGE } from "../..";
 import { getQueue } from "../../../database/impl/queues/impl/get";
+import { PlayerQueue } from "../../../types";
 import { startGame } from "../game/startGame";
 import { remove } from "./remove";
 
-export const interval = async (guildId: string, channelId: string, memberId: string, skips: number) => {
+const skips: { playerId: string; skips: number }[] = [];
+const processedGames = new Set<string>();
+
+const matchPlayers = async (guildId: string, channelId: string) => {
     const queue = await getQueue(guildId, channelId);
-    const players = queue?.players || [];
+    let players: PlayerQueue[] =
+        queue?.players.map((p) => {
+            return {
+                ...p,
+                skips: skips.find((s) => s.playerId === p.user_id)?.skips ?? 0,
+                matched: false,
+            };
+        }) || [];
 
-    // Assign skips object to each player
-    players.forEach((player) => {
-        Object.assign(player, { skips: 0 });
-    });
+    if (players.length < 2) return;
 
-    const timer = setInterval(async () => {
-        if (players.length <= 1) {
-            return clearInterval(timer);
-        }
+    // Sort players by ELO
+    players.sort((a, b) => a.elo - b.elo);
 
-        // Sort based on ELO
-        players.sort((a, b) => a.elo - b.elo);
+    for (let i = 0; i < players.length; i++) {
+        const player = players[i];
+        if (player.matched) continue;
 
-        // Current index of the player
-        let memberIndex = 0;
+        const match = findClosestMatch(players, i);
 
-        // Range
-        const range = 25;
+        if (match) {
+            player.matched = true;
+            match.matched = true;
 
-        // Set the difference of the two people we're comparing. If the current index we're looping through is 0 or the last index,
-        // then the difference will be the following:
-        let diff1 = 10000000;
-        let diff2 = 10000000;
+            await startMatchedGame(guildId, channelId, player, match);
 
-        // Loop through each player
-        for (let i = 0; i < players.length; i++) {
-            if (players[i].user_id === memberId) {
-                // Set the memberIndex.
-                memberIndex = i;
+            players = players.filter((p) => p.user_id !== player.user_id && p.user_id !== match.user_id);
+            i--;
 
-                // If the memberIndex is not equal to 0...
-                if (memberIndex !== 0) {
-                    // The difference is the absolute value of the current user's ELO and the user with the ELO closest to the current user.
-                    // (Hence why we sorted the queue)
-                    diff1 = Math.abs(players[memberIndex].elo - players[memberIndex - 1].elo);
-                }
+            setTimeout(() => {
+                const gameKey = `${Math.min(Number(player.user_id), Number(match.user_id))}-${Math.max(Number(player.user_id), Number(match.user_id))}`;
+                processedGames.delete(gameKey);
+            }, 1000);
+        } else {
+            // Expand the range for this player and increment skips
+            player.skips++;
 
-                // If the memberIndex + 1 is less than the queue length (if you can get the user closest to the user AFTER the current user)
-                if (memberIndex + 1 < players.length) {
-                    // Get the absolute value of the current user's ELO and the user AFTER the current user
-                    // (Hence why we sorted the queue)
-                    diff2 = Math.abs(players[memberIndex].elo - players[memberIndex + 1].elo);
-                }
-
-                // If the difference of the user BEFORE the user is less than or equal to the difference of the user AFTER the user...
-                if (diff1 <= diff2) {
-                    if (diff1 < range + ((players[memberIndex - 1] as any as { skips: number })?.skips + (players[memberIndex] as any as { skips: number })?.skips * skips * 5)) {
-                        // If the difference is less than 25 and accounts for skips...
-                        // Get the two users.
-                        const user1 = players[memberIndex - 1].user_id;
-                        const user2 = players[memberIndex].user_id;
-
-                        const index = checkIfMakingGame(guildId, channelId, user1, user2);
-                        if (index !== -1) {
-                            clearInterval(timer);
-                            break;
-                        }
-
-                        makingGame.push({
-                            guildId,
-                            channelId,
-                            users: [user1, user2],
-                        });
-
-                        // Remove them from the queue
-                        await remove(guildId, channelId, user1);
-                        await remove(guildId, channelId, user2);
-
-                        // Start game
-                        await startGame(guildId, user1, user2);
-
-                        makingGame.splice(index, 1);
-
-                        // Break the loop
-                        clearInterval(timer);
-                        break;
-                    } else {
-                        // If we can't match the users, then add skips to both users.
-                        (players[memberIndex] as any as { skips: number }).skips++;
-                        (players[memberIndex - 1] as any as { skips: number }).skips++;
-
-                        skips++;
-                    }
-                }
-
-                if (diff2 < diff1) {
-                    if (diff2 < range + ((players[memberIndex + 1] as any as { skips: number })?.skips + (players[memberIndex] as any as { skips: number })?.skips) * skips * 5) {
-                        // If the difference is less than 25 and accounts for skips...
-                        // Get the two users.
-                        const user1 = players[memberIndex + 1].user_id;
-                        const user2 = players[memberIndex].user_id;
-
-                        const index = checkIfMakingGame(guildId, channelId, user1, user2);
-                        if (index !== -1) {
-                            clearInterval(timer);
-                            break;
-                        }
-
-                        makingGame.push({
-                            guildId,
-                            channelId,
-                            users: [user1, user2],
-                        });
-
-                        // Remove them from the queue
-                        await remove(guildId, channelId, user1);
-                        await remove(guildId, channelId, user2);
-
-                        // Create the channels.
-                        // Start game
-                        await startGame(guildId, user1, user2);
-
-                        makingGame.splice(index, 1);
-
-                        // Break the loop
-                        clearInterval(timer);
-                        break;
-                    } else {
-                        // If we can't match the users, then add skips to both users.
-                        (players[memberIndex] as any as { skips: number }).skips++;
-                        (players[memberIndex + 1] as any as { skips: number }).skips++;
-
-                        skips++;
-                    }
-                }
+            const playerSkips = skips.find((s) => s.playerId === player.user_id);
+            if (playerSkips) {
+                playerSkips.skips++;
+            } else {
+                skips.push({ playerId: player.user_id, skips: 1 });
             }
         }
-    }, 2000);
+    }
 
-    return;
+    players = players.filter((p) => !p.matched);
 };
 
-const checkIfMakingGame = (guildId: string, channelId: string, user1: string, user2: string) => {
-    return makingGame.findIndex((game) => game.guildId === guildId && game.channelId === channelId && game.users.includes(user1) && game.users.includes(user2));
+const findClosestMatch = (players: PlayerQueue[], currentIndex: number): PlayerQueue | null => {
+    const current = players[currentIndex];
+    const rangeIncrement = DEFAULT_RANGE + current.skips * 5;
+    let closestMatch: PlayerQueue | null = null;
+    let minDifference = Infinity;
+
+    for (let i = 0; i < players.length; i++) {
+        if (i === currentIndex || players[i].matched) continue;
+
+        const potentialMatch = players[i];
+        const eloDifference = Math.abs(current.elo - potentialMatch.elo);
+
+        if (eloDifference <= rangeIncrement && eloDifference < minDifference) {
+            minDifference = eloDifference;
+            closestMatch = potentialMatch;
+        }
+    }
+
+    return closestMatch;
+};
+
+const startMatchedGame = async (guildId: string, channelId: string, player1: PlayerQueue, player2: PlayerQueue) => {
+    const gameKey = `${Math.min(Number(player1.user_id), Number(player2.user_id))}-${Math.max(Number(player1.user_id), Number(player2.user_id))}`;
+    if (processedGames.has(gameKey)) {
+        //console.log(`Game between ${player1.user_id} and ${player2.user_id} already processed.`);
+        return;
+    }
+
+    processedGames.add(gameKey);
+
+    await remove(guildId, channelId, player1.user_id);
+    await remove(guildId, channelId, player2.user_id);
+    await startGame(guildId, player1.user_id, player2.user_id);
+
+    skips.splice(
+        skips.findIndex((s) => s.playerId === player1.user_id),
+        1,
+    );
+    skips.splice(
+        skips.findIndex((s) => s.playerId === player2.user_id),
+        1,
+    );
+};
+
+export const interval = (guildId: string, channelId: string) => {
+    setInterval(() => matchPlayers(guildId, channelId), 2000);
 };
