@@ -1,5 +1,8 @@
 import emitter, { Events } from "..";
 import colors from "colors";
+import { workers } from "../../workers";
+import { changeNickname } from "../../workers/impl/functions/changeNickname";
+import { getQueue } from "../../database/impl/queues/impl/get";
 
 export const listener = async () => {
     emitter.on(Events.DATABASE_CONNECT, async () => {
@@ -36,10 +39,26 @@ export const listener = async () => {
 
     emitter.on(Events.QUEUE_PLAYER_ADD, async (data) => {
         console.log(colors.gray(`Player ${data.memberId} added to queue for guild ${data.guildId} in channel ${data.channelId}`));
+
+        const worker = workers.find((w) => w.data.guild_id === data.guildId);
+        if (!worker) return;
+
+        const queue = await getQueue(data.guildId, data.channelId);
+        if (!queue) return;
+
+        await changeNickname(worker, String(queue.players.length) + "/2");
     });
 
     emitter.on(Events.QUEUE_PLAYER_REMOVE, async (data) => {
         console.log(colors.gray(`Player ${data.memberId} removed from queue for guild ${data.guildId} in channel ${data.channelId}`));
+
+        const worker = workers.find((w) => w.data.guild_id === data.guildId);
+        if (!worker) return;
+
+        const queue = await getQueue(data.guildId, data.channelId);
+        if (!queue) return;
+
+        await changeNickname(worker, String(queue.players.length) + "/2");
     });
 
     emitter.on(Events.GAME_CREATE, async (data) => {
