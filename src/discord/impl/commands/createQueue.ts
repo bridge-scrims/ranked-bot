@@ -13,6 +13,12 @@ export default {
             required: true,
         },
         {
+            name: "game-channel",
+            description: "The channel to post games in.",
+            type: ApplicationCommandOptionType.Channel,
+            required: true,
+        },
+        {
             name: "client-id",
             description: "The client id of the worker.",
             type: ApplicationCommandOptionType.String,
@@ -41,6 +47,12 @@ export default {
                 return interaction.editReply({ embeds: [embed] });
             }
 
+            const gameChannel = interaction.options.get("game-channel");
+            if (!gameChannel || !gameChannel.channel) {
+                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("Could not find that game channel!");
+                return interaction.editReply({ embeds: [embed] });
+            }
+
             const clientId = interaction.options.get("client-id");
             if (!clientId || !clientId.value) {
                 const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("Please provide a client id for the worker.");
@@ -61,7 +73,7 @@ export default {
             }
 
             try {
-                await createQueue(interaction.guildId ?? "", channel?.channel?.id ?? "", channel?.name || "Unknown", [
+                await createQueue(interaction.guildId ?? "", channel?.channel?.id ?? "", channel?.name || "Unknown", gameChannel?.channel?.id ?? "", [
                     {
                         client_id: clientId.value as string,
                         client_token: clientToken.value as string,

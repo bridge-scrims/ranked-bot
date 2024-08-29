@@ -21,6 +21,7 @@ export type Queue = {
     guild_id: string;
     channel_id: string;
     channel_name: string;
+    game_channel_id: string;
     players: Player[];
     workers: WorkerDB[];
     created_at: string;

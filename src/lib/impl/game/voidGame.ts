@@ -32,7 +32,7 @@ export const voidGame = async (guildId: string, gameId: string) => {
         player2_score: -1,
     });
 
-    await emitter.emit(Events.GAME_VOID, { guildId, gameId, data: { player1_score: -1, player2_score: -1 } });
+    await emitter.emit(Events.GAME_VOID, { guildId, game, gameId, data: { player1_score: -1, player2_score: -1 } });
 
     return;
 };

@@ -19,6 +19,7 @@
     "@types/pg": "^8.10.7",
     "bun-types": "latest",
     "eslint": "^9.9.0",
+    "ffmpeg-static": "^5.2.0",
     "prettier": "^3.3.3",
     "tsc": "^2.0.4",
     "typescript-eslint": "^8.1.0"

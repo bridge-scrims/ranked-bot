@@ -10,6 +10,7 @@ export const table = `
         guild_id TEXT NOT NULL,
         channel_id TEXT NOT NULL,
         channel_name TEXT NOT NULL,
+        game_channel_id TEXT NOT NULL,
         players JSONB[] DEFAULT ARRAY[]::JSONB[],
         workers JSONB[] DEFAULT ARRAY[]::JSONB[],
         created_at TIMESTAMP NOT NULL DEFAULT NOW()

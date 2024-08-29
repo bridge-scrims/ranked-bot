@@ -1,8 +1,12 @@
 import emitter, { Events } from "..";
 import colors from "colors";
+import { colors as discordColors } from "../../discord";
 import { workers } from "../../workers";
 import { changeNickname } from "../../workers/impl/functions/changeNickname";
-import { getQueue } from "../../database/impl/queues/impl/get";
+import { getQueue, getQueues } from "../../database/impl/queues/impl/get";
+import { sendMessageInChannel } from "../../workers/impl/functions/sendMessageInChannel";
+import { EmbedBuilder } from "discord.js";
+import { getPlayer } from "../../database/impl/players/impl/get";
 
 export const listener = async () => {
     emitter.on(Events.DATABASE_CONNECT, async () => {
@@ -69,8 +73,63 @@ export const listener = async () => {
         console.log(colors.gray(`Game finished for guild ${data.guildId} and game ${data.gameId}. Ready to score.`));
     });
 
+    emitter.on(Events.GAME_VOID, async (data) => {
+        console.log(colors.gray(`Game voided for guild ${data.guildId} and game ${data.gameId}`));
+
+        const worker = workers.find((w) => w.data.guild_id === data.guildId);
+        if (!worker) return console.log(colors.red("Unable to find worker suitable for this guild."));
+
+        const queues = await getQueues(data.guildId);
+        if (!queues || queues.length === 0) return console.log(colors.red("Unable to find queues suitable for this guild."));
+
+        const embed = new EmbedBuilder()
+            .setColor(discordColors.baseColor)
+            .setTitle(`Game #${data.game.game_id} Voided`)
+            .setDescription("**Player 1:** [<@" + data.game.player1_id + ">]\n**Player 2:** [<@" + data.game.player2_id + ">]")
+            .setTimestamp();
+        for (const queue of queues) {
+            await sendMessageInChannel(worker, queue.game_channel_id, {
+                embeds: [embed],
+            });
+        }
+    });
+
     emitter.on(Events.GAME_SCORED, async (data) => {
         console.log(colors.gray(`Game scored for guild ${data.guildId} and game ${data.game.id}. Player 1 elo change: ${data.p1EloChange}. Player 2 elo change: ${data.p2EloChange}`));
+
+        const worker = workers.find((w) => w.data.guild_id === data.guildId);
+        if (!worker) return console.log(colors.red("Unable to find worker suitable for this guild."));
+
+        const queues = await getQueues(data.guildId);
+        if (!queues || queues.length === 0) return console.log(colors.red("Unable to find queues suitable for this guild."));
+
+        const player1 = await getPlayer(data.guildId, data.game.player1_id);
+        const player2 = await getPlayer(data.guildId, data.game.player2_id);
+
+        const embed = new EmbedBuilder()
+            .setColor(discordColors.baseColor)
+            .setTitle(`Game #${data.game.game_id} Results`)
+            .setDescription(
+                "**Player 1:** [<@" +
+                    data.game.player1_id +
+                    ">]\n[`" +
+                    (data.p1EloChange > 0 ? `+${Math.round(data.p1EloChange)} -> ${Math.round(player1?.elo ?? 0)}` : `${Math.round(data.p1EloChange)} -> ${Math.round(player1?.elo ?? 0)}`) +
+                    "`]\n**Player 2:** [<@" +
+                    data.game.player2_id +
+                    ">]\n[`" +
+                    (data.p2EloChange > 0 ? `+${Math.round(data.p2EloChange)} -> ${Math.round(player2?.elo ?? 0)}` : `${Math.round(data.p2EloChange)} -> ${Math.round(player2?.elo ?? 0)}`) +
+                    "`]\n**Score:** `" +
+                    data.player1Score +
+                    "-" +
+                    data.player2Score +
+                    "`",
+            )
+            .setTimestamp();
+        for (const queue of queues) {
+            await sendMessageInChannel(worker, queue.game_channel_id, {
+                embeds: [embed],
+            });
+        }
     });
 
     emitter.on(Events.DISCORD_READY, async () => {

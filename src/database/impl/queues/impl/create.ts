@@ -9,6 +9,7 @@ export const createQueue = async (
     guildId: string,
     channelId: string,
     channelName: string,
+    gameChannelId: string,
     workers: {
         client_id: string;
         client_token: string;
@@ -20,6 +21,7 @@ export const createQueue = async (
                 guild_id,
                 channel_id,
                 channel_name,
+                game_channel_id,
                 players,
                 workers
             ) VALUES (
@@ -27,13 +29,15 @@ export const createQueue = async (
                 $2,
                 $3,
                 $4,
-                $5
+                $5,
+                $6
             )
         `,
         values: [
             guildId,
             channelId,
             channelName,
+            gameChannelId,
             [],
             workers.map((worker) => {
                 return {
@@ -55,6 +59,7 @@ export const createQueue = async (
         guildId,
         channelId,
         channelName,
+        gameChannelId,
         workers,
     });
 };
