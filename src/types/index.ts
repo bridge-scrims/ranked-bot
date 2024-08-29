@@ -1,10 +1,19 @@
+import { Client } from "discord.js";
+
 export type Worker = {
+    id: string;
+    client: Client;
+    data: WorkerDB;
+};
+
+export type WorkerDB = {
     id: string;
     guild_id: string;
     credentials: {
         client_id: string;
         client_token: string;
     };
+    created_at: string;
 };
 
 export type Queue = {
@@ -13,6 +22,7 @@ export type Queue = {
     channel_id: string;
     channel_name: string;
     players: Player[];
+    workers: WorkerDB[];
     created_at: string;
 };
 

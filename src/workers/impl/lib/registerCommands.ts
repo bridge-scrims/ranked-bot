@@ -1,53 +1,13 @@
-import { ApplicationCommandOptionType, Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, SlashCommandSubcommandBuilder } from "discord.js";
-import { env } from "../env";
-import emitter, { Events } from "../events";
-import { initQueue } from "../lib";
-import { init as initWorkers } from "../workers";
+import { ApplicationCommandOptionType, REST, Routes, SlashCommandBuilder, SlashCommandSubcommandBuilder } from "discord.js";
+import { Worker } from "../../../types/index";
+import emitter, { Events } from "../../../events";
+import { env } from "../../../env";
+import { commands } from "../commands";
 
-export const client = new Client({
-    shards: "auto",
-    intents: [GatewayIntentBits.GuildMembers, GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessageReactions],
-    presence: {
-        status: "dnd",
-        activities: [{ name: "Ranked Bridge" }],
-    },
-});
+export const registerCommands = async (worker: Worker) => {
+    const rest = new REST().setToken(worker.data.credentials.client_token);
 
-export const commands = [
-    await import("./impl/commands/ping"),
-    await import("./impl/commands/createQueue"),
-    await import("./impl/commands/getQueue"),
-    await import("./impl/commands/register"),
-    await import("./impl/commands/void"),
-    await import("./impl/commands/score"),
-    await import("./impl/commands/scoreGame"),
-    await import("./impl/commands/leaderboard"),
-    await import("./impl/commands/games"),
-];
-export const buttons = [await import("./impl/buttons/void"), await import("./impl/buttons/score"), await import("./impl/buttons/leaderboard"), await import("./impl/buttons/games")];
-export const modals: any[] = [];
-export const events = [await import("./impl/events/ready"), await import("./impl/events/interactionCreate"), await import("./impl/events/voiceStateUpdate")];
-
-export const colors = {
-    baseColor: 0x5ca3f5,
-    successColor: 0xbc77fc,
-    errorColor: 0xff003c,
-};
-
-export const init = async () => {
-    await registerEvents();
-    await registerCommands();
-
-    await client.login(env.CLIENT_TOKEN);
-
-    for (const guild of client.guilds.cache.values()) {
-        await initQueue(guild.id);
-        await initWorkers(guild.id);
-    }
-};
-
-export const registerCommands = async () => {
-    const rest = new REST().setToken(env.CLIENT_TOKEN);
+    const client = worker.client;
 
     const commandList: SlashCommandBuilder[] = [];
 
@@ -252,24 +212,13 @@ export const registerCommands = async () => {
         }
 
         commandList.push(slashCommand);
-        await emitter.emit(Events.DISCORD_COMMAND_REGISTER, command.default);
+        await emitter.emit(Events.WORKER_COMMAND_REGISTER, command.default);
     }
 
     if (env.USE_GUILD_COMMANDS) {
-        console.log(`Using guild commands for guild ${env.GUILD_ID}`);
-        await rest.put(Routes.applicationGuildCommands(env.CLIENT_ID, env.GUILD_ID), { body: commandList });
+        console.log(`Using guild commands for guild ${worker.data.guild_id}`);
+        await rest.put(Routes.applicationGuildCommands(worker.data.credentials.client_id, worker.data.guild_id), { body: commandList });
     } else {
-        await rest.put(Routes.applicationCommands(env.CLIENT_ID), { body: commandList });
-    }
-};
-
-export const registerEvents = async () => {
-    for (const event of events) {
-        if (event.default.once) {
-            client.once(event.default.name, event.default.execute);
-            continue;
-        }
-
-        client.on(event.default.name, event.default.execute);
+        await rest.put(Routes.applicationCommands(worker.data.credentials.client_id), { body: commandList });
     }
 };

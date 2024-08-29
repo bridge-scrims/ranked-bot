@@ -17,6 +17,9 @@ export enum Events {
     GAME_VOID = "game.void",
     GAME_FINISH = "game.finish",
     GAME_SCORED = "game.scored",
+    WORKER_READY = "worker.ready",
+    WORKER_FETCHED = "worker.fetched",
+    WORKER_COMMAND_REGISTER = "worker.command.register",
 }
 
 const emitter = new EventEmitter2({});

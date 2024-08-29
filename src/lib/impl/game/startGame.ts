@@ -77,8 +77,17 @@ export const startGame = async (guildId: string, player1: string, player2: strin
     await textChannel.send({ content: "<@" + player1 + "> <@" + player2 + ">", embeds: [channelEmbed] });
     await textChannel.send(`Game ID: \`${mainGameId}\``);
 
-    await user1.voice.setChannel(vc1);
-    await user2.voice.setChannel(vc2);
+    try {
+        await user1.voice.setChannel(vc1);
+    } catch {
+        // User is not in a voice channel
+    }
+
+    try {
+        await user2.voice.setChannel(vc2);
+    } catch {
+        // User is not in a voice channel
+    }
 
     await emitter.emit(Events.GAME_CREATE, {
         guildId: guild.id,

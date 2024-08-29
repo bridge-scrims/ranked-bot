@@ -61,4 +61,16 @@ export const listener = async () => {
     emitter.on(Events.DISCORD_COMMAND_REGISTER, async (data) => {
         console.log(colors.gray(`Command registered: ${data.name}`));
     });
+
+    emitter.on(Events.WORKER_FETCHED, async (data) => {
+        console.log(colors.gray(`Worker fetched for guild ${data.guildId} with client id ${data.id}`));
+    });
+
+    emitter.on(Events.WORKER_READY, async (data) => {
+        console.log(colors.gray(`Worker ready for guild ${data.guildId} with client id ${data.id}`));
+    });
+
+    emitter.on(Events.WORKER_COMMAND_REGISTER, async (data) => {
+        console.log(colors.gray(`Command registered for worker: ${data.name}`));
+    });
 };
