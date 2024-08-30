@@ -14,7 +14,7 @@ export const client = new Client({
 });
 
 export const commands = [
-    await import("./impl/commands/ping"),
+    await import("./impl/commands/clearQueue"),
     await import("./impl/commands/createQueue"),
     await import("./impl/commands/getQueue"),
     await import("./impl/commands/register"),
