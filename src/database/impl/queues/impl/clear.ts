@@ -9,9 +9,9 @@ export const clearQueue = async (guildId: string, channelId: string) => {
 
     const query: QueryConfig = {
         text: `
-            DELETE FROM ${tableName} WHERE guild_id = $1 AND channel_id = $2
+            UPDATE ${tableName} SET players = $1 WHERE guild_id = $2 AND channel_id = $3
         `,
-        values: [guildId, channelId],
+        values: [[], guildId, channelId],
     };
 
     await postgres.query(query);

@@ -6,6 +6,7 @@ node_modules
 *.lock
 *.yml
 *.yaml
+*.png
 Dockerfile
 Dockerfile.*
 .eslintrc

@@ -16,6 +16,7 @@
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.9.0",
     "@types/crypto-js": "^4.2.2",
+    "@types/jimp": "^0.2.28",
     "@types/pg": "^8.10.7",
     "bun-types": "latest",
     "eslint": "^9.9.0",
@@ -36,6 +37,7 @@
     "eventemitter2": "latest",
     "glicko2": "^1.2.1",
     "ioredis": "^5.3.2",
+    "jimp": "0.22.10",
     "pg": "^8.11.3"
   }
 }

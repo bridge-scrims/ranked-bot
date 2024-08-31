@@ -79,6 +79,10 @@ export type ScrimsUserData = {
             lifetimeWinstreak: number;
         };
     };
+    skin: {
+        signature: string;
+        textures: string;
+    };
     username: string;
     discordId: string;
 };
