@@ -76,8 +76,8 @@ const importDatabase = async (name?: string) => {
                 queue.channel_id,
                 queue.channel_name,
                 queue.game_channel_id,
-                JSON.stringify(queue.players),
-                JSON.stringify(queue.workers),
+                queue.players,
+                queue.workers,
                 queue.created_at,
             ]);
             count.queues++;
@@ -134,7 +134,17 @@ const importDatabase = async (name?: string) => {
         }
 
         try {
-            await postgres.query(`INSERT INTO ${gamesTableName} (id, guild_id, channel_ids, created_at) VALUES ($1, $2, $3, $4)`, [game.id, game.guild_id, JSON.stringify(game.channel_ids), game.created_at]);
+            await postgres.query(`INSERT INTO ${gamesTableName} (id, game_id, guild_id, player1_id, player2_id, player1_score, player2_score, channel_ids, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [
+                game.id,
+                game.game_id,
+                game.guild_id,
+                game.player1_id,
+                game.player2_id,
+                game.player1_score,
+                game.player2_score,
+                game.channel_ids,
+                game.created_at,
+            ]);
             count.games++;
 
             console.log(colors.green(`Successfully imported game for ${game.guild_id} and ID ${game.id}`));

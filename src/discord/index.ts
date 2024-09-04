@@ -24,6 +24,7 @@ export const commands = [
     await import("./impl/commands/leaderboard"),
     await import("./impl/commands/games"),
     await import("./impl/commands/info"),
+    await import("./impl/commands/set"),
 ];
 export const buttons = [await import("./impl/buttons/void"), await import("./impl/buttons/score"), await import("./impl/buttons/leaderboard"), await import("./impl/buttons/games")];
 export const modals: any[] = [];
