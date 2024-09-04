@@ -1,5 +1,11 @@
 import { Client } from "discord.js";
 
+export type Script = {
+    name: string;
+    description: string;
+    action: (...args: any) => Promise<void>;
+};
+
 export type Worker = {
     id: string;
     client: Client;

@@ -6,6 +6,7 @@
   "scripts": {
     "start": "bun run dist/index.js",
     "dev": "bun src/index.ts",
+    "scripts": "bun src/scripts/index.ts",
     "build": "bun build ./src/index.ts --outdir ./dist --target node",
     "build:db": "bun run src/scripts/buildDb.ts",
     "prettier": "bunx prettier --write .",
@@ -15,10 +16,12 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.9.0",
+    "@types/commander": "^2.12.2",
     "@types/crypto-js": "^4.2.2",
     "@types/jimp": "^0.2.28",
     "@types/pg": "^8.10.7",
     "bun-types": "latest",
+    "commander": "^12.1.0",
     "eslint": "^9.9.0",
     "ffmpeg-static": "^5.2.0",
     "prettier": "^3.3.3",
