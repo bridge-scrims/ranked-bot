@@ -6,8 +6,8 @@ import { tableName } from "..";
 export const createGame = async (
     guildId: string,
     gameId: number,
-    player1: string,
-    player2: string,
+    team1Ids: string[],
+    team2Ids: string[],
     channelIds: {
         textChannel: string;
         vc1: string;
@@ -19,8 +19,8 @@ export const createGame = async (
             INSERT INTO ${tableName} (
                 guild_id,
                 game_id,
-                player1_id,
-                player2_id,
+                team1_ids,
+                team2_ids,
                 channel_ids
             ) VALUES (
                 $1,
@@ -30,15 +30,15 @@ export const createGame = async (
                 $5
             )
         `,
-        values: [guildId, gameId, player1, player2, JSON.stringify(channelIds)],
+        values: [guildId, gameId, JSON.stringify(team1Ids), JSON.stringify(team2Ids), JSON.stringify(channelIds)],
     };
 
     await postgres.query(query);
 
     await emitter.emit(Events.DATABASE_GAMES_CREATE, {
         guildId,
-        player1,
-        player2,
+        team1Ids,
+        team2Ids,
         channelIds,
     });
 };

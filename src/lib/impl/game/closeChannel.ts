@@ -24,14 +24,14 @@ export const closeChannel = async (guildId: string, gameId: string) => {
 
         await textChannelObj?.edit({
             permissionOverwrites: [
-                {
-                    id: game.player1_id,
+                ...game.team1_ids.map((id: string) => ({
+                    id,
                     deny: PermissionsBitField.Flags.ViewChannel,
-                },
-                {
-                    id: game.player2_id,
+                })),
+                ...game.team2_ids.map((id: string) => ({
+                    id,
                     deny: PermissionsBitField.Flags.ViewChannel,
-                },
+                })),
                 {
                     id: guild.roles.everyone.id,
                     deny: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory],
@@ -39,7 +39,17 @@ export const closeChannel = async (guildId: string, gameId: string) => {
             ],
         });
 
-        await (textChannelObj as TextChannel).send(`Player 1: \`${game.player1_id}\` - <@${game.player1_id}>\nPlayer 2: \`${game.player2_id}\` - <@${game.player2_id}>\n\nThe game has finished. GG! Score it via the \`/score-game\` command.`);
+        await (textChannelObj as TextChannel).send(
+            `Team 1: ${game.team1_ids
+                .map((id) => {
+                    return `<@${id}>`;
+                })
+                .join(", ")}\nTeam 2: ${game.team2_ids
+                .map((id) => {
+                    return `<@${id}>`;
+                })
+                .join(", ")}\n\nThe game has finished. Please score it via the \`/score-game\` command.`,
+        );
 
         await vc1Obj?.delete();
         await vc2Obj?.delete();

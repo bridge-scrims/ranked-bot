@@ -18,11 +18,14 @@ export default {
             }
 
             try {
-                if (game?.player1_id === interaction.user.id || game?.player2_id === interaction.user.id) {
-                    const otherPlayer = game.player1_id === interaction.user.id ? game.player2_id : game.player1_id;
+                if (game?.team1_ids.includes(interaction.user.id) || game?.team2_ids.includes(interaction.user.id)) {
+                    const otherTeam = game.team1_ids.includes(interaction.user.id) ? game.team2_ids : game.team1_ids;
                     const voidEmbed = new EmbedBuilder().setColor(colors.baseColor).setTitle("Void Request").setDescription(`<@${interaction.user.id}> has requested to void the game. Do you agree?`);
 
-                    const voidButton = new ButtonBuilder().setCustomId(`void:${game.id}:${otherPlayer}`).setLabel("Confirm Void").setStyle(ButtonStyle.Danger);
+                    const voidButton = new ButtonBuilder()
+                        .setCustomId(`void:${game.id}:${JSON.stringify(otherTeam)}`)
+                        .setLabel("Confirm Void")
+                        .setStyle(ButtonStyle.Danger);
 
                     const actionBuilder = new ActionRowBuilder().addComponents(voidButton);
 

@@ -7,55 +7,65 @@ import emitter, { Events } from "../../../events";
 import { Game } from "../../../types";
 import { Player } from "glicko2";
 
-export const scoreGame = async (guildId: string, game: Game, player1Score: number, player2Score: number) => {
+export const scoreGame = async (guildId: string, game: Game, team1Score: number, team2Score: number) => {
     const guild = await client.guilds.fetch(guildId);
 
-    const p1 = await getPlayer(guildId, game.player1_id);
-    const p2 = await getPlayer(guildId, game.player2_id);
+    const team1 = await Promise.all(game.team1_ids.map(async (id) => await getPlayer(guildId, id)));
+    const team2 = await Promise.all(game.team2_ids.map(async (id) => await getPlayer(guildId, id)));
 
-    if (!p1 || !p2) return;
+    const team1AverageELO = team1.reduce((acc, player) => acc + (player?.elo ?? 0), 0) / team1.length;
+    const team2AverageELO = team2.reduce((acc, player) => acc + (player?.elo ?? 0), 0) / team2.length;
 
-    const p1Ranking = ranking.makePlayer(p1?.elo ?? 1000);
-    const p2Ranking = ranking.makePlayer(p2?.elo ?? 1000);
+    console.log(`Team 1 average ELO: ${team1AverageELO}`);
+    console.log(`Team 2 average ELO: ${team2AverageELO}`);
+
+    const team1Ranking = ranking.makePlayer(team1AverageELO ?? 1000);
+    const team2Ranking = ranking.makePlayer(team2AverageELO ?? 1000);
 
     const matches: [Player, Player, number][] = [
-        [p1Ranking, p2Ranking, player1Score > player2Score ? 1 : 0],
-        [p2Ranking, p1Ranking, player2Score > player1Score ? 1 : 0],
+        [team1Ranking, team2Ranking, team1Score > team2Score ? 1 : 0],
+        [team2Ranking, team1Ranking, team2Score > team1Score ? 1 : 0],
     ];
 
     ranking.updateRatings(matches);
 
-    const p1Elo = p1Ranking.getRating();
-    const p2Elo = p2Ranking.getRating();
+    const team1Elo = team1Ranking.getRating();
+    const team2Elo = team2Ranking.getRating();
 
-    const p1EloChange = p1Elo - (p1?.elo ?? 1000);
-    const p2EloChange = p2Elo - (p2?.elo ?? 1000);
+    const team1EloChange = team1Elo - (team1AverageELO ?? 1000);
+    const team2EloChange = team2Elo - (team2AverageELO ?? 1000);
 
-    const p1Update = p1EloChange > 0 ? p1Elo + player1Score / 4 : p1Elo + player1Score;
-    const p2Update = p2EloChange > 0 ? p2Elo + player2Score / 4 : p2Elo + player2Score;
+    const team1Update = team1EloChange > 0 ? team1Elo + team1Score / 4 : team1Elo + team1Score;
+    const team2Update = team2EloChange > 0 ? team2Elo + team2Score / 4 : team2Elo + team2Score;
 
     await updateGame(guildId, game.id, {
-        player1_score: player1Score,
-        player2_score: player2Score,
+        team1_score: team1Score,
+        team2_score: team2Score,
     });
 
-    await updatePlayer(guildId, p1.id, {
-        elo: p1Update,
-        wins: player1Score > player2Score ? p1.wins + 1 : p1.wins,
-        losses: player1Score < player2Score ? p1.losses + 1 : p1.losses,
-        win_streak: player1Score > player2Score ? p1.win_streak + 1 : 0,
-        best_win_streak: player1Score > player2Score ? Math.max(p1.win_streak + 1, p1.best_win_streak) : p1.best_win_streak,
-    });
+    for (const player of team1) {
+        if (!player) continue;
+        await updatePlayer(guildId, player.id, {
+            elo: team1Update,
+            wins: team1Score > team2Score ? player.wins + 1 : player.wins,
+            losses: team1Score < team2Score ? player.losses + 1 : player.losses,
+            win_streak: team1Score > team2Score ? player.win_streak + 1 : 0,
+            best_win_streak: team1Score > team2Score ? Math.max(player.win_streak + 1, player.best_win_streak) : player.best_win_streak,
+        });
+    }
 
-    await updatePlayer(guildId, p2.id, {
-        elo: p2Update,
-        wins: player2Score > player1Score ? p2.wins + 1 : p2.wins,
-        losses: player2Score < player1Score ? p2.losses + 1 : p2.losses,
-        win_streak: player2Score > player1Score ? p2.win_streak + 1 : 0,
-        best_win_streak: player2Score > player1Score ? Math.max(p2.win_streak + 1, p2.best_win_streak) : p2.best_win_streak,
-    });
+    for (const player of team2) {
+        if (!player) continue;
+        await updatePlayer(guildId, player.id, {
+            elo: team2Update,
+            wins: team2Score > team1Score ? player.wins + 1 : player.wins,
+            losses: team2Score < team1Score ? player.losses + 1 : player.losses,
+            win_streak: team2Score > team1Score ? player.win_streak + 1 : 0,
+            best_win_streak: team2Score > team1Score ? Math.max(player.win_streak + 1, player.best_win_streak) : player.best_win_streak,
+        });
+    }
 
-    await emitter.emit(Events.GAME_SCORED, { guildId, game, player1Score, player2Score, p1EloChange, p2EloChange });
+    await emitter.emit(Events.GAME_SCORED, { guildId, game, team1Score, team2Score, team1EloChange, team2EloChange });
 
     await guild.channels.cache.get(game.channel_ids.textChannel)?.delete();
 };

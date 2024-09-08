@@ -38,15 +38,16 @@ export default {
             let description = "```";
 
             for (let i = 0; i < games.length; i++) {
-                const user = await getPlayer(interaction.guildId ?? "", games[i].player1_id);
-                const player1 = await getUser(user?.mc_uuid ?? "");
-                const user2 = await getPlayer(interaction.guildId ?? "", games[i].player2_id);
-                const player2 = await getUser(user2?.mc_uuid ?? "");
+                const team1 = await Promise.all(games[i].team1_ids.map(async (id) => await getPlayer(interaction.guildId ?? "", id)));
+                const team2 = await Promise.all(games[i].team2_ids.map(async (id) => await getPlayer(interaction.guildId ?? "", id)));
 
-                if (games[i].player1_score === -1 || games[i].player2_score === -1) {
-                    description += `${parseInt(page) * 10 + i + 1}. ${player1?.username} vs ${player2?.username}. GAME VOIDED\n`;
+                const team1Mc = await Promise.all(team1.map(async (player) => await getUser(player?.mc_uuid ?? "")));
+                const team2Mc = await Promise.all(team2.map(async (player) => await getUser(player?.mc_uuid ?? "")));
+
+                if (games[i].team1_score === -1 || games[i].team2_score === -1) {
+                    description += `${parseInt(page) * 10 + i + 1}. ${team1Mc.map((player) => player?.username).join(", ")} vs ${team2Mc.map((player) => player?.username).join(", ")}. GAME VOIDED\n`;
                 } else {
-                    description += `${parseInt(page) * 10 + i + 1}. ${player1?.username} vs ${player2?.username}. Score: ${games[i].player1_score} - ${games[i].player2_score}\n`;
+                    description += `${parseInt(page) * 10 + i + 1}. ${team1Mc.map((player) => player?.username).join(", ")} vs ${team2Mc.map((player) => player?.username).join(", ")}. Score: ${games[i].team1_score} - ${games[i].team2_score}\n`;
                 }
             }
 

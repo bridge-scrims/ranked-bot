@@ -28,11 +28,10 @@ export const voidGame = async (guildId: string, gameId: string) => {
 
     // Update game in database
     await updateGame(guildId, gameId, {
-        player1_score: -1,
-        player2_score: -1,
+        team1_score: -1,
+        team2_score: -1,
     });
 
-    await emitter.emit(Events.GAME_VOID, { guildId, game, gameId, data: { player1_score: -1, player2_score: -1 } });
-
+    await emitter.emit(Events.GAME_VOID, { guildId, game, gameId, data: { team1_score: -1, team2_score: -1 } });
     return;
 };

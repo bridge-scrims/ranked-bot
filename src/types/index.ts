@@ -119,10 +119,10 @@ export type Game = {
     id: string;
     game_id: string;
     guild_id: string;
-    player1_id: string;
-    player2_id: string;
-    player1_score: number;
-    player2_score: number;
+    team1_ids: string[];
+    team2_ids: string[];
+    team1_score: number;
+    team2_score: number;
     channel_ids: {
         textChannel: string;
         vc1: string;

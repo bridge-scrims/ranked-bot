@@ -7,7 +7,6 @@ import { getQueue } from "./get";
 
 export const addToQueue = async (guildId: string, channelId: string, memberId: string) => {
     const player = await getPlayer(guildId, memberId);
-
     if (!player) return;
 
     const currentQueue = await getQueue(guildId, channelId);

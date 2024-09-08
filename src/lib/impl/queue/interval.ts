@@ -90,7 +90,7 @@ const startMatchedGame = async (guildId: string, channelId: string, player1: Pla
 
     await remove(guildId, channelId, player1.user_id);
     await remove(guildId, channelId, player2.user_id);
-    await startGame(guildId, player1.user_id, player2.user_id);
+    await startGame(guildId, [player1.user_id], [player2.user_id]);
 
     skips.splice(
         skips.findIndex((s) => s.playerId === player1.user_id),

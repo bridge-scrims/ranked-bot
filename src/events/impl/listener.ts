@@ -66,7 +66,7 @@ export const listener = async () => {
     });
 
     emitter.on(Events.GAME_CREATE, async (data) => {
-        console.log(colors.gray(`Game finished being created for guild ${data.guildId} with players ${data.player1} and ${data.player2}`));
+        console.log(colors.gray(`Game finished being created for guild ${data.guildId} with players ${data.team1Ids.map((id: string) => id).join(", ")} vs ${data.team2Ids.map((id: string) => id).join(", ")}`));
     });
 
     emitter.on(Events.GAME_FINISH, async (data) => {
@@ -85,7 +85,7 @@ export const listener = async () => {
         const embed = new EmbedBuilder()
             .setColor(discordColors.baseColor)
             .setTitle(`Game #${data.game.game_id} Voided`)
-            .setDescription("**Player 1:** [<@" + data.game.player1_id + ">]\n**Player 2:** [<@" + data.game.player2_id + ">]")
+            .setDescription("**Team 1:** [" + data.game.team1_ids.map((id: string) => `<@${id}>`).join(", ") + "]\n**Team 2:** [" + data.game.team2_ids.map((id: string) => `<@${id}>`).join(", ") + "]")
             .setTimestamp();
         for (const queue of queues) {
             await sendMessageInChannel(worker, queue.game_channel_id, {
@@ -103,25 +103,25 @@ export const listener = async () => {
         const queues = await getQueues(data.guildId);
         if (!queues || queues.length === 0) return console.log(colors.red("Unable to find queues suitable for this guild."));
 
-        const player1 = await getPlayer(data.guildId, data.game.player1_id);
-        const player2 = await getPlayer(data.guildId, data.game.player2_id);
+        const team1 = await Promise.all(data.game.team1_ids.map(async (id: string) => await getPlayer(data.guildId, id)));
+        const team2 = await Promise.all(data.game.team2_ids.map(async (id: string) => await getPlayer(data.guildId, id)));
 
         const embed = new EmbedBuilder()
             .setColor(discordColors.baseColor)
             .setTitle(`Game #${data.game.game_id} Results`)
             .setDescription(
-                "**Player 1:** [<@" +
-                    data.game.player1_id +
-                    ">]\n[`" +
-                    (data.p1EloChange > 0 ? `+${Math.round(data.p1EloChange)} -> ${Math.round(player1?.elo ?? 0)}` : `${Math.round(data.p1EloChange)} -> ${Math.round(player1?.elo ?? 0)}`) +
-                    "`]\n**Player 2:** [<@" +
-                    data.game.player2_id +
-                    ">]\n[`" +
-                    (data.p2EloChange > 0 ? `+${Math.round(data.p2EloChange)} -> ${Math.round(player2?.elo ?? 0)}` : `${Math.round(data.p2EloChange)} -> ${Math.round(player2?.elo ?? 0)}`) +
+                "**Team 1:** [" +
+                    data.game.team1_ids.map((id: string) => `<@${id}>`).join(", ") +
+                    "]\n[`" +
+                    (data.team1EloChange > 0 ? `+${Math.round(data.team1EloChange)} -> ${team1.map((p) => Math.round(p?.elo ?? 0)).join(", ")}` : `${Math.round(data.team1EloChange)} -> ${team1.map((p) => Math.round(p?.elo ?? 0)).join(", ")}`) +
+                    "`]\n**Team 2:** [<@" +
+                    data.game.team2_ids.map((id: string) => `<@${id}>`).join(", ") +
+                    "]\n[`" +
+                    (data.team2EloChange > 0 ? `+${Math.round(data.team2EloChange)} -> ${team2.map((p) => Math.round(p?.elo ?? 0)).join(", ")}` : `${Math.round(data.team2EloChange)} -> ${team2.map((p) => Math.round(p?.elo ?? 0)).join(", ")}`) +
                     "`]\n**Score:** `" +
-                    data.player1Score +
+                    data.team1Score +
                     "-" +
-                    data.player2Score +
+                    data.team2Score +
                     "`",
             )
             .setTimestamp();
@@ -141,11 +141,11 @@ export const listener = async () => {
     });
 
     emitter.on(Events.WORKER_FETCHED, async (data) => {
-        console.log(colors.gray(`Worker fetched for guild ${data.guildId} with client id ${data.id}`));
+        console.log(colors.gray(`Worker fetched for guild ${data.guild_id} with client id ${data.id}`));
     });
 
     emitter.on(Events.WORKER_READY, async (data) => {
-        console.log(colors.gray(`Worker ready for guild ${data.guildId} with client id ${data.id}`));
+        console.log(colors.gray(`Worker ready for guild ${data.guild_id} with client id ${data.id}`));
     });
 
     emitter.on(Events.WORKER_COMMAND_REGISTER, async (data) => {

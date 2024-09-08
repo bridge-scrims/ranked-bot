@@ -41,11 +41,14 @@ export default {
                     return interaction.editReply({ embeds: [embed] });
                 }
 
-                if (game?.player1_id === interaction.user.id || game?.player2_id === interaction.user.id) {
-                    const otherPlayer = game.player1_id === interaction.user.id ? game.player2_id : game.player1_id;
+                if (game?.team1_ids.includes(interaction.user.id) || game?.team2_ids.includes(interaction.user.id)) {
+                    const otherTeam = game.team1_ids.includes(interaction.user.id) ? game.team2_ids : game.team1_ids;
                     const scoreEmbed = new EmbedBuilder().setColor(colors.baseColor).setTitle("Score Request").setDescription(`<@${interaction.user.id}> has requested to score the game. Do you agree?`).setImage(screenshot.attachment.url);
 
-                    const scoreButton = new ButtonBuilder().setCustomId(`score:${game.id}:${otherPlayer}`).setLabel("Confirm Score").setStyle(ButtonStyle.Success);
+                    const scoreButton = new ButtonBuilder()
+                        .setCustomId(`score:${game.id}:${JSON.stringify(otherTeam)}`)
+                        .setLabel("Confirm Score")
+                        .setStyle(ButtonStyle.Success);
 
                     const actionBuilder = new ActionRowBuilder().addComponents(scoreButton);
 
