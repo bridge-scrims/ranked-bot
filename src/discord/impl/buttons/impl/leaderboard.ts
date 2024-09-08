@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Interaction } from "discord.js";
-import { getLeaderboard } from "../../../database/impl/players/impl/get";
-import { getUser } from "../../../lib/impl/minecraft/scrims/user";
+import { getLeaderboard } from "../../../../database/impl/players/impl/get";
+import { getUser } from "../../../../lib/impl/minecraft/scrims/user";
 
 export default {
     id: "leaderboard",

@@ -1,8 +1,8 @@
 import { ActionRowBuilder, ApplicationCommandDataResolvable, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, Interaction } from "discord.js";
-import { colors } from "../..";
-import { getPlayer } from "../../../database/impl/players/impl/get";
-import { getUser } from "../../../lib/impl/minecraft/scrims/user";
-import { getGamesByPage, getGamesByPlayer } from "../../../database/impl/games/impl/get";
+import { colors } from "../../..";
+import { getPlayer } from "../../../../database/impl/players/impl/get";
+import { getUser } from "../../../../lib/impl/minecraft/scrims/user";
+import { getGamesByPage, getGamesByPlayer } from "../../../../database/impl/games/impl/get";
 
 export default {
     name: "games",

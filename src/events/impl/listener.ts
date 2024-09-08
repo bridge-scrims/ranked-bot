@@ -145,7 +145,7 @@ export const listener = async () => {
     });
 
     emitter.on(Events.WORKER_READY, async (data) => {
-        console.log(colors.gray(`Worker ready for guild ${data.guild_id} with client id ${data.id}`));
+        console.log(colors.gray(`Worker ready for client id ${data.id}`));
     });
 
     emitter.on(Events.WORKER_COMMAND_REGISTER, async (data) => {

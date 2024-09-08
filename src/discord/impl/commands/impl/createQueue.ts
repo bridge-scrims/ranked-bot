@@ -1,6 +1,6 @@
 import { ApplicationCommandDataResolvable, ApplicationCommandOptionType, ChannelType, EmbedBuilder, Interaction, PermissionFlagsBits } from "discord.js";
-import { createQueue } from "../../../database/impl/queues/impl/create";
-import { colors } from "../..";
+import { createQueue } from "../../../../database/impl/queues/impl/create";
+import { colors } from "../../..";
 
 export default {
     name: "create-queue",

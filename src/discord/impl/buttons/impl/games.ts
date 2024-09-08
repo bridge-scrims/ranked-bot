@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Interaction } from "discord.js";
-import { getPlayer } from "../../../database/impl/players/impl/get";
-import { getUser } from "../../../lib/impl/minecraft/scrims/user";
-import { getGamesByPage, getGamesByPlayer } from "../../../database/impl/games/impl/get";
+import { getGamesByPage, getGamesByPlayer } from "../../../../database/impl/games/impl/get";
+import { getPlayer } from "../../../../database/impl/players/impl/get";
+import { getUser } from "../../../../lib/impl/minecraft/scrims/user";
 
 export default {
     id: "games",

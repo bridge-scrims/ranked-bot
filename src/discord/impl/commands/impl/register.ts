@@ -1,8 +1,8 @@
 import { ApplicationCommandDataResolvable, ApplicationCommandOptionType, EmbedBuilder, Interaction } from "discord.js";
-import { colors } from "../..";
-import { getUserByUsername } from "../../../lib/impl/minecraft/scrims/user";
-import { getPlayer } from "../../../database/impl/players/impl/get";
-import { register } from "../../../lib/impl/game/register";
+import { colors } from "../../..";
+import { getUserByUsername } from "../../../../lib/impl/minecraft/scrims/user";
+import { getPlayer } from "../../../../database/impl/players/impl/get";
+import { register } from "../../../../lib/impl/game/register";
 
 export default {
     name: "register",

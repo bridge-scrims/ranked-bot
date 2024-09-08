@@ -1,6 +1,6 @@
 import { ApplicationCommandDataResolvable, ApplicationCommandOptionType, EmbedBuilder, Interaction, PermissionFlagsBits } from "discord.js";
-import { colors } from "../..";
-import { clearQueue } from "../../../database/impl/queues/impl/clear";
+import { colors } from "../../..";
+import { clearQueue } from "../../../../database/impl/queues/impl/clear";
 
 export default {
     name: "clear-queue",

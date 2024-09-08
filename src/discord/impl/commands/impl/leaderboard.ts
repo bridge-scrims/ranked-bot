@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ApplicationCommandDataResolvable, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, Interaction } from "discord.js";
-import { colors } from "../..";
-import { getLeaderboard } from "../../../database/impl/players/impl/get";
-import { getUser } from "../../../lib/impl/minecraft/scrims/user";
+import { colors } from "../../..";
+import { getLeaderboard } from "../../../../database/impl/players/impl/get";
+import { getUser } from "../../../../lib/impl/minecraft/scrims/user";
 
 export default {
     name: "leaderboard",

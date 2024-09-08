@@ -1,10 +1,10 @@
 import { EmbedBuilder, Interaction } from "discord.js";
-import { closeChannel } from "../../../lib/impl/game/closeChannel";
-import { colors } from "../..";
-import { getGame } from "../../../database/impl/games/impl/get";
+import { voidGame } from "../../../../lib/impl/game/voidGame";
+import { colors } from "../../../";
+import { getGame } from "../../../../database/impl/games/impl/get";
 
 export default {
-    id: "score",
+    id: "void",
     execute: async (interaction: Interaction) => {
         if (interaction.isButton()) {
             const id = interaction.customId;
@@ -31,10 +31,10 @@ export default {
                 return await interaction.editReply({ embeds: [embed] });
             }
 
-            const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("Closing channel...");
+            const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription("Voiding game...");
             await interaction.editReply({ embeds: [embed] });
 
-            await closeChannel(interaction.guildId ?? "", gameId);
+            await voidGame(interaction.guildId ?? "", gameId);
         }
     },
 };

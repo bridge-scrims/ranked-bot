@@ -3,6 +3,8 @@ import { env } from "../env";
 import emitter, { Events } from "../events";
 import { initQueue } from "../lib";
 import { init as initWorkers } from "../workers";
+import { commands } from "./impl/commands";
+import { events } from "./impl/events";
 
 export const client = new Client({
     shards: "auto",
@@ -13,22 +15,7 @@ export const client = new Client({
     },
 });
 
-export const commands = [
-    await import("./impl/commands/clearQueue"),
-    await import("./impl/commands/createQueue"),
-    await import("./impl/commands/getQueue"),
-    await import("./impl/commands/register"),
-    await import("./impl/commands/void"),
-    await import("./impl/commands/score"),
-    await import("./impl/commands/scoreGame"),
-    await import("./impl/commands/leaderboard"),
-    await import("./impl/commands/games"),
-    await import("./impl/commands/info"),
-    await import("./impl/commands/set"),
-];
-export const buttons = [await import("./impl/buttons/void"), await import("./impl/buttons/score"), await import("./impl/buttons/leaderboard"), await import("./impl/buttons/games")];
 export const modals: any[] = [];
-export const events = [await import("./impl/events/ready"), await import("./impl/events/interactionCreate"), await import("./impl/events/voiceStateUpdate")];
 
 export const colors = {
     baseColor: 0x5ca3f5,

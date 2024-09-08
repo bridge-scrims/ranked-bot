@@ -1,8 +1,8 @@
 import { ApplicationCommandDataResolvable, ApplicationCommandOptionType, AttachmentBuilder, EmbedBuilder, Interaction } from "discord.js";
-import { colors } from "../..";
-import { getUser } from "../../../lib/impl/minecraft/scrims/user";
-import { getPlayer } from "../../../database/impl/players/impl/get";
-import { generateStatsCard } from "../../../lib/impl/game/generateStatsCard";
+import { colors } from "../../..";
+import { getUser } from "../../../../lib/impl/minecraft/scrims/user";
+import { getPlayer } from "../../../../database/impl/players/impl/get";
+import { generateStatsCard } from "../../../../lib/impl/game/generateStatsCard";
 
 export default {
     name: "info",

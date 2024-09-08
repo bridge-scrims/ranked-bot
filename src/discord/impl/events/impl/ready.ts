@@ -1,4 +1,4 @@
-import emitter, { Events } from "../../../events";
+import emitter, { Events } from "../../../../events";
 
 export default {
     name: "ready",

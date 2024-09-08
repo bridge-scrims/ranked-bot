@@ -1,6 +1,6 @@
 import { ApplicationCommandDataResolvable, ApplicationCommandOptionType, EmbedBuilder, Interaction, PermissionFlagsBits } from "discord.js";
-import { getQueue } from "../../../database/impl/queues/impl/get";
-import { colors } from "../..";
+import { getQueue } from "../../../../database/impl/queues/impl/get";
+import { colors } from "../../..";
 
 export default {
     name: "get-queue",

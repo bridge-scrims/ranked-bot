@@ -1,5 +1,7 @@
 import { Interaction } from "discord.js";
-import { buttons, commands, modals } from "../..";
+import { commands } from "../../commands";
+import { buttons } from "../../buttons";
+import { modals } from "../../..";
 
 export default {
     name: "interactionCreate",

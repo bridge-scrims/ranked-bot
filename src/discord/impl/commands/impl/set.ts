@@ -1,8 +1,8 @@
 import { ApplicationCommandDataResolvable, ApplicationCommandOptionType, EmbedBuilder, Interaction, PermissionFlagsBits } from "discord.js";
-import { colors } from "../..";
-import { getPlayer } from "../../../database/impl/players/impl/get";
-import { updatePlayer } from "../../../database/impl/players/impl/update";
-import { Player } from "../../../types";
+import { colors } from "../../..";
+import { getPlayer } from "../../../../database/impl/players/impl/get";
+import { updatePlayer } from "../../../../database/impl/players/impl/update";
+import { Player } from "../../../../types";
 
 export default {
     name: "set",

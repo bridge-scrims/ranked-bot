@@ -1,7 +1,7 @@
 import { VoiceState } from "discord.js";
-import { add } from "../../../lib/impl/queue/add";
-import { remove } from "../../../lib/impl/queue/remove";
-import { getQueue } from "../../../database/impl/queues/impl/get";
+import { add } from "../../../../lib/impl/queue/add";
+import { remove } from "../../../../lib/impl/queue/remove";
+import { getQueue } from "../../../../database/impl/queues/impl/get";
 
 export default {
     name: "voiceStateUpdate",

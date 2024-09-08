@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ApplicationCommandDataResolvable, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, EmbedBuilder, Interaction, PermissionFlagsBits } from "discord.js";
-import { colors } from "../..";
-import { getGameByChannelId } from "../../../database/impl/games/impl/get";
+import { colors } from "../../..";
+import { getGameByChannelId } from "../../../../database/impl/games/impl/get";
 
 export default {
     name: "score",
