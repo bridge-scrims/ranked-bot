@@ -20,6 +20,10 @@ const exportDatabase = async (name?: string) => {
     const file = Bun.file(fileName);
     if (await file.exists()) {
         console.log(colors.yellow("WARNING: ") + colors.gray(fileName) + colors.yellow(" already exists!"));
+
+        // Overwrite
+        const writer = file.writer();
+        writer.write("");
     }
 
     const exportData = async (tableName: string) => {

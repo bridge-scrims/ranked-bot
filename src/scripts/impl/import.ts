@@ -134,15 +134,15 @@ const importDatabase = async (name?: string) => {
         }
 
         try {
-            await postgres.query(`INSERT INTO ${gamesTableName} (id, game_id, guild_id, player1_id, player2_id, player1_score, player2_score, channel_ids, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [
+            await postgres.query(`INSERT INTO ${gamesTableName} (id, game_id, guild_id, team1_ids, team2_ids, team1_score, team2_score, channel_ids, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [
                 game.id,
                 game.game_id,
                 game.guild_id,
-                game.team1_ids,
-                game.team2_ids,
+                JSON.stringify(game.team1_ids),
+                JSON.stringify(game.team2_ids),
                 game.team1_score,
                 game.team2_score,
-                game.channel_ids,
+                JSON.stringify(game.channel_ids),
                 game.created_at,
             ]);
             count.games++;
