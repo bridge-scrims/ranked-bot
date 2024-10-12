@@ -13,6 +13,7 @@ export const createQueue = async (
     workers: {
         client_id: string;
         client_token: string;
+        vc: boolean;
     }[],
 ) => {
     const query: QueryConfig = {
@@ -47,6 +48,7 @@ export const createQueue = async (
                         client_id: encrypt(worker.client_id),
                         client_token: encrypt(worker.client_token),
                     },
+                    vc: worker.vc,
                     created_at: new Date().toISOString(),
                 };
             }),

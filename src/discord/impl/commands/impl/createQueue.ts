@@ -77,6 +77,7 @@ export default {
                     {
                         client_id: clientId.value as string,
                         client_token: clientToken.value as string,
+                        vc: true,
                     },
                 ]);
                 const embed = new EmbedBuilder().setColor(colors.successColor).setDescription(`Queue created successfully in <#${channel.channel.id}>.`);

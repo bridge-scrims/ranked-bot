@@ -22,7 +22,7 @@ export const initializeWorkers = async (guildId: string) => {
     if (!queues || queues.length === 0) return;
 
     for (const queue of queues) {
-        const worker = workers.find((w) => w.data.guild_id === guildId);
+        const worker = workers.find((w) => w.data.guild_id === guildId && w.data.vc === true);
         if (worker) {
             await joinVC(worker, queue.channel_id);
             await changeNickname(worker, String(queue.players.length) + "/2");

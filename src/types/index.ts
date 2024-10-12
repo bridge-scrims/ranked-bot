@@ -19,6 +19,7 @@ export type WorkerDB = {
         client_id: string;
         client_token: string;
     };
+    vc: boolean;
     created_at: string;
 };
 
