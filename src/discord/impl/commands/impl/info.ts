@@ -17,7 +17,7 @@ export default {
     ],
     execute: async (interaction: Interaction) => {
         if (interaction.isCommand()) {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply();
 
             const user = interaction.options.get("user")?.user ?? interaction.user;
 
@@ -34,6 +34,10 @@ export default {
             }
 
             const statsCard = await generateStatsCard(player, scrimsData);
+            if (!statsCard) {
+                const embed = new EmbedBuilder().setColor(colors.errorColor).setDescription(`No stats found for player <@${user.id}>.`);
+                return interaction.editReply({ embeds: [embed] });
+            }
             const attachment = new AttachmentBuilder(statsCard, { name: "scorecard.png" });
 
             return interaction.editReply({ files: [attachment] });
