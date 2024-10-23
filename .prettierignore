@@ -17,3 +17,4 @@ bun.lockb
 .prettierignore
 .DS_Store
 tsconfig.tsbuildinfo
+*.ttf

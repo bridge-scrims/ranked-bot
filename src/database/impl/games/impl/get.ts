@@ -107,18 +107,41 @@ export const getGamesByPlayer = async (guildId: string, playerId: string, page: 
                 ${tableName}
             WHERE
                 guild_id = $1
-            AND
-                player1_id = $2
-            OR
-                player2_id = $2
+            AND (
+                team1_ids @> $2::jsonb
+                OR
+                team2_ids @> $2::jsonb
+            )
             ORDER BY
                 created_at DESC
             LIMIT 10
             OFFSET $3
         `,
-        values: [guildId, playerId, page * 10],
+        values: [guildId, JSON.stringify(playerId), page * 10],
     };
 
     const result = await postgres.query(query);
     return result.rows;
+};
+
+export const getGamesPlayed = async (guildId: string, playerId: string): Promise<number> => {
+    const query: QueryConfig = {
+        text: `
+            SELECT
+                COUNT(*)
+            FROM
+                ${tableName}
+            WHERE
+                guild_id = $1
+            AND (
+                team1_ids @> $2::jsonb
+                OR
+                team2_ids @> $2::jsonb
+            )
+        `,
+        values: [guildId, JSON.stringify([playerId])],
+    };
+
+    const result = await postgres.query(query);
+    return parseInt(result.rows[0].count);
 };
