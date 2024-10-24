@@ -3,7 +3,7 @@ dotenv.config();
 
 import { Command } from "commander";
 
-const scripts = [await import("./impl/export"), await import("./impl/import"), await import("./impl/drop")];
+const scripts = [await import("./impl/export"), await import("./impl/import"), await import("./impl/drop"), await import("./impl/resetSeason")];
 
 const program = new Command("Ranked Bridge | Scripts");
 program.version("0.0.1").description("Ranked Bridge scripts manager.");
