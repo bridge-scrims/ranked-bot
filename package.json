@@ -41,7 +41,7 @@
     "eventemitter2": "latest",
     "glicko2": "^1.2.1",
     "ioredis": "^5.4.1",
-    "jimp": "0.22.10",
+    "jimp": "1.6.0",
     "pg": "^8.13.0"
   }
 }
