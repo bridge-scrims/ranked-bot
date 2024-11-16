@@ -41,6 +41,10 @@ export const listener = async () => {
         console.log(colors.gray(`Queue ready for guild ${data.guild_id} in channel ${data.channel_id}`));
     });
 
+    emitter.on(Events.QUEUE_SYNC, async (data) => {
+        console.log(colors.gray(`Queue synced for guild ${data.guild_id} in channel ${data.channel_id}`));
+    });
+
     emitter.on(Events.QUEUE_PLAYER_ADD, async (data) => {
         console.log(colors.gray(`Player ${data.memberId} added to queue for guild ${data.guildId} in channel ${data.channelId}`));
 

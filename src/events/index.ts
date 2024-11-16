@@ -11,6 +11,7 @@ export enum Events {
     DATABASE_GAMES_CREATE = "database.games.create",
     DATABASE_GAMES_UPDATE = "database.games.update",
     QUEUE_READY = "queue.ready",
+    QUEUE_SYNC = "queue.sync",
     QUEUE_PLAYER_ADD = "queue.player.add",
     QUEUE_PLAYER_REMOVE = "queue.player.remove",
     GAME_CREATE = "game.create",
