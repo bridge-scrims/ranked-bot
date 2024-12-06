@@ -1,22 +1,31 @@
 {
     "compilerOptions": {
-        "lib": ["ESNext"],
-        "module": "esnext",
-        "target": "esnext",
-        "moduleResolution": "bundler",
-        "moduleDetection": "force",
-        "allowImportingTsExtensions": true,
-        "noEmit": true,
-        "composite": true,
-        "strict": true,
-        "downlevelIteration": true,
-        "skipLibCheck": true,
-        "jsx": "preserve",
-        "allowSyntheticDefaultImports": true,
-        "forceConsistentCasingInFileNames": true,
-        "allowJs": true,
-        "types": [
-            "bun-types" // add Bun global
-        ]
-    }
-}
+      // Enable latest features
+      "lib": ["ESNext"],
+      "target": "ESNext",
+      "module": "ESNext",
+      "moduleDetection": "force",
+      "experimentalDecorators": true,
+      "jsx": "react-jsx",
+      "allowJs": true,
+  
+      // Bundler mode
+      "moduleResolution": "bundler",
+      "allowImportingTsExtensions": true,
+      "noEmit": true,
+  
+      // Best practices
+      "strict": true,
+      "skipLibCheck": true,
+      "noFallthroughCasesInSwitch": true,
+  
+      // Some stricter flags
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "noPropertyAccessFromIndexSignature": true,
+
+      "paths": {
+        "@/*": ["./src/*"]
+      }
+    },
+  }

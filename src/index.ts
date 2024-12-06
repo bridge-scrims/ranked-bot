@@ -1,17 +1,17 @@
-import dotenv from "dotenv";
-dotenv.config();
+import { closeDatabase, initDatabase } from "./database"
+import { closeDiscord, initDiscord } from "./discord"
+import { destroyWorkers } from "./workers"
 
-import { init as initDatabase } from "./database";
-import { init as initDiscord } from "./discord";
+process.on("SIGINT", () => {
+    Promise.race([
+        Promise.all([
+            closeDiscord().catch(console.error),
+            closeDatabase().catch(console.error),
+            destroyWorkers(),
+        ]),
+        Bun.sleep(3000),
+    ]).then(() => process.exit())
+})
 
-import { listener } from "./events/impl/listener";
-import { antiCrash } from "./lib";
-
-(async () => {
-    await listener();
-
-    await initDatabase();
-    await initDiscord();
-
-    antiCrash();
-})();
+await initDatabase()
+await initDiscord()
