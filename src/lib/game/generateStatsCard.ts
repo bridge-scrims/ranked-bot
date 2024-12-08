@@ -1,4 +1,4 @@
-import { Game, type Player } from "@/database"
+import { type Player } from "@/database"
 import { GlobalFonts, createCanvas, loadImage } from "@napi-rs/canvas"
 import type { ScrimsUser } from "../minecraft/scrims/user"
 
@@ -14,15 +14,15 @@ GlobalFonts.registerFromPath("assets/fonts/Rajdhani.ttf", "Rajdhani")
 const bgPromise = loadImage("assets/images/background.png")
 
 export async function generateStatsCard(player: Player, user: ScrimsUser) {
-    const { elo, winStreak, bestWinStreak, wins, losses } = player.getRankedStats()
+    const { elo, winStreak, bestWinStreak, wins, losses, draws } = player.getRankedStats()
+    const gamesPlayed = wins + losses + draws
     const wl = losses === 0 ? wins.toString() : (wins / losses).toFixed(2)
 
     const canvas = createCanvas(3000, 2000)
     const ctx = canvas.getContext("2d")
 
-    const [background, gamesPlayed, avatar] = await Promise.all([
+    const [background, avatar] = await Promise.all([
         bgPromise,
-        Game.countDocuments({ "teams.players": player.id }),
         loadImage(`https://mc-heads.net/body/${user._id}/right`),
     ])
 

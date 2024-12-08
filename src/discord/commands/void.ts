@@ -17,8 +17,7 @@ export default {
     builder: new SlashCommandBuilder()
         .setName("void")
         .setDescription("Voids a game.")
-        .setContexts(InteractionContextType.Guild)
-        .setDefaultMemberPermissions("0"),
+        .setContexts(InteractionContextType.Guild),
 
     async execute(interaction: ChatInputCommandInteraction) {
         await interaction.deferReply({ ephemeral: true })
