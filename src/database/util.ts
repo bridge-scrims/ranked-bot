@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 import mongoose, {
     CompileModelOptions,
     FilterQuery,
