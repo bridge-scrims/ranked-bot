@@ -1,16 +1,20 @@
 import { Game } from "@/database/models/Game"
 import { client, colors } from "@/discord"
+import { stringifyScore } from "@/util/scores"
 import {
+    bold,
+    ButtonBuilder,
+    ButtonStyle,
     EmbedBuilder,
     OverwriteType,
     PermissionFlagsBits,
     Routes,
     userMention,
-    type MessageCreateOptions,
     type OverwriteResolvable,
 } from "discord.js"
+import { MessageOptionsBuilder } from "../discord/MessageOptionsBuilder"
 
-export async function closeChannel(game: Game, image?: string) {
+export async function closeChannel(game: Game, score1: number, score2: number, image?: string) {
     const guild = await client.guilds.fetch(game.guildId!)
     if (!guild) return
 
@@ -19,7 +23,9 @@ export async function closeChannel(game: Game, image?: string) {
 
     const embed = new EmbedBuilder()
         .setTitle(`Game ${game.sequence} Finished`)
-        .setDescription(`The game has finished. Please score it via the \`/score-game\` command.`)
+        .setDescription(
+            `The game has finished.\nPlease confirm ${bold(stringifyScore(game, score1, score2))}.`,
+        )
         .setColor(colors.baseColor)
         .setImage(image ?? null)
         .setFields(
@@ -29,9 +35,14 @@ export async function closeChannel(game: Game, image?: string) {
             })),
         )
 
+    const button = new ButtonBuilder()
+        .setLabel("Confirm")
+        .setStyle(ButtonStyle.Success)
+        .setCustomId(`confirmScore:${score1}:${score2}`)
+
     Promise.allSettled(game.channels!.map((id) => client.rest.delete(Routes.channel(id))))
 
-    const message: MessageCreateOptions = { embeds: [embed] }
+    const message = new MessageOptionsBuilder().addEmbeds(embed).addButtons(button)
     const permissionOverwrites: OverwriteResolvable[] = [
         {
             id: guild.roles.everyone.id,
@@ -56,10 +67,8 @@ export async function closeChannel(game: Game, image?: string) {
 
     const text = await guild.channels.fetch(game.id)
     if (text?.isSendable()) {
-        await Promise.all([
-            text.edit({ name: `finished-${text.name}`, permissionOverwrites }),
-            text.send(message),
-        ])
+        await text.edit({ name: `finished-${text.name}`, permissionOverwrites })
+        await text.send(message)
     }
 
     return true

@@ -41,6 +41,7 @@ export async function archiveGame(game: Game, results: number[]) {
     if (!update.matchedCount) return false
 
     games.delete(game.id)
-    Promise.allSettled(game.channels!.concat(game._id)!.map((id) => client.rest.delete(Routes.channel(id))))
+    Promise.allSettled(game.channels!.map((id) => client.rest.delete(Routes.channel(id))))
+    Bun.sleep(1000).then(() => client.rest.delete(Routes.channel(game._id)).catch(() => null))
     return true
 }
