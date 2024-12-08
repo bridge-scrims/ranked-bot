@@ -30,7 +30,7 @@ export class Elo {
     }
 
     static getAverage(team: number[]) {
-        return team.reduce((pv, cv) => pv + cv, 0)
+        return team.reduce((pv, cv) => pv + cv, 0) / team.length
     }
 
     static getExpectedResult(elo1: number, elo2: number): number {

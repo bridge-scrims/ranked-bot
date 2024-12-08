@@ -16,7 +16,7 @@ export default {
             throw new UserError("This score request must be accepted by the other team.")
 
         await interaction.editReply("Closing channel...")
-        const success = await closeChannel(game)
+        const success = await closeChannel(game, interaction.message.embeds[0]?.image?.url)
         if (!success) throw new UserError("Channel already closed!")
     },
 }

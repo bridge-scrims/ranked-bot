@@ -1,5 +1,5 @@
 import { Game } from "@/database/models/Game"
-import { client } from "@/discord"
+import { client, colors } from "@/discord"
 import {
     EmbedBuilder,
     OverwriteType,
@@ -10,7 +10,7 @@ import {
     type OverwriteResolvable,
 } from "discord.js"
 
-export async function closeChannel(game: Game) {
+export async function closeChannel(game: Game, image?: string) {
     const guild = await client.guilds.fetch(game.guildId!)
     if (!guild) return
 
@@ -20,6 +20,8 @@ export async function closeChannel(game: Game) {
     const embed = new EmbedBuilder()
         .setTitle(`Game ${game.sequence} Finished`)
         .setDescription(`The game has finished. Please score it via the \`/score-game\` command.`)
+        .setColor(colors.baseColor)
+        .setImage(image ?? null)
         .setFields(
             game.teams.map((v, i) => ({
                 name: `Team ${i + 1}`,

@@ -10,7 +10,7 @@ export async function voidGame(gameId: string) {
 
     const success = await archiveGame(
         game,
-        game.teams.map(() => 0),
+        game.teams.map(() => -1),
     )
 
     if (!success) return false
