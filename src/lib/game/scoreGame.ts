@@ -1,21 +1,12 @@
 import { EmbedBuilder, userMention } from "discord.js"
 
-import { SEASON } from "@/Constants"
+import { Stats } from "@/Constants"
 import { Player } from "@/database"
 import type { Game } from "@/database/models/Game"
 import { colors } from "@/discord"
+import { gameLog } from "@/lib/game/gameLog"
 import { Elo, Result } from "@/util/elo"
-import { gameLog } from "@/workers/functions/log"
 import { archiveGame } from "."
-
-const Stats = {
-    Elo: `ranked.${SEASON}.elo`,
-    Wins: `ranked.${SEASON}.wins`,
-    Losses: `ranked.${SEASON}.losses`,
-    Draws: `ranked.${SEASON}.draws`,
-    WinStreak: `ranked.${SEASON}.winStreak`,
-    BestStreak: `ranked.${SEASON}.bestWinStreak`,
-}
 
 export async function scoreGame(game: Game, team1Score: number, team2Score: number) {
     const success = await archiveGame(game, [team1Score, team2Score])
@@ -69,13 +60,13 @@ export async function scoreGame(game: Game, team1Score: number, team2Score: numb
             game.teams.map((team, i) => ({
                 name: `Team ${i + 1}`,
                 value: team.players
-                    .map((id) => `- ${userMention(id)} \`${oldElo[id]}\` **->** \`${newElo[id]}\``)
+                    .map((id) => `• ${userMention(id)} \`${oldElo[id]}\` **->** \`${newElo[id]}\``)
                     .join("\n"),
                 inline: false,
             })),
         )
         .setTimestamp()
 
-    await gameLog(game, { embeds: [embed] })
+    gameLog(game, { embeds: [embed] }).catch(console.error)
     return true
 }

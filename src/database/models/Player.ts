@@ -36,7 +36,10 @@ class Template {
     }
 
     static async setMcUuid(id: string, uuid: string) {
-        await Player.updateOne({ _id: id }, { mcUUID: uuid }, { upsert: true })
+        await Promise.all([
+            Player.updateMany({ _id: { $ne: id }, mcUUID: uuid }, { $unset: { mcUUID: "" } }),
+            Player.updateOne({ _id: id }, { mcUUID: uuid }, { upsert: true }),
+        ])
         mcCache.set(id, uuid)
     }
 

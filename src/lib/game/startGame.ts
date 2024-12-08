@@ -21,7 +21,7 @@ const PERMISSIONS = [
 ]
 
 export async function startGame(queue: Queue, teams: string[][]) {
-    const guild: Guild = await client.guilds.fetch(queue.guildId)
+    const guild = await client.guilds.fetch(queue.guildId)
     if (!guild) return
 
     const gameId = await incrementSequence()

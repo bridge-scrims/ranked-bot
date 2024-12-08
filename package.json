@@ -4,6 +4,7 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
+    "test": "bun src/test.ts",
     "prettier": "bunx prettier --write .",
     "eslint": "bunx eslint --fix .",
     "lint": "bun run prettier && bun run eslint"

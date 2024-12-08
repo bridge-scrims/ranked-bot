@@ -19,8 +19,14 @@ export const client = new Client({
     },
 })
 
-const handler = new InteractionHandler(client)
-handler.addCommands(importDir(__dirname, "commands"))
+export const handler = new InteractionHandler(client)
+for (const command of importDir(__dirname, "commands")) {
+    if (typeof command === "function") {
+        command(handler)
+    } else {
+        handler.addCommands(command)
+    }
+}
 handler.addComponents(importDir(__dirname, "buttons"))
 registerEvents(client, importDir(__dirname, "events"))
 

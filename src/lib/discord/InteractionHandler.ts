@@ -8,11 +8,12 @@ import {
     type ApplicationCommand,
     type AutocompleteInteraction,
     type BaseMessageOptions,
-    type ChatInputCommandInteraction,
     type Client,
+    type ContextMenuCommandBuilder,
     type Interaction,
     type MessageComponentInteraction,
     type SlashCommandBuilder,
+    type SlashCommandOptionsOnlyBuilder,
 } from "discord.js"
 import { UserError } from "./UserError"
 
@@ -20,8 +21,8 @@ const GUILD_COMMANDS = process.env["USE_GUILD_COMMANDS"]?.toLowerCase() === "tru
 
 export class InteractionHandler {
     private client: Client
-    private builders: Record<string, SlashCommandBuilder> = {}
-    private commands: Record<string, (interaction: ChatInputCommandInteraction) => Promise<unknown>> = {}
+    private builders: Record<string, CommandBuilder> = {}
+    private commands: Record<string, (interaction: any) => Promise<unknown>> = {}
     private autocomplete: Record<string, (interaction: AutocompleteInteraction) => Promise<unknown>> = {}
     private components: Record<string, (interaction: MessageComponentInteraction) => Promise<unknown>> = {}
 
@@ -70,7 +71,7 @@ export class InteractionHandler {
     private async handleNow(interaction: Interaction) {
         if (interaction.isAutocomplete()) {
             return this.autocomplete[interaction.commandName]?.(interaction)
-        } else if (interaction.isChatInputCommand()) {
+        } else if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
             return this.commands[interaction.commandName]?.(interaction)
         } else if (interaction.isMessageComponent()) {
             interaction.args = interaction.customId.split(":")
@@ -85,8 +86,13 @@ export class InteractionHandler {
         }
     }
 
-    addCommands(commands: Command[]) {
+    addCommands(...commands: Command[]) {
         for (const command of commands) {
+            if (GUILD_COMMANDS) {
+                command.builder.setContexts(InteractionContextType.Guild)
+                command.builder.setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
+            }
+
             if (!command.builder.contexts) command.builder.setContexts(InteractionContextType.Guild)
             if (!command.builder.integration_types)
                 command.builder.setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
@@ -104,6 +110,10 @@ export class InteractionHandler {
         for (const component of components) {
             this.components[component.id] = component.execute
         }
+    }
+
+    getRegistered() {
+        return Object.keys(this.builders).concat(Object.keys(this.components))
     }
 
     async register() {
@@ -150,9 +160,10 @@ export class InteractionHandler {
     }
 }
 
+type CommandBuilder = SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | ContextMenuCommandBuilder
 export interface Command {
-    builder: SlashCommandBuilder
-    execute: (interaction: ChatInputCommandInteraction) => Promise<unknown>
+    builder: CommandBuilder
+    execute: (interaction: any) => Promise<unknown>
     autocomplete?: (interaction: AutocompleteInteraction) => Promise<unknown>
 }
 
@@ -167,7 +178,7 @@ declare module "discord.js" {
     }
 }
 
-function commandsEqual(command: ApplicationCommand, builder: SlashCommandBuilder) {
+function commandsEqual(command: ApplicationCommand, builder: CommandBuilder) {
     // @ts-expect-error important so that we can tell if the command changed or not
     builder.options?.filter((option) => !option.type).forEach((option) => (option.type = 1))
     // @ts-expect-error important so that we can tell if the command changed or not

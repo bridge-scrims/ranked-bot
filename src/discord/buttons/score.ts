@@ -15,10 +15,8 @@ export default {
         if (!team.players.includes(interaction.user.id))
             throw new UserError("This score request must be accepted by the other team.")
 
-        if (!(await closeChannel(game))) {
-            throw new UserError("Channel already closed!")
-        }
-
         await interaction.editReply("Closing channel...")
+        const success = await closeChannel(game)
+        if (!success) throw new UserError("Channel already closed!")
     },
 }

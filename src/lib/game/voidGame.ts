@@ -1,7 +1,7 @@
 import { EmbedBuilder, bold, userMention } from "discord.js"
 
 import { colors } from "@/discord"
-import { gameLog } from "@/workers/functions/log"
+import { gameLog } from "@/lib/game/gameLog"
 import { archiveGame, getGame } from "."
 
 export async function voidGame(gameId: string) {
