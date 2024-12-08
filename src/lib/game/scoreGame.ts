@@ -48,6 +48,7 @@ export async function scoreGame(game: Game, team1Score: number, team2Score: numb
                     updates.map((v) => ({ $set: v })),
                     { upsert: true },
                 )
+                Player.updateElo(id, newElo[id])
             })
         }),
     )

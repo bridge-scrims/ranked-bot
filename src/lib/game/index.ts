@@ -4,26 +4,18 @@ import { client } from "@/discord"
 import { Routes } from "discord.js"
 
 let sequence: number
-const playerGames = new Map<string, Game>()
-
-const newestGame = Game.find({ season: SEASON })
-    .sort({ sequence: -1 })
-    .findOne()
-    .then((v) => (sequence = v?.sequence ?? 0))
-
-const ongoingGames = Game.find({ queueId: { $exists: true }, season: SEASON }).then((games) => {
-    games.forEach((game) => indexPlayers(game))
-    return new Map(games.map((v) => [v.id, v]))
-})
+const newestGame = Game.findOne({ season: SEASON }, { sequence: 1 }, { sort: { sequence: -1 } }).then(
+    (v) => (sequence = v?.sequence ?? 0),
+)
 
 export async function incrementSequence() {
     await newestGame
     return ++sequence
 }
 
-function indexPlayers(game: Game) {
-    game.teams.flatMap((v) => v.players).forEach((v) => playerGames.set(v, game))
-}
+const ongoingGames = Game.find({ queueId: { $exists: true }, season: SEASON }).then(
+    (games) => new Map(games.map((v) => [v.id, v])),
+)
 
 export async function getGame(id: string) {
     const games = await ongoingGames
@@ -34,7 +26,6 @@ export async function createGame(data: Partial<Game>) {
     const games = await ongoingGames
     const game = await Game.create(data)
     games.set(game.id, game)
-    indexPlayers(game)
 }
 
 export async function archiveGame(game: Game, results: number[]) {
@@ -50,12 +41,6 @@ export async function archiveGame(game: Game, results: number[]) {
     if (!update.matchedCount) return false
 
     games.delete(game.id)
-    game.teams.flatMap((v) => v.players.forEach((v) => playerGames.delete(v)))
-
     Promise.allSettled(game.channels!.concat(game._id)!.map((id) => client.rest.delete(Routes.channel(id))))
     return true
-}
-
-export function getMemberGame(user: string) {
-    return playerGames.get(user)
 }

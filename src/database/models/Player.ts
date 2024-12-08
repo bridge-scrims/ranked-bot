@@ -1,6 +1,6 @@
 import { userMention } from "discord.js"
 
-import { DEFAULT_ELO, SEASON } from "@/Constants"
+import { DEFAULT_ELO, SEASON, Stats } from "@/Constants"
 import {
     Document,
     getSchemaFromClass,
@@ -33,6 +33,10 @@ const DEFAULT_STATS: RankedStats = {
 class Template {
     static getMcUuid(id: string) {
         return mcCache.get(id)
+    }
+
+    static updateElo(id: string, elo: number) {
+        eloCache.set(id, elo)
     }
 
     static async setMcUuid(id: string, uuid: string) {
@@ -72,7 +76,7 @@ export type Player = SchemaDocument<typeof schema>
 const eloCache = new Map<string, number>()
 const mcCache = new Map<string, string>()
 
-const elo = `ranked.${SEASON}.elo`
+const elo = Stats.Elo
 Player.find({}, { mcUUID: 1, [elo]: 1 }).then((players) => {
     players.forEach((v) => {
         const elo = v.getRankedStats()?.elo
