@@ -24,7 +24,8 @@ export async function closeChannel(game: Game, score1: number, score2: number, i
     const embed = new EmbedBuilder()
         .setTitle(`Game ${game.sequence} Finished`)
         .setDescription(
-            `The game has finished.\nPlease confirm ${bold(stringifyScore(game, score1, score2))}.`,
+            `The game has finished.\nPlease confirm ${bold(stringifyScore(game, score1, score2))} ` +
+                `or overwrite it with the /score-game command.`,
         )
         .setColor(colors.baseColor)
         .setImage(image ?? null)
@@ -36,8 +37,8 @@ export async function closeChannel(game: Game, score1: number, score2: number, i
         )
 
     const button = new ButtonBuilder()
-        .setLabel("Confirm")
-        .setStyle(ButtonStyle.Success)
+        .setLabel("Score Game")
+        .setStyle(ButtonStyle.Primary)
         .setCustomId(`confirmScore:${score1}:${score2}`)
 
     Promise.allSettled(game.channels!.map((id) => client.rest.delete(Routes.channel(id))))

@@ -49,7 +49,8 @@ export class InteractionHandler {
                     embeds: [new EmbedBuilder().setColor(0x5ca3f5).setDescription(response)],
                 })
         } catch (error) {
-            if (error instanceof DiscordAPIError && [10062, 10008].includes(error.code as number)) return
+            if (error instanceof DiscordAPIError && ["10062", "10008", "10003"].includes(`${error.code}`))
+                return
 
             let userError: UserError
             if (!(error instanceof UserError)) {

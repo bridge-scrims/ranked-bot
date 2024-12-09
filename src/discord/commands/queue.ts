@@ -22,8 +22,7 @@ export default {
                 .setDescription("The channel to queue.")
                 .setRequired(false),
         )
-        .setContexts(InteractionContextType.Guild)
-        .setDefaultMemberPermissions("0"),
+        .setContexts(InteractionContextType.Guild),
 
     async execute(interaction: ChatInputCommandInteraction) {
         await interaction.deferReply({ ephemeral: true })

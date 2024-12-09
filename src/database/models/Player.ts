@@ -35,10 +35,6 @@ class Template {
         return mcCache.get(id)
     }
 
-    static updateElo(id: string, elo: number) {
-        eloCache.set(id, elo)
-    }
-
     static async setMcUuid(id: string, uuid: string) {
         await Promise.all([
             Player.updateMany({ _id: { $ne: id }, mcUUID: uuid }, { $unset: { mcUUID: "" } }),
@@ -49,6 +45,10 @@ class Template {
 
     static getRankedElo(id: string) {
         return eloCache.get(id) ?? DEFAULT_ELO
+    }
+
+    static updateElo(id: string, elo: number) {
+        eloCache.set(id, elo)
     }
 
     @LongProp({ required: true })
@@ -85,8 +85,10 @@ Player.find({}, { mcUUID: 1, [elo]: 1 }).then((players) => {
     })
 })
 
-Player.watcher().on("update", (v, id) => {
-    const updated = v.updatedFields as any
-    if (updated[elo] !== undefined) eloCache.set(id.toString(), updated[elo])
-    if (updated?.mcUUID !== undefined) mcCache.set(id.toString(), updated.mcUUID.toString())
+Player.watcher().on("update", (_v, _id, doc) => {
+    if (doc) {
+        eloCache.set(doc.id, doc.getRankedStats().elo)
+        if (doc.mcUUID) mcCache.set(doc.id, doc.mcUUID)
+        else mcCache.delete(doc.id)
+    }
 })
