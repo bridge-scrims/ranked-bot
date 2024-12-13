@@ -28,7 +28,7 @@ export default {
         await interaction.deferReply({ ephemeral: true })
 
         const oldQueue = removeFromQueue(interaction.user.id)
-        if (oldQueue) return `Successfully remove you from ${channelLink(oldQueue, interaction.guildId!)}`
+        if (oldQueue) return `Successfully removed you from ${channelLink(oldQueue, interaction.guildId!)}`
 
         const channel = interaction.options.getChannel("channel") as BaseGuildVoiceChannel
         if (!channel) throw new UserError("You must specify the queue channel you want to join.")
