@@ -4,6 +4,8 @@ import {
     Guild,
     OverwriteType,
     PermissionFlagsBits,
+    PermissionsBitField,
+    type GuildBasedChannel,
     type GuildChannelTypes,
     type GuildMember,
 } from "discord.js"
@@ -11,14 +13,16 @@ import {
 import type { Queue } from "@/database"
 import { client, colors } from "@/discord"
 import { createGame, incrementSequence } from "."
+import { mergePermissions } from "../discord/mergePermissions"
 
-const PERMISSIONS = [
+const PERMISSIONS = new PermissionsBitField([
     PermissionFlagsBits.ViewChannel,
+    PermissionFlagsBits.ReadMessageHistory,
     PermissionFlagsBits.Connect,
     PermissionFlagsBits.Speak,
     PermissionFlagsBits.SendMessages,
-    PermissionFlagsBits.ReadMessageHistory,
-]
+    PermissionFlagsBits.AddReactions,
+])
 
 export async function startGame(queue: Queue, teams: string[][]) {
     const guild = await client.guilds.fetch(queue.guildId)
@@ -30,8 +34,11 @@ export async function startGame(queue: Queue, teams: string[][]) {
     )
     const members = teamMembers.flatMap((v) => v)
 
+    const textCategory = guild.channels.cache.get(queue.textCategory)
+    const vcCategory = guild.channels.cache.get(queue.vcCategory)
+
     const [text, vcs] = await Promise.all([
-        createChannel(queue, `game-${gameId}`, ChannelType.GuildText, guild, members, queue.textCategory),
+        createChannel(queue, `game-${gameId}`, ChannelType.GuildText, guild, members, textCategory),
         Promise.all(
             teamMembers.map((v, i) =>
                 createChannel(
@@ -40,7 +47,7 @@ export async function startGame(queue: Queue, teams: string[][]) {
                     ChannelType.GuildVoice,
                     guild,
                     v,
-                    queue.vcCategory,
+                    vcCategory,
                 ),
             ),
         ),
@@ -86,24 +93,33 @@ async function createChannel<T extends GuildChannelTypes>(
     type: T,
     guild: Guild,
     team: GuildMember[],
-    parent?: string | null,
+    parent?: GuildBasedChannel,
 ) {
-    return guild.channels.create({
-        name,
-        type,
-        parent,
-        permissionOverwrites: [
+    const permissions = mergePermissions(
+        parent?.type === ChannelType.GuildCategory ? parent.permissionOverwrites.cache : null,
+        [
             {
                 id: guild.roles.everyone.id,
                 type: OverwriteType.Role,
-                deny: PERMISSIONS,
+                deny: [PermissionFlagsBits.ViewChannel],
             },
             {
                 id: queue.workerId,
                 type: OverwriteType.Member,
                 allow: PERMISSIONS,
             },
-            ...team.map((p) => ({ id: p.id, type: OverwriteType.Member, allow: PERMISSIONS })),
+            ...team.map((p) => ({
+                id: p.id,
+                type: OverwriteType.Member,
+                allow: PERMISSIONS,
+            })),
         ],
+    )
+
+    return guild.channels.create({
+        name,
+        type,
+        parent: parent?.id,
+        permissionOverwrites: permissions,
     })
 }

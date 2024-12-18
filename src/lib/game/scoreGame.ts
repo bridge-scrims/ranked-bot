@@ -1,4 +1,4 @@
-import { EmbedBuilder, spoiler, userMention } from "discord.js"
+import { EmbedBuilder, spoiler, userMention, type User } from "discord.js"
 
 import { Stats } from "@/Constants"
 import { Player } from "@/database"
@@ -9,7 +9,7 @@ import { Elo, Result } from "@/util/elo"
 import { stringifyScore } from "@/util/scores"
 import { archiveGame } from "."
 
-export async function scoreGame(game: Game, team1Score: number, team2Score: number) {
+export async function scoreGame(game: Game, team1Score: number, team2Score: number, scorer: User) {
     const success = await archiveGame(game, [team1Score, team2Score])
     if (!success) return false
 
@@ -68,6 +68,7 @@ export async function scoreGame(game: Game, team1Score: number, team2Score: numb
                 inline: false,
             })),
         )
+        .setFooter({ text: `Scored by ${scorer.username}` })
         .setTimestamp()
 
     const content = spoiler(players.map(userMention).join(" "))

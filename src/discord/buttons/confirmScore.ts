@@ -19,7 +19,7 @@ export default {
             const success = await voidGame(game.id)
             if (!success) throw new UserError("This game has already been voided.")
         } else {
-            const success = await scoreGame(game, score1, score2)
+            const success = await scoreGame(game, score1, score2, interaction.user)
             if (!success) throw new UserError("This game has already been scored.")
         }
 

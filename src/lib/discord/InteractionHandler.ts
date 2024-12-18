@@ -1,11 +1,10 @@
-import { RequestError } from "@/util/request"
 import {
     ApplicationIntegrationType,
     DiscordAPIError,
     EmbedBuilder,
     Events,
     InteractionContextType,
-    type ApplicationCommand,
+    type ApplicationCommandManager,
     type AutocompleteInteraction,
     type BaseMessageOptions,
     type Client,
@@ -15,30 +14,25 @@ import {
     type SlashCommandBuilder,
     type SlashCommandOptionsOnlyBuilder,
 } from "discord.js"
+
+import { RequestError } from "@/util/request"
 import { UserError } from "./UserError"
 
+const IGNORE_CODES = new Set(["10062", "10008", "10003"])
 const GUILD_COMMANDS = process.env["USE_GUILD_COMMANDS"]?.toLowerCase() === "true"
 
 export class InteractionHandler {
-    private client: Client
     private builders: Record<string, CommandBuilder> = {}
     private commands: Record<string, (interaction: any) => Promise<unknown>> = {}
     private autocomplete: Record<string, (interaction: AutocompleteInteraction) => Promise<unknown>> = {}
     private components: Record<string, (interaction: MessageComponentInteraction) => Promise<unknown>> = {}
 
     constructor(client: Client) {
-        this.client = client
-        client.on(Events.ClientReady, () => this.register())
-        client.on(Events.InteractionCreate, async (interaction) => this.handle(interaction))
-
-        if (GUILD_COMMANDS) {
-            console.log("[CommandInstaller] Using guild commands.")
-            client.on(Events.GuildCreate, (guild) => this.register0(guild.id))
-        }
-    }
-
-    private get application() {
-        return this.client.application!
+        client.on(Events.ClientReady, async (client) => {
+            await this.register(client)
+            client.on(Events.InteractionCreate, (i) => this.handle(i))
+            console.log("[InteractionHandler] Commands registered. Now accepting interactions.")
+        })
     }
 
     private async handle(interaction: Interaction) {
@@ -49,20 +43,19 @@ export class InteractionHandler {
                     embeds: [new EmbedBuilder().setColor(0x5ca3f5).setDescription(response)],
                 })
         } catch (error) {
-            if (error instanceof DiscordAPIError && ["10062", "10008", "10003"].includes(`${error.code}`))
-                return
+            if (error instanceof DiscordAPIError && IGNORE_CODES.has(`${error.code}`)) return
 
             let userError: UserError
-            if (!(error instanceof UserError)) {
-                console.error(`Unknown error handling interaction`, error)
-                userError = new UserError("Unexpected error handling your commands.")
+            if (error instanceof UserError) {
+                userError = error
             } else if (error instanceof RequestError) {
                 console.error(error)
                 userError = new UserError(
                     "An external service this function depends on is currently unavailable.",
                 )
             } else {
-                userError = error
+                console.error(`Unknown error handling interaction`, error)
+                userError = new UserError("Unexpected error handling your commands.")
             }
 
             await this.respond(interaction, userError.toMessage()).catch(console.error)
@@ -117,47 +110,17 @@ export class InteractionHandler {
         return Object.keys(this.builders).concat(Object.keys(this.components))
     }
 
-    async register() {
+    private async register(client: Client<true>) {
         if (GUILD_COMMANDS) {
-            this.application.commands.set([]).catch(console.error)
-            await Promise.all(
-                this.client.guilds.cache.map((guild) => this.register0(guild.id).catch(console.error)),
-            )
+            console.log("[InteractionHandler] Using guild commands.")
+            await Promise.all(client.guilds.cache.map((guild) => this.postCommands(guild.commands)))
         } else {
-            this.register0().catch(console.error)
-            for (const guild of this.client.guilds.cache.keys()) {
-                this.application.commands.set([], guild).catch(console.error)
-            }
+            await this.postCommands(client.application.commands)
         }
-        console.log("[InteractionHandler] Commands registered.")
     }
 
-    private async register0(guildId?: string) {
-        const existing = await this.application.commands.fetch({ guildId })
-        const existingNames = new Set<string>()
-        const promises: Promise<unknown>[] = []
-
-        for (const cmd of existing.values()) {
-            existingNames.add(cmd.name)
-
-            const builder = this.builders[cmd.name]
-            if (!builder) {
-                console.log("[InteractionHandler] Deleting " + cmd.name + " since it wasn't registered.")
-                promises.push(cmd.delete().catch(console.error))
-            } else if (!commandsEqual(cmd, builder)) {
-                console.log("[InteractionHandler] Updating " + cmd.name + " to match the builder.")
-                promises.push(this.application.commands.create(builder, guildId).catch(console.error))
-            }
-        }
-
-        for (const [name, builder] of Object.entries(this.builders)) {
-            if (!existingNames.has(name)) {
-                console.log("[InteractionHandler] Creating " + name + " since it's new.")
-                promises.push(this.application.commands.create(builder, guildId).catch(console.error))
-            }
-        }
-
-        await Promise.all(promises)
+    private async postCommands(manager: ApplicationCommandManager<unknown, unknown, unknown>) {
+        await manager.set(Object.values(this.builders))
     }
 }
 
@@ -177,21 +140,4 @@ declare module "discord.js" {
     interface MessageComponentInteraction {
         args: string[]
     }
-}
-
-function commandsEqual(command: ApplicationCommand, builder: CommandBuilder) {
-    // @ts-expect-error important so that we can tell if the command changed or not
-    builder.options?.filter((option) => !option.type).forEach((option) => (option.type = 1))
-    // @ts-expect-error important so that we can tell if the command changed or not
-    builder.nsfw = false
-
-    // @ts-expect-error important so that we can tell if the command changed or not
-    command.options.filter((o) => o.type === 1 && !o.options).map((o) => (o.options = []))
-    command.dmPermission = null
-    if (command.guildId) {
-        command.contexts = [InteractionContextType.Guild]
-        command.integrationTypes = [ApplicationIntegrationType.GuildInstall]
-    }
-
-    return command.equals(builder as any)
 }

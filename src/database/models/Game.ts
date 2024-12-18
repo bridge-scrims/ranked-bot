@@ -42,6 +42,10 @@ class Template {
 
     @Prop({ type: [getSchemaFromClass(Team)], required: true })
     teams!: Team[]
+
+    isParticipant(id: string) {
+        return this.teams.some((v) => v.players.includes(id))
+    }
 }
 
 const schema = getSchemaFromClass(Template)
