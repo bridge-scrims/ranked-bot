@@ -7,6 +7,7 @@
     "test": "bun src/test.ts",
     "prettier": "bunx prettier --write .",
     "eslint": "bunx eslint --fix .",
+    "dev": "bun src/index.ts",
     "lint": "bun run prettier && bun run eslint"
   },
   "dependencies": {
