@@ -7,35 +7,47 @@ export default (handler: InteractionHandler) => {
     handler.addCommands(
         {
             builder: new SlashCommandBuilder()
-                .setName("party-create")
+                .setName("party")
                 .setDescription("Create a party")
-                .addUserOption(option => 
-                    option.setName('user1')
-                    .setDescription('First user to be invited')
-                    .setRequired(false)
-                )
-                .addUserOption(option => 
-                    option.setName('user2')
-                    .setDescription('Second user to be invited')
-                    .setRequired(false)
+                .addSubcommand(subcommand =>
+                    subcommand
+                    .setName("create")
+                    .setDescription("Create a party!")
+                    .addUserOption(option => 
+                        option.setName('user1')
+                        .setDescription('First user to be invited')
+                        .setRequired(false)
+                    )
+                    .addUserOption(option => 
+                        option.setName('user2')
+                        .setDescription('Second user to be invited')
+                        .setRequired(false)
+                    )
                 )
                 .setContexts(InteractionContextType.Guild),
 
                 async execute(interaction: ChatInputCommandInteraction) {
-                    const leader = interaction.user;
-                
-                    const players = [
-                        interaction.options.getUser("user1"),
-                        interaction.options.getUser("user2")
-                    ].filter(user => user !== null)
-                      .map(user => user);
-                
-                    const result = await PartyHandler.createParty(leader, ...players);
-                    if (result == LEADER_ALREADY_IN_PARTY) {
-                        interaction.reply("You are already in a party!");
-                    } else if (result == 0) {
-                        const playerNames = players.map(player => player.username).join(" and ");
-                        interaction.reply(`Successfully created party with ${playerNames}`);
+                    if (!interaction.isChatInputCommand()) return;
+
+                    const subcommand = interaction.options.getSubcommand();
+                    
+                    if (subcommand === "create") {
+                        const leader = interaction.user;
+                    
+                        const players = [
+                            interaction.options.getUser("user1"),
+                            interaction.options.getUser("user2"),
+                        ]
+                            .filter(user => user !== null)
+                            .map(user => user);
+                    
+                        const result = await PartyHandler.createParty(leader, ...players);
+                        if (result === LEADER_ALREADY_IN_PARTY) {
+                            await interaction.reply("You are already in a party!");
+                        } else if (result === 0) {
+                            const playerNames = players.map(player => player.username).join(" and ");
+                            await interaction.reply(`Successfully created party with ${playerNames}`);
+                        }
                     }
                 },
         },
