@@ -1,0 +1,1 @@
+export const LEADER_ALREADY_IN_PARTY = 1
