@@ -4,6 +4,8 @@ import {
     EmbedBuilder,
     Events,
     InteractionContextType,
+    SlashCommandSubcommandBuilder,
+    SlashCommandSubcommandsOnlyBuilder,
     type ApplicationCommandManager,
     type AutocompleteInteraction,
     type BaseMessageOptions,
@@ -124,7 +126,7 @@ export class InteractionHandler {
     }
 }
 
-type CommandBuilder = SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | ContextMenuCommandBuilder
+type CommandBuilder = SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | ContextMenuCommandBuilder | SlashCommandSubcommandsOnlyBuilder
 export interface Command {
     builder: CommandBuilder
     execute: (interaction: any) => Promise<unknown>
