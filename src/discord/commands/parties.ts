@@ -37,7 +37,7 @@ export default (handler: InteractionHandler) => {
                         const playerNames = players.map(player => player.username).join(" and ");
                         interaction.reply(`Successfully created party with ${playerNames}`);
                     }
-                },                
+                },
         },
     )
 }
