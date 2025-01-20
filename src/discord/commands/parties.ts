@@ -1,6 +1,6 @@
 import { InteractionHandler } from "@/lib/discord/InteractionHandler"
 import { PartyHandler } from "@/lib/party"
-import { LEADER_ALREADY_IN_PARTY } from "@/lib/party/constants"
+import { LEADER_ALREADY_IN_PARTY, NO_PARTY_FOUND, NOT_IN_A_PARTY } from "@/lib/party/constants"
 import { ApplicationCommandType, ChatInputCommandInteraction, ContextMenuCommandBuilder, ContextMenuCommandType, InteractionContextType, SlashCommandBuilder, UserContextMenuCommandInteraction } from "discord.js"
 
 export default (handler: InteractionHandler) => {
@@ -8,7 +8,7 @@ export default (handler: InteractionHandler) => {
         {
             builder: new SlashCommandBuilder()
                 .setName("party")
-                .setDescription("Create a party")
+                .setDescription("All party related commands")
                 .addSubcommand(subcommand =>
                     subcommand
                     .setName("create")
@@ -23,6 +23,11 @@ export default (handler: InteractionHandler) => {
                         .setDescription('Second user to be invited')
                         .setRequired(false)
                     )
+                )
+                .addSubcommand(subcommand =>
+                    subcommand
+                    .setName("leave")
+                    .setDescription("Leave a party")
                 )
                 .setContexts(InteractionContextType.Guild),
 
@@ -47,6 +52,13 @@ export default (handler: InteractionHandler) => {
                         } else if (result === 0) {
                             const playerNames = players.map(player => player.username).join(" and ");
                             await interaction.reply(`Successfully created party with ${playerNames}`);
+                        }
+                    } else if (subcommand === "leave") {
+                        const result = PartyHandler.leaveParty(interaction.user)
+                        if (result == NOT_IN_A_PARTY) {
+                            await interaction.reply("You aren't in a party!")
+                        } else if (result == 0 || result == NO_PARTY_FOUND) {
+                            await interaction.reply("Left party!")
                         }
                     }
                 },
