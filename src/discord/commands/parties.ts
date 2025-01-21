@@ -48,10 +48,10 @@ export default (handler: InteractionHandler) => {
                     
                         const result = await PartyHandler.createParty(leader, ...players);
                         if (result === LEADER_ALREADY_IN_PARTY) {
-                            await interaction.reply("You are already in a party!");
+                            await interaction.reply({content:"You are already in a party!", ephemeral:true});
                         } else if (result === 0) {
                             const playerNames = players.map(player => player.username).join(" and ");
-                            await interaction.reply(`Successfully created party with ${playerNames}`);
+                            await interaction.reply({content:`Successfully created party with ${playerNames}`, ephemeral:true});
                         }
                     } else if (subcommand === "leave") {
                         const result = PartyHandler.leaveParty(interaction.user)
