@@ -1,67 +1,56 @@
-import { InteractionHandler } from "@/lib/discord/InteractionHandler"
-import { PartyHandler } from "@/lib/party"
-import { LEADER_ALREADY_IN_PARTY, NO_PARTY_FOUND, NOT_IN_A_PARTY } from "@/lib/party/constants"
-import { ApplicationCommandType, ChatInputCommandInteraction, ContextMenuCommandBuilder, ContextMenuCommandType, InteractionContextType, SlashCommandBuilder, UserContextMenuCommandInteraction } from "discord.js"
+import { UserError } from "@/lib/discord/UserError"
+import { createParty, leaveParty } from "@/lib/party"
+import {
+    ChatInputCommandInteraction,
+    InteractionContextType,
+    SlashCommandBuilder,
+    SlashCommandSubcommandBuilder,
+    SlashCommandUserOption,
+} from "discord.js"
 
-export default (handler: InteractionHandler) => {
-    handler.addCommands(
-        {
-            builder: new SlashCommandBuilder()
-                .setName("party")
-                .setDescription("All party related commands")
-                .addSubcommand(subcommand =>
-                    subcommand
-                    .setName("create")
-                    .setDescription("Create a party!")
-                    .addUserOption(option => 
-                        option.setName('user1')
-                        .setDescription('First user to be invited')
-                        .setRequired(false)
-                    )
-                    .addUserOption(option => 
-                        option.setName('user2')
-                        .setDescription('Second user to be invited')
-                        .setRequired(false)
-                    )
-                )
-                .addSubcommand(subcommand =>
-                    subcommand
-                    .setName("leave")
-                    .setDescription("Leave a party")
-                )
-                .setContexts(InteractionContextType.Guild),
+export default {
+    builder: new SlashCommandBuilder()
+        .setName("party")
+        .setDescription("All party related commands")
+        .addSubcommand(buildCreateSubcommand("create", "Create a party and invite players"))
+        .addSubcommand(buildCreateSubcommand("invite", "Invite players to your party"))
+        .addSubcommand((subcommand) => subcommand.setName("leave").setDescription("Leave a party"))
+        .setContexts(InteractionContextType.Guild),
 
-                async execute(interaction: ChatInputCommandInteraction) {
-                    if (!interaction.isChatInputCommand()) return;
+    async execute(interaction: ChatInputCommandInteraction) {
+        switch (interaction.options.getSubcommand()) {
+            case "create":
+            case "invite":
+                const players = [interaction.options.getUser("user1"), interaction.options.getUser("user2")]
+                    .filter((user) => user !== null)
+                    .map((user) => user)
 
-                    const subcommand = interaction.options.getSubcommand();
-                    
-                    if (subcommand === "create") {
-                        const leader = interaction.user;
-                    
-                        const players = [
-                            interaction.options.getUser("user1"),
-                            interaction.options.getUser("user2"),
-                        ]
-                            .filter(user => user !== null)
-                            .map(user => user);
-                    
-                        const result = await PartyHandler.createParty(leader, ...players);
-                        if (result === LEADER_ALREADY_IN_PARTY) {
-                            await interaction.reply({content:"You are already in a party!", ephemeral:true});
-                        } else if (result === 0) {
-                            const playerNames = players.map(player => player.username).join(" and ");
-                            await interaction.reply({content:`Successfully created party with ${playerNames}`, ephemeral:true});
-                        }
-                    } else if (subcommand === "leave") {
-                        const result = PartyHandler.leaveParty(interaction.user)
-                        if (result == NOT_IN_A_PARTY) {
-                            await interaction.reply("You aren't in a party!")
-                        } else if (result == 0 || result == NO_PARTY_FOUND) {
-                            await interaction.reply("Left party!")
-                        }
-                    }
-                },
-        },
-    )
+                if (!createParty(interaction.user, ...players))
+                    throw new UserError("Only the party leader can invite other players.")
+
+                if (players.length === 0) return "Successfully created a party."
+                return `Successfully invited ${players.map((player) => player.username).join(", ")}.`
+            case "leave":
+                if (!leaveParty(interaction.user)) {
+                    throw new UserError("You aren't in a party!")
+                }
+
+                return "Successfully left the party."
+        }
+    },
+}
+
+function buildCreateSubcommand(name: string, description: string) {
+    return new SlashCommandSubcommandBuilder()
+        .setName(name)
+        .setDescription(description)
+        .addUserOption(buildUserOption(1))
+        .addUserOption(buildUserOption(2))
+}
+
+function buildUserOption(index: number) {
+    return new SlashCommandUserOption()
+        .setName(`user${index}`)
+        .setDescription(`${index}. user to be invited`)
+        .setRequired(false)
 }

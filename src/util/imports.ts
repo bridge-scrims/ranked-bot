@@ -1,12 +1,8 @@
-import fs from "fs"
+import fs from "fs/promises"
 import path from "path"
 
-export function importDir(...dir: string[]) {
+export async function importDir(...dir: string[]) {
     const search = path.join(...dir)
-    return (
-        fs
-            .readdirSync(search, { recursive: true })
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            .map((v) => require(path.join(search, v as string)).default)
-    )
+    const files = await fs.readdir(search, { recursive: true })
+    return Promise.all(files.map((v) => import(path.join(search, v as string)).then((v) => v.default)))
 }
