@@ -4,9 +4,11 @@ import { updateStatus } from "@/workers/functions/updateStatus"
 import { onCooldown } from "./cooldown"
 import { pollQueue } from "./polling"
 import { resetNick, setTempNick } from "./tempNicks"
+import { GroupQueueParticipant, QueueParticipant, SingleUserQueueParticipant } from "./participant"
+import { getPartyByUserID } from "../party"
 
 const playerQueues = new Map<string, string>()
-const queues = new Map<string, Map<string, number>>()
+const queues = new Map<string, Map<string, QueueParticipant>>()
 Queue.cache.on("add", (queue) => queues.set(queue.id, new Map()))
 Queue.cache.on("delete", (queue) => queues.delete(queue.id))
 
@@ -21,22 +23,46 @@ export function addToQueue(queue: Queue, user: string) {
     }
 
     resetNick(queue, user)
-    removeFromQueue(user)
+    removeParticipantFromQueue(user)
     playerQueues.set(user, queue.id)
 
     const players = queues.get(queue.id)!
-    if (!players.has(user)) {
-        players.set(user, 0)
-        updateStatus(queue).catch(console.error)
+    if (queueHasPlayer(players, user)) {
+        const party = getPartyByUserID(user);
+        if (party) {
+            players.set(user, new GroupQueueParticipant(party.getMembers()))
+            updateStatus(queue).catch(console.error)
+        } else {
+            players.set(user, new SingleUserQueueParticipant(user))
+            updateStatus(queue).catch(console.error)
+        }
         return 0
     }
 }
 
-export function getQueueCount(queue: Queue) {
-    return queues.get(queue.id)?.size ?? 0
+function queueHasPlayer(queue: Map<string, QueueParticipant>, player: string): boolean {
+    for (let participant of queue.values()) {
+        if (participant.getPlayerIDs().includes(player)) {
+            return true;
+        }
+    }
+    return false;
 }
 
-export function removeFromQueue(user: string) {
+export function getQueueCount(queue: Queue) {
+    let totalPlayerCount = 0;
+
+    let qparticipants = queues.get(queue.id);
+    if (qparticipants === undefined) return 0;
+
+    for (let participant of qparticipants.values()) {
+        totalPlayerCount += participant.getPlayerIDs().length
+    }
+
+    return totalPlayerCount
+}
+
+export function removeParticipantFromQueue(user: string) {
     const queueId = playerQueues.get(user)
     if (queueId !== undefined) {
         queues.get(queueId)!.delete(user)
@@ -73,7 +99,7 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
     const newQueue = newState.channelId && Queue.cache.get(newState.channelId)
 
     if (oldQueue) {
-        removeFromQueue(newState.id)
+        removeParticipantFromQueue(newState.id)
         resetNick(oldQueue, newState.id)
     }
 

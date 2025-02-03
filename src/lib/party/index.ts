@@ -25,7 +25,11 @@ export function joinParty(user: User, partyId: string) {
 }
 
 export function getParty(user: User) {
-    return playerParties.get(user.id)
+    return getPartyByUserID(user.id)
+}
+
+export function getPartyByUserID(user: string) {
+    return playerParties.get(user)
 }
 
 const playerParties = new Map<string, Party>()
@@ -100,6 +104,11 @@ class Party {
         this.members.delete(user)
         playerParties.delete(user.id)
     }
+
+    getMembers(): string[] {
+        return Array.from(this.members).map(user => user.id);
+    }
+    
 }
 
 process.on("SIGINT", () => parties.values().forEach((p) => p.disband()))
