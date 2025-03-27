@@ -20,15 +20,21 @@ export const client = new Client({
 })
 
 export const handler = new InteractionHandler(client)
-for (const command of importDir(__dirname, "commands")) {
+const [commands, buttons, events] = await Promise.all([
+    importDir(__dirname, "commands"),
+    importDir(__dirname, "buttons"),
+    importDir(__dirname, "events"),
+])
+
+for (const command of commands) {
     if (typeof command === "function") {
         command(handler)
     } else {
         handler.addCommands(command)
     }
 }
-handler.addComponents(importDir(__dirname, "buttons"))
-registerEvents(client, importDir(__dirname, "events"))
+handler.addComponents(...buttons)
+registerEvents(client, events)
 
 export const colors = {
     baseColor: 0x5ca3f5,

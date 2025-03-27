@@ -4,6 +4,7 @@ import {
     EmbedBuilder,
     Events,
     InteractionContextType,
+    SlashCommandSubcommandsOnlyBuilder,
     type ApplicationCommandManager,
     type AutocompleteInteraction,
     type BaseMessageOptions,
@@ -23,25 +24,26 @@ const GUILD_COMMANDS = process.env["USE_GUILD_COMMANDS"]?.toLowerCase() === "tru
 
 export class InteractionHandler {
     private builders: Record<string, CommandBuilder> = {}
-    private commands: Record<string, (interaction: any) => Promise<unknown>> = {}
-    private autocomplete: Record<string, (interaction: AutocompleteInteraction) => Promise<unknown>> = {}
-    private components: Record<string, (interaction: MessageComponentInteraction) => Promise<unknown>> = {}
+    private commands: Record<string, CommandHandler> = {}
+    private autocomplete: Record<string, AutocompleteHandler> = {}
+    private components: Record<string, ComponentHandler> = {}
 
     constructor(client: Client) {
         client.on(Events.ClientReady, async (client) => {
+            client.on(Events.InteractionCreate, (i) => this.handle(i as Interaction<"cached">))
             await this.register(client)
-            client.on(Events.InteractionCreate, (i) => this.handle(i))
-            console.log("[InteractionHandler] Commands registered. Now accepting interactions.")
+            console.log("[InteractionHandler] Commands registered.")
         })
     }
 
-    private async handle(interaction: Interaction) {
+    private async handle(interaction: Interaction<"cached">) {
         try {
             const response = await this.handleNow(interaction)
-            if (typeof response === "string")
+            if (typeof response === "string") {
                 await this.respond(interaction, {
                     embeds: [new EmbedBuilder().setColor(0x5ca3f5).setDescription(response)],
                 })
+            }
         } catch (error) {
             if (error instanceof DiscordAPIError && IGNORE_CODES.has(`${error.code}`)) return
 
@@ -62,7 +64,7 @@ export class InteractionHandler {
         }
     }
 
-    private async handleNow(interaction: Interaction) {
+    private async handleNow(interaction: Interaction<"cached">) {
         if (interaction.isAutocomplete()) {
             return this.autocomplete[interaction.commandName]?.(interaction)
         } else if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
@@ -76,6 +78,8 @@ export class InteractionHandler {
     private async respond(interaction: Interaction, response: BaseMessageOptions) {
         if (interaction.isRepliable()) {
             if (interaction.replied || interaction.deferred) await interaction.editReply(response)
+            else if (interaction.isMessageComponent() && interaction.channel?.isDMBased())
+                await interaction.update(response)
             else await interaction.reply({ ...response, ephemeral: true })
         }
     }
@@ -100,7 +104,7 @@ export class InteractionHandler {
         }
     }
 
-    addComponents(components: Component[]) {
+    addComponents(...components: Component[]) {
         for (const component of components) {
             this.components[component.id] = component.execute
         }
@@ -124,16 +128,25 @@ export class InteractionHandler {
     }
 }
 
-type CommandBuilder = SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | ContextMenuCommandBuilder
+type CommandHandler = (interaction: any) => Promise<unknown>
+type ComponentHandler = (interaction: MessageComponentInteraction<"cached">) => Promise<unknown>
+type AutocompleteHandler = (interaction: AutocompleteInteraction<"cached">) => Promise<unknown>
+
+type CommandBuilder =
+    | SlashCommandBuilder
+    | SlashCommandOptionsOnlyBuilder
+    | ContextMenuCommandBuilder
+    | SlashCommandSubcommandsOnlyBuilder
+
 export interface Command {
     builder: CommandBuilder
-    execute: (interaction: any) => Promise<unknown>
-    autocomplete?: (interaction: AutocompleteInteraction) => Promise<unknown>
+    execute: CommandHandler
+    autocomplete?: AutocompleteHandler
 }
 
 export interface Component {
     id: string
-    execute: (interaction: MessageComponentInteraction) => Promise<unknown>
+    execute: ComponentHandler
 }
 
 declare module "discord.js" {
