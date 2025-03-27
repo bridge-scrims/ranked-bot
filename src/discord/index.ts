@@ -1,7 +1,7 @@
-import { Client, GatewayIntentBits } from "discord.js"
+import { Client, ClientEvents, GatewayIntentBits } from "discord.js"
 
-import { InteractionHandler } from "@/lib/discord/InteractionHandler"
-import { registerEvents } from "@/lib/discord/registerEvents"
+import { Command, Component, InteractionHandler } from "@/lib/discord/InteractionHandler"
+import { EventHandler, registerEvents } from "@/lib/discord/registerEvents"
 import { importDir } from "@/util/imports"
 
 export const client = new Client({
@@ -21,9 +21,9 @@ export const client = new Client({
 
 export const handler = new InteractionHandler(client)
 const [commands, buttons, events] = await Promise.all([
-    importDir(__dirname, "commands"),
-    importDir(__dirname, "buttons"),
-    importDir(__dirname, "events"),
+    importDir<Command | ((handler: InteractionHandler) => unknown)>(import.meta.dirname, "commands"),
+    importDir<Component>(import.meta.dirname, "buttons"),
+    importDir<EventHandler<keyof ClientEvents>>(import.meta.dirname, "events"),
 ])
 
 for (const command of commands) {
@@ -43,7 +43,7 @@ export const colors = {
 }
 
 export async function initDiscord() {
-    await client.login(process.env["CLIENT_TOKEN"]!)
+    await client.login(process.env["CLIENT_TOKEN"])
     console.log(`Logged in as ${client.user!.tag}`)
 }
 

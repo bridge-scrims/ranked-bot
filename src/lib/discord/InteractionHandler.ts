@@ -1,9 +1,9 @@
 import {
     ApplicationIntegrationType,
     DiscordAPIError,
-    EmbedBuilder,
     Events,
     InteractionContextType,
+    MessageFlags,
     SlashCommandSubcommandsOnlyBuilder,
     type ApplicationCommandManager,
     type AutocompleteInteraction,
@@ -17,6 +17,7 @@ import {
 } from "discord.js"
 
 import { RequestError } from "@/util/request"
+import { MessageOptionsBuilder } from "./MessageOptionsBuilder"
 import { UserError } from "./UserError"
 
 const IGNORE_CODES = new Set(["10062", "10008", "10003"])
@@ -40,9 +41,10 @@ export class InteractionHandler {
         try {
             const response = await this.handleNow(interaction)
             if (typeof response === "string") {
-                await this.respond(interaction, {
-                    embeds: [new EmbedBuilder().setColor(0x5ca3f5).setDescription(response)],
-                })
+                const payload = new MessageOptionsBuilder().addEmbeds((embed) =>
+                    embed.setColor(0x5ca3f5).setDescription(response),
+                )
+                await this.respond(interaction, payload)
             }
         } catch (error) {
             if (error instanceof DiscordAPIError && IGNORE_CODES.has(`${error.code}`)) return
@@ -80,7 +82,7 @@ export class InteractionHandler {
             if (interaction.replied || interaction.deferred) await interaction.editReply(response)
             else if (interaction.isMessageComponent() && interaction.channel?.isDMBased())
                 await interaction.update(response)
-            else await interaction.reply({ ...response, ephemeral: true })
+            else await interaction.reply({ ...response, flags: MessageFlags.Ephemeral })
         }
     }
 
@@ -128,6 +130,7 @@ export class InteractionHandler {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CommandHandler = (interaction: any) => Promise<unknown>
 type ComponentHandler = (interaction: MessageComponentInteraction<"cached">) => Promise<unknown>
 type AutocompleteHandler = (interaction: AutocompleteInteraction<"cached">) => Promise<unknown>

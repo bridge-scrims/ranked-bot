@@ -1,25 +1,20 @@
+import { DocumentType, Prop } from "@typegoose/typegoose"
+import { Types } from "mongoose"
+
 import { SEASON } from "@/Constants"
-import {
-    Document,
-    LongArrayProp,
-    LongProp,
-    Prop,
-    getSchemaFromClass,
-    modelSchema,
-    type SchemaDocument,
-} from "../util"
+import { Document, modelClass } from "../util"
 
 export class Team {
-    @LongArrayProp({ required: true })
+    @Prop({ type: Types.Long, required: true })
     players!: string[]
 
     @Prop({ type: Number, required: false })
-    result?: number
+    score?: number
 }
 
 @Document("Game", "ranked_games")
-class Template {
-    @LongProp({ required: true })
+class GameClass {
+    @Prop({ type: Types.Long, required: true })
     _id!: string
 
     @Prop({ type: Number, required: true })
@@ -31,16 +26,22 @@ class Template {
     @Prop({ type: Date, required: true, default: () => new Date() })
     date!: Date
 
-    @LongProp({ required: false })
+    @Prop({ type: Types.Long, required: false })
     guildId?: string
 
-    @LongProp({ required: false })
+    @Prop({ type: Types.Long, required: false })
     queueId?: string
 
-    @LongArrayProp({ required: false })
+    @Prop({ type: Types.Long, required: false })
     channels?: string[]
 
-    @Prop({ type: [getSchemaFromClass(Team)], required: true })
+    @Prop({ type: Number, required: false })
+    winner?: number
+
+    @Prop({ type: String, required: false })
+    replay?: string
+
+    @Prop({ type: Team, required: true })
     teams!: Team[]
 
     isParticipant(id: string) {
@@ -48,6 +49,5 @@ class Template {
     }
 }
 
-const schema = getSchemaFromClass(Template)
-export const Game = modelSchema(schema, Template)
-export type Game = SchemaDocument<typeof schema>
+export const Game = modelClass(GameClass)
+export type Game = DocumentType<GameClass>

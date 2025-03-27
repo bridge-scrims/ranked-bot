@@ -3,7 +3,6 @@ export interface RequestOptions extends RequestInit {
     headers?: Record<string, string>
     /** number in seconds */
     timeout?: number
-    urlParams?: Record<string, any>
 }
 
 export class RequestError extends Error {
@@ -31,7 +30,6 @@ export class HTTPError extends RequestError {
 export async function request(url: string, options: RequestOptions = {}): Promise<Response> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), (options.timeout || 10) * 1000)
-    if (options.urlParams) url += `?${new URLSearchParams(options.urlParams)}`
 
     function requestError(error: Error): Response {
         if (controller.signal.aborted) throw new TimeoutError("Server took too long to respond")
@@ -43,7 +41,7 @@ export async function request(url: string, options: RequestOptions = {}): Promis
 
     return fetch(url, { ...options, signal: controller.signal })
         .catch(requestError)
-        .then(async (resp) => {
+        .then((resp) => {
             clearTimeout(timeoutId)
             if (!resp.ok) {
                 throw new HTTPError(`${resp.status} Response`, resp)

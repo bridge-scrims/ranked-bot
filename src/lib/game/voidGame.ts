@@ -8,11 +8,7 @@ export async function voidGame(gameId: string) {
     const game = await getGame(gameId)
     if (!game) return
 
-    const success = await archiveGame(
-        game,
-        game.teams.map(() => -1),
-    )
-
+    const success = await archiveGame(game)
     if (!success) return false
 
     const embed = new EmbedBuilder()

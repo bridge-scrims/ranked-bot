@@ -5,9 +5,13 @@ import {
     ActionRowBuilder,
     AllowedMentionsTypes,
     BaseMessageOptions,
+    BitField,
+    BitFieldResolvable,
     ButtonBuilder,
     EmbedBuilder,
     MessageActionRowComponentBuilder,
+    MessageFlags,
+    MessageFlagsString,
     MessageMentionOptions,
 } from "discord.js"
 
@@ -19,12 +23,15 @@ function resolveBuilders<T>(Builder: new () => T, resolvables: BuilderOrBuildCal
 // content should be able to be null
 const NULL = null as unknown as undefined
 
+type CreateFlags = MessageFlags.Ephemeral | MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications
+type CreateFlagsString = Extract<MessageFlagsString, "Ephemeral" | "SuppressEmbeds" | "SuppressNotifications">
+
 export class MessageOptionsBuilder {
     public content?: string
     public embeds: APIEmbed[]
     public components: APIActionRowComponent<APIMessageActionRowComponent>[]
     public allowedMentions: MessageMentionOptions
-    public ephemeral?: boolean
+    private _flags?: BitField<CreateFlagsString, CreateFlags>
 
     constructor({ content, embeds, components, allowedMentions }: BaseMessageOptions = {}) {
         this.content = content ?? NULL
@@ -33,11 +40,24 @@ export class MessageOptionsBuilder {
         this.allowedMentions = allowedMentions ?? {
             parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role],
         }
+        this._flags = new BitField()
+    }
+
+    get flags(): number | undefined {
+        return this._flags?.valueOf()
+    }
+
+    setFlag(flag: BitFieldResolvable<CreateFlagsString, CreateFlags>, value: boolean) {
+        if (!this._flags) this._flags = new BitField()
+
+        if (value) this._flags.add(flag)
+        else this._flags.remove(flag)
+
+        return this
     }
 
     setEphemeral(ephemeral: boolean) {
-        this.ephemeral = ephemeral
-        return this
+        return this.setFlag(MessageFlags.Ephemeral, ephemeral)
     }
 
     setAllowedMentions(allowedMentions: MessageMentionOptions = {}) {

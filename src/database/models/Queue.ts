@@ -1,39 +1,36 @@
-import {
-    Document,
-    LongProp,
-    Prop,
-    getSchemaFromClass,
-    modelSchemaWithCache,
-    type SchemaDocument,
-} from "../util"
+import { DocumentType, Prop } from "@typegoose/typegoose"
+import { Types } from "mongoose"
+import { Document, modelClassCached } from "../util"
 
 @Document("Queue", "ranked_queues")
-class Template {
-    @LongProp({ required: true })
+class QueueClass {
+    @Prop({ type: Types.Long, required: true })
     _id!: string
 
-    @LongProp({ required: true })
+    @Prop({ type: Types.Long, required: true })
     guildId!: string
 
-    @LongProp({ required: true })
+    @Prop({ type: Types.Long, required: true })
     textCategory!: string
 
-    @LongProp({ required: true })
+    @Prop({ type: Types.Long, required: true })
     vcCategory!: string
 
-    @LongProp({ required: true })
+    @Prop({ type: Types.Long, required: true })
     gameLog!: string
 
-    @LongProp({ required: true })
+    @Prop({ type: Types.Long, required: true })
     queueLog!: string
 
-    @LongProp({ required: true })
+    @Prop({ type: Number, required: true })
+    teamSize!: number
+
+    @Prop({ type: Types.Long, required: true })
     workerId!: string
 
     @Prop({ type: String, required: true })
     token!: string
 }
 
-const schema = getSchemaFromClass(Template)
-export const Queue = modelSchemaWithCache(schema, Template)
-export type Queue = SchemaDocument<typeof schema>
+export const Queue = modelClassCached(QueueClass)
+export type Queue = DocumentType<QueueClass>

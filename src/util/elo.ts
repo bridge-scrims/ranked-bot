@@ -17,9 +17,9 @@ export class Elo {
     static calculateDuel(team1: string[], team2: string[], elos: Record<string, number>, result: Result) {
         const results = { ...elos }
         const calc = (team1: string[], team2: string[], result: number) => {
-            const opponent = this.getAverage(team2.map((v) => elos[v]!))
+            const opponent = this.getAverage(team2.map((v) => elos[v]))
             for (const id of team1) {
-                results[id] = this.calculateElo(elos[id]!, opponent, result)
+                results[id] = this.calculateElo(elos[id], opponent, result)
             }
         }
 

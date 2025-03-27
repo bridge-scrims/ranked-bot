@@ -1,7 +1,15 @@
 {
-    "trailingComma": "all",
-    "tabWidth": 4,
-    "semi": false,
-    "singleQuote": false,
-    "printWidth": 110
+  "trailingComma": "all",
+  "tabWidth": 4,
+  "semi": false,
+  "singleQuote": false,
+  "printWidth": 110,
+  "overrides": [
+    {
+      "files": ["*.mjs", "*.json"],
+      "options": {
+        "tabWidth": 2
+      }
+    }
+  ]
 }

@@ -1,64 +1,44 @@
-import { Player } from "@/database";
+import { Player } from "@/database"
 
-export interface QueueParticipant {
-    getPlayerIDs(): string[];
-    getELO(): number;
-    getSkips(): number;
-    skip(): void;
-}
+export abstract class QueueParticipant {
+    private skips = 0
 
-export class SingleUserQueueParticipant implements QueueParticipant {
-    private userID: string;
-    private skips: number;
-
-    constructor(userID: string) {
-        this.userID = userID;
-        this.skips = 0;
+    getSkips() {
+        return this.skips
     }
 
-    getPlayerIDs(): string[] {
-        return [this.userID];
+    skip() {
+        this.skips++
+    }
+
+    abstract getPlayers(): string[]
+    abstract getELO(): number
+}
+
+export class SoloQueueParticipant extends QueueParticipant {
+    constructor(private userId: string) {
+        super()
+    }
+
+    getPlayers(): string[] {
+        return [this.userId]
     }
 
     getELO(): number {
-        return Player.getRankedElo(this.userID);
-    }
-
-    getSkips(): number {
-        return this.skips;
-    }
-
-    skip(): void {
-        this.skips++;
+        return Player.getRankedElo(this.userId)
     }
 }
 
-export class GroupQueueParticipant implements QueueParticipant {
-    private userIDs: string[];
-    private skips: number;
-
-    constructor(userIDs: string[]) {
-        this.userIDs = userIDs;
-        this.skips = 0;
+export class GroupQueueParticipant extends QueueParticipant {
+    constructor(private users: string[]) {
+        super()
     }
 
-    getPlayerIDs(): string[] {
-        return this.userIDs;
+    getPlayers(): string[] {
+        return this.users
     }
 
     getELO(): number {
-        var totalElo = 0;
-        for (const userID of this.userIDs) {
-            totalElo += Player.getRankedElo(userID)
-        }
-        return totalElo / this.userIDs.length;
-    }
-
-    getSkips(): number {
-        return this.skips;
-    }
-
-    skip(): void {
-        this.skips++;
+        return this.users.map((v) => Player.getRankedElo(v)).reduce((a, b) => a + b, 0) / this.users.length
     }
 }

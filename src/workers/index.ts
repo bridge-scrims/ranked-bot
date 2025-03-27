@@ -1,16 +1,16 @@
 import { Queue } from "@/database"
 import { decrypt } from "@/util/encryption"
 import { Client } from "discord.js"
-import { stayConnected } from "./functions/stayConnected"
-import { updateStatus } from "./functions/updateStatus"
+import { joinQueueChannel } from "./functions/joinChannel"
+import { clearStatus, updateStatus } from "./functions/updateStatus"
 
 const workers: Map<string, Client> = new Map()
 Queue.cache.on("add", (queue) => addWorker(queue))
-Queue.cache.on("delete", (queue) => removeWorker(queue.id))
+Queue.cache.on("delete", (queue) => removeWorker(queue._id))
 
 function addWorker(queue: Queue) {
-    removeWorker(queue.id)
-    workers.set(queue.id, initWorker(queue))
+    removeWorker(queue._id)
+    workers.set(queue._id, initWorker(queue))
 }
 
 function removeWorker(queueId: string) {
@@ -24,13 +24,16 @@ function initWorker(queue: Queue) {
         .on("error", console.error)
         .on("ready", () => {
             console.log(`${client.user!.tag} ready as a worker.`)
-            updateStatus(queue).catch(console.error)
-            stayConnected(client, queue)
-        })
-        .on("guildCreate", (guild) => {
-            if (guild.id === queue.guildId) {
-                updateStatus(queue).catch(console.error)
-            }
+            updateStatus(queue)
+
+            joinQueueChannel(client, queue).catch(console.error)
+            const interval = setInterval(() => {
+                if (client.isReady()) {
+                    joinQueueChannel(client, queue).catch(console.error)
+                } else {
+                    clearInterval(interval)
+                }
+            }, 60 * 1000)
         })
 
     client.login(decrypt(queue.token)).catch(console.error)
@@ -38,9 +41,15 @@ function initWorker(queue: Queue) {
 }
 
 export function getWorker(queue: Queue) {
-    return workers.get(queue.id)
+    return workers.get(queue._id)
 }
 
 export async function destroyWorkers() {
-    await Promise.all(Array.from(workers.values()).map((v) => v.destroy().catch(console.error)))
+    await Promise.all(
+        Array.from(workers.entries()).map(([queueId, client]) => {
+            const queue = Queue.cache.get(queueId)!
+            clearStatus(queue)
+            return client.destroy()
+        }),
+    )
 }

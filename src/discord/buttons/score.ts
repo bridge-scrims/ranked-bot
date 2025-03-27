@@ -1,12 +1,12 @@
 import { UserError } from "@/lib/discord/UserError"
 import { getGame } from "@/lib/game"
 import { closeChannel } from "@/lib/game/closeChannel"
-import { type ButtonInteraction } from "discord.js"
+import { MessageFlags, type ButtonInteraction } from "discord.js"
 
 export default {
     id: "score",
-    async execute(interaction: ButtonInteraction) {
-        await interaction.deferReply({ ephemeral: true })
+    async execute(interaction: ButtonInteraction<"cached">) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
         const game = await getGame(interaction.args.shift()!)
         if (!game) throw new UserError("Game has already finished!")
