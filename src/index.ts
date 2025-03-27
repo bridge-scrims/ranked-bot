@@ -3,7 +3,8 @@ import { closeDiscord, initDiscord } from "./discord"
 import { destroyWorkers } from "./workers"
 
 process.on("SIGINT", () => {
-    Promise.race([
+    console.log("Shutting down...")
+    void Promise.race([
         Promise.all([
             closeDiscord().catch(console.error),
             closeDatabase().catch(console.error),

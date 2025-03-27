@@ -4,6 +4,7 @@ import {
     ButtonStyle,
     EmbedBuilder,
     InteractionContextType,
+    MessageFlags,
     SlashCommandBuilder,
     userMention,
     type ChatInputCommandInteraction,
@@ -19,8 +20,8 @@ export default {
         .setDescription("Voids a game.")
         .setContexts(InteractionContextType.Guild),
 
-    async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.deferReply({ ephemeral: true })
+    async execute(interaction: ChatInputCommandInteraction<"cached">) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
         const game = await Game.findById(interaction.channelId)
         if (!game) throw new UserError("This command can only be used in game channels!")

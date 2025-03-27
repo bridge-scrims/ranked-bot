@@ -1,12 +1,12 @@
 import { UserError } from "@/lib/discord/UserError"
 import { getGame } from "@/lib/game"
 import { voidGame } from "@/lib/game/voidGame"
-import { type ButtonInteraction } from "discord.js"
+import { MessageFlags, type ButtonInteraction } from "discord.js"
 
 export default {
     id: "void",
-    async execute(interaction: ButtonInteraction) {
-        await interaction.deferReply({ ephemeral: true })
+    async execute(interaction: ButtonInteraction<"cached">) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
         const game = await getGame(interaction.args.shift()!)
         if (!game) throw new UserError("Game has already finished!")
@@ -16,7 +16,7 @@ export default {
             throw new UserError("This void request must be accepted by the other team!")
 
         await interaction.editReply("Voiding game...")
-        const success = await voidGame(game.id)
+        const success = await voidGame(game._id)
         if (!success) throw new UserError("Game has already been scored!")
     },
 }

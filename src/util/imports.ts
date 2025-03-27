@@ -1,8 +1,12 @@
-import fs from "fs/promises"
+import { glob } from "glob"
 import path from "path"
 
-export async function importDir(...dir: string[]) {
+const CWD = path.join(process.cwd(), "src")
+const FILES = "/**/*.ts"
+
+export async function importDir<T>(...dir: string[]) {
     const search = path.join(...dir)
-    const files = await fs.readdir(search, { recursive: true })
-    return Promise.all(files.map((v) => import(path.join(search, v as string)).then((v) => v.default)))
+    const files = await glob(`${search}${FILES}`, { cwd: CWD })
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return Promise.all(files.map((v) => import(`../${v}`).then((v) => v.default as T)))
 }

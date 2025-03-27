@@ -1,6 +1,7 @@
 import {
     ChannelType,
     InteractionContextType,
+    MessageFlags,
     REST,
     Routes,
     SlashCommandBuilder,
@@ -17,6 +18,7 @@ const Options = {
     TextCategory: "text-category",
     VcCategory: "vc-category",
     QueueLog: "queue-log",
+    TeamSize: "team-size",
     GameLog: "game-log",
     Token: "token",
 }
@@ -60,20 +62,29 @@ export default {
                 .setDescription("The channel to post games in.")
                 .setRequired(true),
         )
+        .addIntegerOption((option) =>
+            option
+                .setName(Options.TeamSize)
+                .setDescription("The size of the teams.")
+                .setRequired(true)
+                .setMinValue(1)
+                .setMaxValue(4),
+        )
         .addStringOption((option) =>
             option.setName(Options.Token).setDescription("The client token of the worker.").setRequired(true),
         )
         .setContexts(InteractionContextType.Guild)
         .setDefaultMemberPermissions("0"),
 
-    async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.deferReply({ ephemeral: true })
+    async execute(interaction: ChatInputCommandInteraction<"cached">) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
-        const voice = interaction.options.getChannel(Options.Channel, true)
+        const voice = interaction.options.getChannel(Options.Channel, true, [ChannelType.GuildCategory])
         const textCategory = interaction.options.getChannel(Options.TextCategory, true)
         const vcCategory = interaction.options.getChannel(Options.VcCategory, true)
         const queueLog = interaction.options.getChannel(Options.QueueLog, true)
         const gameLog = interaction.options.getChannel(Options.GameLog, true)
+        const teamSize = interaction.options.getInteger(Options.TeamSize, true)
         const token = interaction.options.getString(Options.Token, true)
 
         let clientId: string
@@ -87,11 +98,12 @@ export default {
 
         await Queue.create({
             _id: voice.id,
-            guildId: interaction.guildId!,
+            guildId: interaction.guildId,
             textCategory: textCategory.id,
             vcCategory: vcCategory.id,
             queueLog: queueLog.id,
             gameLog: gameLog.id,
+            teamSize,
             workerId: clientId,
             token: encrypt(token),
         })

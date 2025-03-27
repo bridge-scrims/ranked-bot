@@ -57,13 +57,14 @@ export async function startGame(queue: Queue, teams: string[][]) {
         _id: text.id,
         sequence: gameId,
         guildId: guild.id,
-        queueId: queue.id,
+        queueId: queue._id,
         teams: teams.map((players) => ({ players })),
         channels: vcs.map((v) => v.id),
     })
 
-    for (const team of teamMembers) {
-        const vc = vcs.shift()!
+    for (let i = 0; i < teamMembers.length; i++) {
+        const team = teamMembers[i]
+        const vc = vcs[i]
         for (const member of team) {
             member.voice.setChannel(vc).catch(() => null)
         }
@@ -73,7 +74,7 @@ export async function startGame(queue: Queue, teams: string[][]) {
         .setColor(colors.baseColor)
         .setTitle(`Game #${gameId}`)
         .setDescription(
-            "Duel the other player using `/duel <user> bridge`. " +
+            "Duel the other team using `/duel <user> bridge`. " +
                 "Once the game is done, send a screenshot of the score using `/score`. " +
                 "Remember, **games are best of 1**.",
         )

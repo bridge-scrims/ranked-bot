@@ -11,7 +11,7 @@ export async function closeChannel(game: Game, score1: number, score2: number, i
     const update = await Game.updateOne({ _id: game.id }, { $unset: { channels: "" } })
     if (!update.modifiedCount) return false
 
-    Promise.allSettled(game.channels!.map((id) => client.rest.delete(Routes.channel(id))))
+    void Promise.allSettled(game.channels!.map((id) => client.rest.delete(Routes.channel(id))))
 
     const message = new MessageOptionsBuilder()
         .setContent(guild.roles.cache.find((v) => v.name.toLowerCase() === "scorer")?.toString())
@@ -38,7 +38,7 @@ export async function closeChannel(game: Game, score1: number, score2: number, i
                 .setCustomId(`confirmScore:${score1}:${score2}`),
         )
 
-    const text = await guild.channels.fetch(game.id)
+    const text = await guild.channels.fetch(game._id)
     if (text?.isSendable()) {
         const permissionOverwrites = text.parent?.permissionOverwrites.cache
         await text.edit({ name: `finished-${text.name}`, permissionOverwrites })

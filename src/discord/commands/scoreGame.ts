@@ -2,6 +2,7 @@ import {
     bold,
     ButtonStyle,
     InteractionContextType,
+    MessageFlags,
     SlashCommandBuilder,
     type ChatInputCommandInteraction,
 } from "discord.js"
@@ -35,8 +36,8 @@ export default {
         .setContexts(InteractionContextType.Guild)
         .setDefaultMemberPermissions("0"),
 
-    async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.deferReply({ ephemeral: true })
+    async execute(interaction: ChatInputCommandInteraction<"cached">) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
         const score1 = interaction.options.getNumber(Options.Team1Score) ?? -1
         const score2 = interaction.options.getNumber(Options.Team2Score) ?? -1
 

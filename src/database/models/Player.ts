@@ -1,15 +1,9 @@
+import { DocumentType, Prop } from "@typegoose/typegoose"
 import { userMention } from "discord.js"
+import { Types } from "mongoose"
 
 import { DEFAULT_ELO, SEASON, Stats } from "@/Constants"
-import {
-    Document,
-    getSchemaFromClass,
-    LongProp,
-    modelSchema,
-    Prop,
-    UuidProp,
-    type SchemaDocument,
-} from "../util"
+import { Document, modelClass } from "../util"
 
 interface RankedStats {
     elo: number
@@ -30,35 +24,48 @@ const DEFAULT_STATS: RankedStats = {
 }
 
 @Document("Player", "userprofiles")
-class Template {
+class PlayerClass {
+    static async cacheInitialize() {
+        await initialized.promise
+    }
+
     static getMcUuid(id: string) {
-        return mcCache.get(id)
+        return discordToMc[id]
+    }
+
+    static resolveMcUuid(uuid: string) {
+        return mcToDiscord[uuid]
     }
 
     static async setMcUuid(id: string, uuid: string) {
+        discordToMc[id] = uuid
+        mcToDiscord[uuid] = id
         await Promise.all([
             Player.updateMany({ _id: { $ne: id }, mcUUID: uuid }, { $unset: { mcUUID: "" } }),
             Player.updateOne({ _id: id }, { mcUUID: uuid }, { upsert: true }),
         ])
-        mcCache.set(id, uuid)
     }
 
     static getRankedElo(id: string) {
-        return eloCache.get(id) ?? DEFAULT_ELO
+        return eloCache[id] ?? DEFAULT_ELO
     }
 
     static updateElo(id: string, elo: number) {
-        eloCache.set(id, elo)
+        eloCache[id] = elo
     }
 
-    @LongProp({ required: true })
+    @Prop({ type: Types.Long, required: true })
     _id!: string
 
-    @UuidProp({ required: false })
+    @Prop({ type: Types.UUID, required: false })
     mcUUID?: string
 
     @Prop({ type: Object, required: false })
     ranked?: Record<string, Partial<RankedStats>>
+
+    get id() {
+        return this._id
+    }
 
     getRankedStats(): RankedStats {
         return { ...DEFAULT_STATS, ...this.ranked?.[SEASON] }
@@ -69,26 +76,36 @@ class Template {
     }
 }
 
-const schema = getSchemaFromClass(Template)
-export const Player = modelSchema(schema, Template)
-export type Player = SchemaDocument<typeof schema>
+export const Player = modelClass(PlayerClass)
+export type Player = DocumentType<PlayerClass>
 
-const eloCache = new Map<string, number>()
-const mcCache = new Map<string, string>()
+const initialized = Promise.withResolvers()
+const eloCache: Record<string, number> = {}
+const discordToMc: Record<string, string> = {}
+const mcToDiscord: Record<string, string> = {}
 
-const elo = Stats.Elo
-Player.find({}, { mcUUID: 1, [elo]: 1 }).then((players) => {
-    players.forEach((v) => {
-        const elo = v.getRankedStats()?.elo
-        if (elo !== undefined) eloCache.set(v.id, elo)
-        if (v.mcUUID !== undefined) mcCache.set(v.id, v.mcUUID)
+Player.watcher()
+    .on("open", () => {
+        void Player.find({}, { mcUUID: 1, [Stats.Elo]: 1 }).then((players) => {
+            players.forEach((v) => {
+                eloCache[v._id] = v.getRankedStats().elo
+                if (v.mcUUID !== undefined) {
+                    discordToMc[v._id] = v.mcUUID
+                    mcToDiscord[v.mcUUID] = v._id
+                }
+            })
+            initialized.resolve()
+        })
     })
-})
-
-Player.watcher().on("update", (_v, _id, doc) => {
-    if (doc) {
-        eloCache.set(doc.id, doc.getRankedStats().elo)
-        if (doc.mcUUID) mcCache.set(doc.id, doc.mcUUID)
-        else mcCache.delete(doc.id)
-    }
-})
+    .on("update", (_v, _id, doc) => {
+        if (doc) {
+            eloCache[doc._id] = doc.getRankedStats().elo
+            if (doc.mcUUID) {
+                discordToMc[doc._id] = doc.mcUUID
+                mcToDiscord[doc.mcUUID] = doc._id
+            } else {
+                delete mcToDiscord[discordToMc[doc._id]]
+                delete discordToMc[doc._id]
+            }
+        }
+    })

@@ -1,8 +1,15 @@
-import { Player, Queue } from "@/database"
+import { Player } from "@/database"
 import { UserError } from "@/lib/discord/UserError"
-import { getUserByUsername } from "@/lib/minecraft/scrims/user"
-import { addToQueue } from "@/lib/queue"
-import { bold, inlineCode, SlashCommandBuilder, type ChatInputCommandInteraction } from "discord.js"
+import { getUserByUsername } from "@/lib/minecraft/scrims"
+import { updateQueueStatus } from "@/lib/queue"
+import {
+    bold,
+    inlineCode,
+    InteractionContextType,
+    MessageFlags,
+    SlashCommandBuilder,
+    type ChatInputCommandInteraction,
+} from "discord.js"
 
 export default {
     builder: new SlashCommandBuilder()
@@ -15,10 +22,11 @@ export default {
                 .setMinLength(3)
                 .setMaxLength(16)
                 .setRequired(true),
-        ),
+        )
+        .setContexts(InteractionContextType.Guild, InteractionContextType.BotDM),
 
-    async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.deferReply({ ephemeral: true })
+    async execute(interaction: ChatInputCommandInteraction<undefined>) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
         const ign = interaction.options.getString("ign", true)
 
         const scrimsUser = await getUserByUsername(ign)
@@ -27,10 +35,7 @@ export default {
             throw new UserError("Use the ingame /link command to link your Minecraft and Discord first.")
 
         await Player.setMcUuid(interaction.user.id, scrimsUser._id)
-
-        const voice = interaction.guild?.voiceStates.cache.get(interaction.user.id)
-        const queue = Queue.cache.get(voice?.channelId as string)
-        if (queue) addToQueue(queue, interaction.user.id)
+        updateQueueStatus(interaction.user.id)
 
         return `Registered you as ${bold(ign)}.`
     },

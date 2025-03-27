@@ -1,37 +1,28 @@
 {
   "name": "scrims-ranked",
-  "description": "Bridge Scrims ranked ELO system.",
-  "module": "src/index.ts",
+  "description": "Bridge Scrims ranked Discord bot.",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "test": "bun src/test.ts",
-    "prettier": "bunx prettier --write .",
-    "eslint": "bunx eslint --fix .",
-    "lint": "bun run prettier && bun run eslint"
+    "test": "bun src/test"
   },
   "dependencies": {
     "@discordjs/voice": "^0.18.0",
-    "@napi-rs/canvas": "^0.1.58",
-    "colors": "^1.4.0",
+    "@typegoose/typegoose": "^12.14.0",
     "crypto-js": "^4.2.0",
-    "discord.js": "^14.16.3",
-    "mongoose": "^8.8.2",
-    "mongoose-long": "^0.8.0",
-    "reflect-metadata": "^0.2.2"
+    "discord.js": "^14.18.0",
+    "glob": "^11.0.1",
+    "mongodb": "^6.15.0",
+    "mongoose": "^8.13.0",
+    "mongoose-long": "^0.8.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.1.0",
-    "@eslint/js": "^9.13.0",
-    "@types/bun": "^1.1.13",
+    "@eslint/js": "^9.23.0",
+    "@types/bun": "^1.2.6",
     "@types/crypto-js": "^4.2.2",
-    "bun-types": "latest",
-    "eslint": "^9.13.0",
-    "ffmpeg-static": "^5.2.0",
-    "prettier": "^3.3.3",
-    "tsc": "^2.0.4",
-    "typescript-eslint": "^8.11.0"
-  },
-  "peerDependencies": {
-    "typescript": "^5.7.3"
+    "bun-types": "^1.2.6",
+    "eslint": "^9.23.0",
+    "prettier": "^3.5.3",
+    "typescript-eslint": "^8.28.0"
   }
 }

@@ -1,311 +1,105 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-unsafe-function-type */
-import mongoose, {
-    CompileModelOptions,
-    FilterQuery,
-    HydratedDocument,
-    InferSchemaType,
-    Model,
-    ObtainSchemaGeneric,
-    Query,
-    Schema,
-    SchemaDefinitionProperty,
-} from "mongoose"
-import { randomUUID } from "node:crypto"
-import "reflect-metadata"
+import mongoose from "mongoose"
 
+import { getModelForClass, ModelOptions, ReturnModelType, Severity } from "@typegoose/typegoose"
+import { AnyParamConstructor, BeAnObject, DocumentType, IModelOptions } from "@typegoose/typegoose/lib/types"
 import mongooseLong from "mongoose-long"
 import { DocumentCache } from "./DocumentCache"
 import { DocumentWatcher } from "./DocumentWatcher"
 
-type NonFunctionPropertyNames<T> = {
-    [K in keyof T]: T[K] extends Function ? never : K
-}[keyof T]
-type NonFunctionProperties<T> = Pick<T, NonFunctionPropertyNames<T>>
-type Class<T> = new (...args: any[]) => T
+export function Document(name: string, collection: string) {
+    return ModelOptions({
+        schemaOptions: { versionKey: false, collection },
+        options: { customName: name, allowMixed: Severity.ALLOW },
+    })
+}
 
-export type SchemaDocument<TSchema extends Schema = any> = HydratedDocument<
-    InferSchemaType<TSchema>,
-    ObtainSchemaGeneric<TSchema, "TInstanceMethods">,
-    ObtainSchemaGeneric<TSchema, "TQueryHelpers">
->
-
-export type SchemaModel<TSchema extends Schema, TStatic extends object = object> = Omit<
-    Model<
-        InferSchemaType<TSchema>,
-        ObtainSchemaGeneric<TSchema, "TQueryHelpers">,
-        ObtainSchemaGeneric<TSchema, "TInstanceMethods">,
-        object,
-        SchemaDocument<TSchema>
-    >,
-    "new" | "watch" | "create"
-> &
-    ObtainSchemaGeneric<TSchema, "TStaticMethods"> &
-    TStatic &
-    (new (doc: Partial<NonFunctionProperties<InferSchemaType<TSchema>>>) => SchemaDocument<TSchema>) & {
-        _watcher?: DocumentWatcher<SchemaDocument<TSchema>>
-        watcher: () => DocumentWatcher<SchemaDocument<TSchema>>
-        watch: never
-        findAndMap: (
-            filter?: FilterQuery<InferSchemaType<TSchema>>,
-            ...keys: string[]
-        ) => Promise<Record<string, SchemaDocument<TSchema>>>
-        create: (
-            doc: Partial<NonFunctionProperties<InferSchemaType<TSchema>>>,
-        ) => Promise<SchemaDocument<TSchema>>
+declare module "mongoose" {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    interface Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals, THydratedDocumentType> {
+        _watcher?: DocumentWatcher<TRawDocType>
+        watcher: () => DocumentWatcher<TRawDocType>
     }
+}
 
-export type CachedModel<TSchema extends Schema, TStatic extends object = object> = SchemaModel<
-    TSchema,
-    TStatic
+export type CachedModel<U extends AnyParamConstructor<unknown>, QueryHelpers = BeAnObject> = ReturnModelType<
+    U,
+    QueryHelpers
 > & {
-    cache: DocumentCache<SchemaDocument<TSchema>>
+    cache: DocumentCache<DocumentType<InstanceType<U>>>
     reloadCache: () => Promise<void>
 }
 
-export function model<TSchema extends Schema>(
-    name: string,
-    schema: TSchema,
-    collection?: string,
-    options?: CompileModelOptions,
-): SchemaModel<TSchema> {
-    if (schema.get("versionKey") === "__v") schema.set("versionKey", false)
+const reloads = new Array<() => Promise<void>>()
+export async function reloadCache() {
+    await Promise.all(reloads.map((v) => v()))
+}
 
-    const model = mongoose.model(name, schema, collection, options) as SchemaModel<TSchema>
+function reloadCacheFunction<U extends AnyParamConstructor<unknown>>(model: CachedModel<U>) {
+    const reload = () =>
+        model.find().then((result) => {
+            const docs = result as DocumentType<InstanceType<U>>[]
 
-    Object.defineProperty(model, "watcher", {
-        value: () => {
-            if (!model._watcher) model._watcher = new DocumentWatcher(model as Model<any>)
-            return model._watcher
-        },
-    })
+            const newKeys = new Set(docs.map((v) => v.id as string))
+            Array.from(model.cache.keys())
+                .filter((key) => !newKeys.has(key))
+                .forEach((key) => model.cache.delete(key))
 
-    model.findAndMap = async (filter = {}, ...keys) => {
-        if (!keys.length) keys.push("id")
-        const docs = await model.find(filter)
-        return Object.fromEntries(docs.map((doc) => [keys.reduce((v, key) => (v as any)?.[key], doc), doc]))
+            docs.forEach((doc) => {
+                const id = doc.id as string
+                const existing = model.cache.get(id)
+                if (!existing || JSON.stringify(existing) !== JSON.stringify(doc)) model.cache.set(id, doc)
+            })
+
+            model.cache.__setInitialized()
+        })
+
+    reloads.push(reload)
+    return reload
+}
+
+export function modelClass<U extends AnyParamConstructor<unknown>, QueryHelpers = BeAnObject>(
+    cl: U,
+    options?: IModelOptions,
+): ReturnModelType<U, QueryHelpers> {
+    const model: ReturnModelType<U, QueryHelpers> = getModelForClass(cl, options)
+    model.watcher = () => {
+        if (!model._watcher) model._watcher = new DocumentWatcher(model)
+        return model._watcher
     }
-
     return model
 }
 
-export function getSchemaFromClass<EnforcedDocType>(schemaClass: Class<EnforcedDocType>) {
-    const metadata = Reflect.getMetadata("mongodb:schema", schemaClass)
-    return new mongoose.Schema<EnforcedDocType>(metadata.properties, {
-        methods: metadata.methods,
-        statics: metadata.statics,
-        _id: !!metadata.collection,
-    })
-}
+let warned = false
+export function modelClassCached<U extends AnyParamConstructor<unknown>>(clazz: U): CachedModel<U> {
+    const model = modelClass(clazz) as CachedModel<U>
+    const cache = (model.cache = new DocumentCache())
+    model.reloadCache = reloadCacheFunction(model)
 
-const models = new Set<string>()
-const reloadCacheFunctions = new Array<() => Promise<unknown>>()
-
-export function modelSchema<TSchema extends Schema, SchemaClass extends object>(
-    schema: TSchema,
-    schemaClass: SchemaClass,
-) {
-    const metadata = Reflect.getMetadata("mongodb:schema", schemaClass)
-    const val = model(metadata.name, schema, metadata.collection) as SchemaModel<typeof schema, SchemaClass>
-    val.on("error", console.error)
-    models.add(metadata.name)
-    return val
-}
-
-export class DB {
-    static getModels() {
-        return Array.from(models)
-    }
-
-    static async reloadCache() {
-        await Promise.all(reloadCacheFunctions.map((v) => v()))
-    }
-}
-
-/**
- * Override Mongoose Query then & catch to get useful stacktraces.
- */
-
-const queryThen = Query.prototype.then
-// @ts-expect-error
-Query.prototype.then = function (onFulfilled, onRejected) {
-    const stackTrace = new Error().stack?.split("\n") ?? []
-    const filteredTrace = stackTrace.slice(2).filter((v) => !v.includes("node:"))
-
-    return queryThen.apply(this, [
-        onFulfilled ? (value) => onFulfilled(value) : undefined,
-        rejectHandler(filteredTrace, onRejected),
-    ])
-}
-
-const queryCatch = Query.prototype.catch
-Query.prototype.catch = function (onRejected) {
-    const stackTrace = new Error().stack?.split("\n") ?? []
-    const filteredTrace = stackTrace.slice(2).filter((v) => !v.includes("node:"))
-    return queryCatch.apply(this, [rejectHandler(filteredTrace, onRejected)])
-}
-
-function rejectHandler(
-    filteredTrace: string[],
-    onRejected: ((reason: unknown) => unknown) | null | undefined,
-) {
-    return (err: unknown) => {
-        if (err instanceof Error) {
-            const start = err.stack?.split("\n")[0] ?? "MongooseError: Query failed"
-            err.stack = [start, ...filteredTrace].join("\n")
+    if (process.env["NODE_ENV"] === "production") {
+        model
+            .watcher()
+            .on("delete", (id) => cache.delete(`${id}`))
+            .on("insert", (doc) => cache.set(doc.id as string, doc))
+            .on("update", (_, __, fullDoc) => {
+                if (fullDoc) {
+                    cache.set(fullDoc.id as string, fullDoc)
+                }
+            })
+    } else {
+        if (!warned) {
+            console.warn("DocumentWatcher is disabled in development mode!")
+            warned = true
         }
 
-        if (onRejected) onRejected(err)
-        else throw err
-    }
-}
-
-export function modelSchemaWithCache<TSchema extends Schema, SchemaClass extends object>(
-    schema: TSchema,
-    schemaClass: SchemaClass,
-): CachedModel<TSchema, SchemaClass> {
-    const cache = new DocumentCache()
-
-    if (process.env["NODE_ENV"] !== "production") {
-        // fallback to fetching all data every operation to keep the cache synced
-        // if not being run on a Mongo replica set
-        schema.post(
-            // @ts-expect-error works just fine
-            [
-                "save",
-                "updateOne",
-                "updateMany",
-                "deleteOne",
-                "deleteMany",
-                "replaceOne",
-                "findOneAndDelete",
-                "findOneAndRemove",
-                "findOneAndReplace",
-                "findOneAndUpdate",
-            ],
-            { document: true, query: true },
-            () => reloadCache().catch(console.error),
-        )
-    }
-
-    async function reloadCache() {
-        return cachedModel.find().then((docs) => {
-            const newKeys = new Set(docs.map((v) => v.id as string))
-            Array.from(cache.keys())
-                .filter((key) => !newKeys.has(key))
-                .forEach((key) => cache.delete(key))
-
-            docs.forEach((doc) => {
-                const existing = cache.get(doc.id!)
-                if (!existing || JSON.stringify(existing) !== JSON.stringify(doc)) cache.set(doc.id!, doc)
-            })
-
-            cache.__setInitialized()
+        model.db.once("open", () => {
+            const interval = setInterval(() => model.reloadCache().catch(console.error), 1000)
+            model.db.once("close", () => clearInterval(interval))
         })
     }
 
-    const cachedModel = modelSchema(schema, schemaClass)
-    Object.defineProperty(cachedModel, "cache", { value: cache })
-    Object.defineProperty(cachedModel, "reloadCache", { value: reloadCache })
-    reloadCacheFunctions.push(reloadCache)
-
-    if (process.env["NODE_ENV"] === "production") {
-        // production environment uses a Mongo replica set
-        cachedModel
-            .watcher()
-            .on("delete", (id) => cache.delete((id as any).toString()))
-            .on("insert", (doc) => cache.set(doc.id!, doc))
-            .on("update", (_, __, fullDoc) => {
-                if (fullDoc) {
-                    cache.set(fullDoc.id!, fullDoc)
-                }
-            })
-    }
-
-    cachedModel.db.on("open", () => reloadCache().catch(console.error))
-    return cachedModel as CachedModel<TSchema, SchemaClass>
+    model.db.on("open", () => model.reloadCache().catch(console.error))
+    return model
 }
 
-interface SchemaMetadata {
-    name?: string
-    collection?: string
-    methods: Record<string, unknown>
-    statics: Record<string, unknown>
-    properties: Record<string, SchemaDefinitionProperty>
-}
-
-function getSchemaMetadata(target: Function) {
-    const existing = Reflect.getMetadata("mongodb:schema", target)
-    if (existing) return existing as SchemaMetadata
-
-    const metadata: SchemaMetadata = { methods: {}, statics: {}, properties: {} }
-
-    const descriptors = Object.getOwnPropertyDescriptors(target.prototype)
-    for (const [propName, descriptor] of Object.entries(descriptors)) {
-        if (typeof descriptor.value === "function" && propName !== "constructor") {
-            metadata.methods[propName] = descriptor.value
-        }
-    }
-
-    const staticDescriptors = Object.getOwnPropertyDescriptors(target)
-    for (const [propName, descriptor] of Object.entries(staticDescriptors)) {
-        if (descriptor.writable) {
-            metadata.statics[propName] = descriptor.value
-        }
-    }
-
-    Reflect.defineMetadata("mongodb:schema", metadata, target)
-    return metadata
-}
-
-export function Document(name: string, collection: string): ClassDecorator {
-    return (target) => {
-        const metadata = getSchemaMetadata(target)
-        metadata.name = name
-        metadata.collection = collection
-    }
-}
-
-export function Prop(schemaDefinition: SchemaDefinitionProperty): PropertyDecorator {
-    return (target, prop) => {
-        if (typeof prop === "string") {
-            const metadata = getSchemaMetadata(target.constructor)
-            metadata.properties[prop] = schemaDefinition
-        }
-    }
-}
-
-export function UuidProp({ required }: { required: boolean }) {
-    return Prop({
-        type: mongoose.Schema.Types.UUID,
-        required,
-        default: required ? () => randomUUID() : undefined,
-    })
-}
-
-export function LongProp({ required }: { required: boolean }) {
-    mongooseLong(mongoose)
-    return Prop({
-        type: mongoose.Schema.Types.Long,
-        required,
-        get: (value?: mongoose.Types.Long) => value && value.toString(),
-    })
-}
-
-export function LongArrayProp({ required }: { required: boolean }) {
-    mongooseLong(mongoose)
-    return Prop({
-        type: [mongoose.Schema.Types.Long],
-        required,
-        get: (value?: mongoose.Types.Long[]) => value && value.map((v) => v.toString()),
-    })
-}
-
-export function LongMultiArrayProp({ required }: { required: boolean }) {
-    mongooseLong(mongoose)
-    return Prop({
-        type: [[mongoose.Schema.Types.Long]],
-        required,
-        get: (value?: mongoose.Types.Long[][]) => value && value.map((a) => a.map((v) => v.toString())),
-    })
-}
+mongooseLong(mongoose)
+mongoose.Schema.Types.Long.get((v?: mongoose.Types.Long) => v?.toString())

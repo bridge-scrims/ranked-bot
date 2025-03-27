@@ -5,6 +5,7 @@ import {
     ButtonStyle,
     EmbedBuilder,
     InteractionContextType,
+    MessageFlags,
     SlashCommandBuilder,
     userMention,
     type ChatInputCommandInteraction,
@@ -17,8 +18,8 @@ import { stringifyScore } from "@/util/scores"
 
 export default {
     builder: new SlashCommandBuilder()
-        .setName("score")
-        .setDescription("Sends a score request.")
+        .setName("score-screenshot")
+        .setDescription("Sends a score request to the other team.")
         .addAttachmentOption((option) =>
             option.setName("screenshot").setDescription("Screenshot of the game results.").setRequired(true),
         )
@@ -32,8 +33,8 @@ export default {
         )
         .setContexts(InteractionContextType.Guild),
 
-    async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.deferReply({ ephemeral: true })
+    async execute(interaction: ChatInputCommandInteraction<"cached">) {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
         const screenshot = interaction.options.getAttachment("screenshot", true)
         const name = screenshot.name.toLowerCase()

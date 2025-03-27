@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, SnowflakeUtil, User } fro
 
 export function createParty(leader: User, ...users: User[]) {
     const party = playerParties.get(leader.id) ?? new Party(leader)
-    if (party.leader === leader) return false
+    if (party.leader !== leader) return false
 
     users.forEach((user) => party.addInvite(user))
     return true
@@ -24,18 +24,19 @@ export function joinParty(user: User, partyId: string) {
     return party?.addMember(user) ? party : null
 }
 
-export function getParty(user: User) {
-    return getPartyByUserID(user.id)
-}
-
-export function getPartyByUserID(user: string) {
+export function getParty(user: string) {
     return playerParties.get(user)
 }
 
+export function onPartyUpdate(call: (party: Party) => unknown) {
+    listeners.push(call)
+}
+
+const listeners: ((party: Party) => unknown)[] = []
 const playerParties = new Map<string, Party>()
 const parties = new Map<string, Party>()
 
-class Party {
+export class Party {
     id: string
     leader: User
     private members: Set<User>
@@ -82,9 +83,14 @@ class Party {
         return true
     }
 
+    private updated() {
+        listeners.forEach((call) => call(this))
+    }
+
     private addMember0(user: User) {
         this.members.add(user)
         playerParties.set(user.id, this)
+        this.updated()
     }
 
     disband() {
@@ -103,12 +109,16 @@ class Party {
     private removeMember0(user: User) {
         this.members.delete(user)
         playerParties.delete(user.id)
+        this.updated()
     }
 
     getMembers(): string[] {
-        return Array.from(this.members).map(user => user.id);
+        return Array.from(this.members).map((user) => user.id)
     }
-    
+
+    isLeader(user: string) {
+        return this.leader.id === user
+    }
 }
 
 process.on("SIGINT", () => parties.values().forEach((p) => p.disband()))
