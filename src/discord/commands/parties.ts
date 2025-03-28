@@ -4,6 +4,7 @@ import { createParty, leaveParty } from "@/lib/party"
 import {
     ChatInputCommandInteraction,
     InteractionContextType,
+    MessageFlags,
     SlashCommandBuilder,
     SlashCommandSubcommandBuilder,
     SlashCommandUserOption,
@@ -36,6 +37,8 @@ export default {
                     throw new UserError(
                         "Players must be registered using `/register` before they can be invited.",
                     )
+
+                await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
                 if (!(await createParty(interaction.user, ...players)))
                     throw new UserError("Only the party leader can invite other players.")
