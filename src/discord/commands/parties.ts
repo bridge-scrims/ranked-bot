@@ -18,7 +18,7 @@ export default {
         .addSubcommand((subcommand) => subcommand.setName("leave").setDescription("Leave a party"))
         .setContexts(InteractionContextType.Guild, InteractionContextType.BotDM),
 
-    execute(interaction: ChatInputCommandInteraction<undefined>) {
+    async execute(interaction: ChatInputCommandInteraction<undefined>) {
         switch (interaction.options.getSubcommand()) {
             case "create":
             case "invite": {
@@ -37,7 +37,7 @@ export default {
                         "Players must be registered using `/register` before they can be invited.",
                     )
 
-                if (!createParty(interaction.user, ...players))
+                if (!(await createParty(interaction.user, ...players)))
                     throw new UserError("Only the party leader can invite other players.")
 
                 if (players.length === 0) return "Successfully created a party."

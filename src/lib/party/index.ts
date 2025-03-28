@@ -1,10 +1,11 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, SnowflakeUtil, User } from "discord.js"
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, SnowflakeUtil, User, userMention } from "discord.js"
+import { UserError } from "../discord/UserError"
 
-export function createParty(leader: User, ...users: User[]) {
+export async function createParty(leader: User, ...users: User[]) {
     const party = playerParties.get(leader.id) ?? new Party(leader)
     if (party.leader !== leader) return false
 
-    users.forEach((user) => party.addInvite(user))
+    await Promise.all(users.map((user) => party.addInvite(user)))
     return true
 }
 
@@ -56,21 +57,29 @@ export class Party {
         this.members.forEach((m) => m.send(message).catch(() => null))
     }
 
-    addInvite(user: User) {
+    async addInvite(user: User) {
         if (this.invites.has(user.id)) return false
 
         this.invites.add(user.id)
-        user.send({
-            content: `Hi, ${this.leader} invited you to join their party!`,
-            components: [
-                new ActionRowBuilder<ButtonBuilder>().addComponents(
-                    new ButtonBuilder()
-                        .setCustomId(`PARTY:join:${this.id}`)
-                        .setLabel("Accept")
-                        .setStyle(ButtonStyle.Success),
-                ),
-            ],
-        }).catch(() => null)
+
+        await user
+            .send({
+                content: `Hi, ${this.leader} invited you to join their party!`,
+                components: [
+                    new ActionRowBuilder<ButtonBuilder>().addComponents(
+                        new ButtonBuilder()
+                            .setCustomId(`PARTY:join:${this.id}`)
+                            .setLabel("Accept")
+                            .setStyle(ButtonStyle.Success),
+                    ),
+                ],
+            })
+            .catch(() => {
+                throw new UserError(
+                    "Invite Failed",
+                    `Could not send invite to ${userMention(user.id)}. Make sure they have DMs open.`,
+                )
+            })
 
         return true
     }
