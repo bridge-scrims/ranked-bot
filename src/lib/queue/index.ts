@@ -1,7 +1,7 @@
 import { Player, Queue } from "@/database"
 import { client } from "@/discord"
 import { updateStatus } from "@/workers/functions/updateStatus"
-import { getParty, onPartyUpdate } from "../party"
+import { Party } from "../party"
 import { onCooldown, onCooldownExpire } from "./cooldown"
 import { resetChannelNick, setChannelNick } from "./nicks"
 import { GroupQueueParticipant, QueueParticipant, SoloQueueParticipant } from "./participant"
@@ -29,7 +29,7 @@ export function addToQueue(queue: Queue, user: string) {
         return QueueResult.NotRegistered
     }
 
-    const party = getParty(user)
+    const party = Party.get(user)
     if (party) {
         if (!party.isLeader(user)) {
             // setChannelNick(queue, user, "NOT PARTY LEADER")
@@ -129,9 +129,23 @@ client.on("voiceStateUpdate", (oldState, newState) => {
 })
 
 onCooldownExpire((player) => updateQueueStatus(player))
-onPartyUpdate((party) => {
-    party.getMembers().forEach((v) => removeParticipantFromQueue(v))
-    updateQueueStatus(party.leader.id)
+Party.onUpdate((party) => {
+    const queueId = playerQueues.get(party.leader.id)
+    if (!queueId) return
+
+    const queue = Queue.cache.get(queueId)
+    if (!queue) return
+
+    const partyMembers = party.getMembers()
+    const participants = queues.get(queue._id)!
+
+    if (partyMembers.length >= 1) {
+        participants.set(party.leader.id, new GroupQueueParticipant(partyMembers))
+    } else {
+        participants.set(party.leader.id, new SoloQueueParticipant(party.leader.id))
+    }
+
+    updateStatus(queue)
 })
 
 setInterval(() => {

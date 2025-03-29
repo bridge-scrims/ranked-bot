@@ -1,18 +1,27 @@
-import { UserError } from "@/lib/discord/UserError"
-import { joinParty } from "@/lib/party"
-import { ButtonInteraction } from "discord.js"
+import { Party } from "@/lib/party"
+import { ButtonInteraction, MessageFlags } from "discord.js"
 
 export default {
     id: "PARTY",
     execute(interaction: ButtonInteraction<"cached">) {
         switch (interaction.args.shift()) {
             case "join": {
-                const party = joinParty(interaction.user, interaction.args.shift()!)
-                if (party === null) {
-                    throw new UserError("This party no longer exists.")
+                const existingParty = Party.get(interaction.user.id)
+                if (existingParty) {
+                    return interaction.reply({
+                        flags: MessageFlags.Ephemeral,
+                        content: "You are already in a party.",
+                    })
                 }
 
-                return "You have successfully joined the party."
+                const party = Party.join(interaction.user, interaction.args.shift()!)
+                const embed = party.getEmbed(
+                    "Invitation Accepted",
+                    "You have accepted the party invitation.",
+                    party.leader,
+                )
+
+                interaction.update({ embeds: [embed], components: [] })
             }
         }
     },

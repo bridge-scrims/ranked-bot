@@ -1,6 +1,7 @@
 import { Player } from "@/database"
 import { UserError } from "@/lib/discord/UserError"
-import { createParty, leaveParty } from "@/lib/party"
+import { Party } from "@/lib/party"
+
 import {
     ChatInputCommandInteraction,
     InteractionContextType,
@@ -15,8 +16,14 @@ export default {
         .setName("party")
         .setDescription("All party related commands")
         .addSubcommand(buildCreateSubcommand("create", "Create a party and invite players"))
-        .addSubcommand(buildCreateSubcommand("invite", "Invite players to your party"))
+        .addSubcommand(buildCreateSubcommand("invite", "Invite players to your party", true))
         .addSubcommand((subcommand) => subcommand.setName("leave").setDescription("Leave a party"))
+        .addSubcommand((subcommand) =>
+            subcommand
+                .setName("kick")
+                .setDescription("Kick a player from your party")
+                .addUserOption(buildUserOption(true, true)),
+        )
         .setContexts(InteractionContextType.Guild, InteractionContextType.BotDM),
 
     async execute(interaction: ChatInputCommandInteraction<undefined>) {
@@ -26,9 +33,7 @@ export default {
                 if (!Player.getMcUuid(interaction.user.id))
                     throw new UserError("You must register using `/register` before you can create a party.")
 
-                const players = [interaction.options.getUser("user")]
-                    .filter((user) => user !== null)
-                    .map((user) => user)
+                const players = [interaction.options.getUser("user")].filter((player) => player !== null)
 
                 if (players.some((p) => p === interaction.user))
                     throw new UserError("You can't invite yourself to a party.")
@@ -39,33 +44,34 @@ export default {
                     )
 
                 await interaction.deferReply({ flags: MessageFlags.Ephemeral })
-
-                if (!(await createParty(interaction.user, ...players)))
-                    throw new UserError("Only the party leader can invite other players.")
+                await Party.create(interaction.user).addInvites(players)
 
                 if (players.length === 0) return "Successfully created a party."
                 return `Successfully invited ${players.map((player) => player.username).join(", ")}.`
             }
-            case "leave":
-                if (!leaveParty(interaction.user)) {
-                    throw new UserError("You aren't in a party!")
-                }
-
+            case "leave": {
+                Party.leave(interaction.user)
                 return "Successfully left the party."
+            }
+            case "kick": {
+                const user = interaction.options.getUser("user", true)
+                Party.kick(user, interaction.user)
+                return `Successfully kicked ${user.username} from the party.`
+            }
         }
     },
 }
 
-function buildCreateSubcommand(name: string, description: string) {
+function buildCreateSubcommand(name: string, description: string, requiredToInvite = false) {
     return new SlashCommandSubcommandBuilder()
         .setName(name)
         .setDescription(description)
-        .addUserOption(buildUserOption())
+        .addUserOption(buildUserOption(requiredToInvite))
 }
 
-function buildUserOption() {
+function buildUserOption(required: boolean, kick = false) {
     return new SlashCommandUserOption()
         .setName(`user`)
-        .setDescription(`The user to invite to the party.`)
-        .setRequired(false)
+        .setDescription(`The user to ${kick ? "kick from" : "invite to"} the party.`)
+        .setRequired(required)
 }
