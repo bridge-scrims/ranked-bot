@@ -5,7 +5,7 @@ import { SEASON } from "@/Constants"
 import { Document, modelClass } from "../util"
 
 export class Team {
-    @Prop({ type: Types.Long, required: true })
+    @Prop({ type: () => [String], required: true })
     players!: string[]
 
     @Prop({ type: Number, required: false })
@@ -32,7 +32,7 @@ class GameClass {
     @Prop({ type: Types.Long, required: false })
     queueId?: string
 
-    @Prop({ type: Types.Long, required: false })
+    @Prop({ type: () => [String], required: false })
     channels?: string[]
 
     @Prop({ type: Number, required: false })
@@ -41,7 +41,7 @@ class GameClass {
     @Prop({ type: String, required: false })
     replay?: string
 
-    @Prop({ type: Team, required: true })
+    @Prop({ type: () => [Team], required: true })
     teams!: Team[]
 
     isParticipant(id: string) {

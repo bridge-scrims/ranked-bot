@@ -79,7 +79,7 @@ export default {
     async execute(interaction: ChatInputCommandInteraction<"cached">) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
-        const voice = interaction.options.getChannel(Options.Channel, true, [ChannelType.GuildCategory])
+        const voice = interaction.options.getChannel(Options.Channel, true, [ChannelType.GuildVoice])
         const textCategory = interaction.options.getChannel(Options.TextCategory, true)
         const vcCategory = interaction.options.getChannel(Options.VcCategory, true)
         const queueLog = interaction.options.getChannel(Options.QueueLog, true)

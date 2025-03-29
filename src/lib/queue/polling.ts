@@ -60,7 +60,12 @@ interface Team {
 }
 
 export function makeTeams(entry: QueueEntry, entries: QueueEntry[], teamSize: number) {
-    const team1: Team = { entries: [entry], players: entry.players.length, elo: entry.elo }
+    const team1: Team = {
+        entries: [entry],
+        players: entry.players.length,
+        elo: entry.elo,
+        full: entry.players.length === teamSize,
+    }
     const team2: Team = { entries: [], players: 0, elo: 0 }
     const teams = [team2, team1]
 

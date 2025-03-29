@@ -75,8 +75,15 @@ export async function startGame(queue: Queue, teams: string[][]) {
         .setTitle(`Game #${gameId}`)
         .setDescription(
             "Duel the other team using `/duel <user> bridge`. " +
-                "Once the game is done, send a screenshot of the score using `/score`. " +
+                "Once the game is done, send the replay link using `/score`. " +
                 "Remember, **games are best of 1**.",
+        )
+        .addFields(
+            teamMembers.map((team, i) => ({
+                name: `Team ${i + 1}`,
+                value: team.map((v) => `- ${v}`).join("\n"),
+                inline: true,
+            })),
         )
         .setTimestamp()
 
