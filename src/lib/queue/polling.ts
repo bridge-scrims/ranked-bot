@@ -7,125 +7,180 @@ import { QueueParticipant } from "./participant"
 
 export interface QueueEntry {
     id: string
-    idx?: number
     skips: number
     elo: number
     players: string[]
     matched?: boolean
 }
 
-export function* closestEntries(entries: QueueEntry[], entry: QueueEntry, range: number) {
+class Team {
+    elo: number
+    skips: number
+    idx?: number
+
+    constructor(readonly entries: QueueEntry[]) {
+        this.elo = entries.reduce((pv, cv) => pv + cv.elo, 0) / entries.length
+        this.skips = Math.max(...entries.map((v) => v.skips))
+    }
+
+    reserve() {
+        const reserved = this.entries.filter((entry) => !entry.matched)
+        reserved.forEach((entry) => (entry.matched = true))
+        return () => reserved.forEach((entry) => (entry.matched = false))
+    }
+
+    reserved() {
+        return this.entries.some((entry) => entry.matched)
+    }
+}
+
+export function* closestEntries(entries: Team[], entry: Team, range: number) {
     range += range * entry.skips
 
-    let a, b, aRange, bRange, aDiff, bDiff
-    let aIdx = entry.idx!
-    let bIdx = entry.idx!
+    const left = entriesIterate(entries, entry, range, -1)
+    const right = entriesIterate(entries, entry, range, 1)
 
-    while (true) {
-        a = entries[--aIdx]
-        b = entries[++bIdx]
+    let a = left.next().value
+    let b = right.next().value
 
-        if (a === undefined && b === undefined) {
-            break // No more entries to check
-        }
-
-        aRange = a === undefined || a.matched ? undefined : (aDiff = Math.abs(a.elo - entry.elo)) <= range
-        bRange = b === undefined || b.matched ? undefined : (bDiff = Math.abs(b.elo - entry.elo)) <= range
-
-        // Yield entries in order of smallest difference
-        if (aRange && bRange) {
-            // @ts-expect-error - If aRange and bRange are both true, then aDiff and bDiff are defined
-            if (bDiff < aDiff) {
-                yield b
-                yield a
-            } else {
-                yield a
-                yield b
-            }
-        } else if (aRange) {
-            yield a
-        } else if (bRange) {
+    while (a && b) {
+        if (b.diff < a.diff) {
             yield b
-        } else if (aRange === false && bRange === false) {
-            break // Both entries are out of range
+            b = right.next().value
+            if (a.entry.reserved()) {
+                a = left.next().value
+            }
+        } else {
+            yield a
+            a = left.next().value
+            if (b.entry.reserved()) {
+                b = right.next().value
+            }
         }
+    }
+
+    if (a) {
+        yield a
+        yield* left
+    } else if (b) {
+        yield b
+        yield* right
     }
 }
 
-interface Team {
-    entries: QueueEntry[]
-    players: number
-    elo: number
-    full?: boolean
-}
+function* entriesIterate(entries: Team[], base: Team, range: number, delta: number) {
+    let idx = base.idx! + delta
 
-export function makeTeams(entry: QueueEntry, entries: QueueEntry[], teamSize: number) {
-    const team1: Team = {
-        entries: [entry],
-        players: entry.players.length,
-        elo: entry.elo,
-        full: entry.players.length === teamSize,
-    }
-    const team2: Team = { entries: [], players: 0, elo: 0 }
-    const teams = [team2, team1]
-
-    // Iterate over entries closest to elo of entry and put together teams
-    for (const match of closestEntries(entries, entry, DEFAULT_RANGE)) {
-        if (match.elo < entry.elo) {
-            // If this is a match from the left side (smaller side) try to give it to team with largest elo
-            teams.sort((a, b) => b.elo - a.elo)
-        } else if (match.elo !== entry.elo) {
-            // If this is a match from the right side (greater side) try to give it to team with smallest elo
-            teams.sort((a, b) => a.elo - b.elo)
-        }
-
-        for (const team of teams) {
-            if (team.full) continue
-
-            const newPlayers = team.players + match.players.length
-            if (newPlayers <= teamSize) {
-                team.entries.push(match)
-                team.players = newPlayers
-                team.elo += match.elo
-                team.full = newPlayers === teamSize
-                if (teams.every((v) => v.full)) {
-                    return teams
-                }
-
+    while (idx >= 0 && idx < entries.length) {
+        const entry = entries[idx]
+        if (!entry.reserved()) {
+            const diff = Math.abs(entry.elo - base.elo)
+            if (diff > range) {
                 break
             }
+
+            yield { entry, diff }
         }
+
+        idx += delta
+    }
+}
+
+export function makeTeams(base: Team, entries: Team[]) {
+    const cancel = base.reserve()
+
+    const iter = closestEntries(entries, base, DEFAULT_RANGE)
+    const opponent = iter.next().value?.entry
+    if (!opponent) {
+        cancel()
+        return
+    }
+
+    opponent.reserve()
+    return [base, opponent]
+}
+
+class ParticipantEntry implements QueueEntry {
+    readonly skips: number
+    readonly elo: number
+    readonly players: string[]
+
+    matched?: boolean
+    idx?: number
+
+    constructor(
+        readonly id: string,
+        readonly participant: QueueParticipant,
+    ) {
+        this.skips = participant.getSkips()
+        this.elo = participant.getELO()
+        this.players = participant.getPlayers()
     }
 }
 
 export function pollQueue(queue: Queue, participants: Map<string, QueueParticipant>) {
-    const entries = Array.from(participants.entries()).map(
-        ([id, p]): QueueEntry => ({ id, skips: p.getSkips(), elo: p.getELO(), players: p.getPlayers() }),
-    )
+    const entries = Array.from(participants.entries()).map(([id, p]) => new ParticipantEntry(id, p))
 
-    const sorted = entries.toSorted((a, b) => a.elo - b.elo)
+    // TODO support all team sizes and combining more than two entries
+    const teamsIndex: Record<string, Team[]> = {}
+    const teams: Team[] = []
+    function team(team: Team) {
+        for (const entry of team.entries) {
+            if (!teamsIndex[entry.id]?.push(team)) {
+                teamsIndex[entry.id] = [team]
+            }
+        }
+
+        teams.push(team)
+    }
+
+    const odd = []
+
+    for (const entry of entries) {
+        if (entry.players.length === queue.teamSize) {
+            team(new Team([entry]))
+        } else if (entry.players.length === queue.teamSize / 2) {
+            odd.push(entry)
+        }
+    }
+
+    for (let i = 0; i < odd.length; i++) {
+        for (let j = i + 1; j < odd.length; j++) {
+            team(new Team([odd[i], odd[j]]))
+        }
+    }
+
+    const sorted = teams.toSorted((a, b) => a.elo - b.elo)
     sorted.forEach((v, i) => (v.idx = i))
 
     let games = 0
 
     // Iterate in order people joined the queue
     for (const entry of entries) {
-        if (entry.matched) continue
+        if (entry.matched || !(entry.id in teamsIndex)) continue
 
-        const teams = makeTeams(entry, entries, queue.teamSize)
-        if (!teams) continue
+        for (const team of teamsIndex[entry.id]) {
+            const teams = makeTeams(team, sorted)
+            if (!teams) continue
 
-        for (const team of teams) {
-            for (const v of team.entries) {
-                v.matched = true
-                removeParticipantFromQueue(v.id)
-                addCooldown(v.id)
+            for (const team of teams) {
+                for (const v of team.entries) {
+                    removeParticipantFromQueue(v.id)
+                    addCooldown(v.id)
+                }
             }
-        }
 
-        games++
-        const players = teams.map((v) => v.entries.flatMap((v) => v.players))
-        startGame(queue, players).catch(console.error)
+            games++
+            const players = teams.map((v) => v.entries.flatMap((v) => v.players))
+            startGame(queue, players).catch(console.error)
+            break
+        }
+    }
+
+    for (const entry of entries) {
+        if (!entry.matched) {
+            entry.participant.skip()
+        }
     }
 
     return games

@@ -12,7 +12,7 @@ export default {
         if (!game) throw new UserError("Game has already finished!")
 
         const team = game.teams[parseInt(interaction.args.shift()!)]
-        if (!team.players.includes(interaction.user.id))
+        if (!team.includes(interaction.user.id))
             throw new UserError("This void request must be accepted by the other team!")
 
         await interaction.editReply("Voiding game...")

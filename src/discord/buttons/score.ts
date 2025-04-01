@@ -12,11 +12,10 @@ export default {
         if (!game) throw new UserError("Game has already finished!")
 
         const team = game.teams[parseInt(interaction.args.shift()!)]
-        if (!team.players.includes(interaction.user.id))
+        if (!team.includes(interaction.user.id))
             throw new UserError("This score request must be accepted by the other team.")
 
-        const score1 = parseInt(interaction.args.shift() ?? "0")
-        const score2 = parseInt(interaction.args.shift() ?? "0")
+        const [score1, score2] = interaction.args.map((v) => parseInt(v))
 
         await interaction.editReply("Closing channel...")
         const success = await closeChannel(game, score1, score2, interaction.message.embeds[0]?.image?.url)

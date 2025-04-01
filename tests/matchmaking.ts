@@ -2,6 +2,7 @@ import { closestEntries, makeTeams, QueueEntry } from "@/lib/queue/polling"
 
 const SKIPS = Infinity
 const RANGE = Infinity
+
 const unsorted: QueueEntry[] = [
     { id: "A", players: ["1"], elo: 1000, skips: SKIPS },
     { id: "B", players: ["2"], elo: 1100, skips: SKIPS },
@@ -27,7 +28,7 @@ for (const entry of unsorted) {
     console.log(
         `Closest to ${entry.id} (ELO: ${entry.elo}): ${closestEntries(sorted, entry, RANGE)
             .toArray()
-            .map((v) => `${v.id} (ELO: ${v.elo})`)
+            .map(({ entry }) => `${entry.id} (ELO: ${entry.elo})`)
             .join(" | ")}`,
     )
 }
@@ -37,7 +38,7 @@ const TEAM_SIZE = 2
 for (const entry of unsorted) {
     if (entry.matched) continue
 
-    const teams = makeTeams(entry, sorted, TEAM_SIZE)
+    const teams = makeTeams(entry, sorted)
     if (!teams) continue
 
     for (const team of teams) {

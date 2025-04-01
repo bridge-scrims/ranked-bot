@@ -1,3 +1,5 @@
+import { Queue } from "@/database"
+import { client } from "@/discord"
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SnowflakeUtil, User } from "discord.js"
 import { UserError } from "../discord/UserError"
 
@@ -5,19 +7,44 @@ const listeners: ((party: Party) => unknown)[] = []
 const playerParties = new Map<string, Party>()
 const parties = new Map<string, Party>()
 
+const initialized = Promise.withResolvers()
+const PARTY_FILE = Bun.file("./parties.json")
+Promise.all([new Promise((res) => client.once("ready", res)), PARTY_FILE.json()])
+    .then(([, data]) =>
+        Promise.all(
+            data.map(async (party) => {
+                const members = await Promise.all(party.members.map((v) => client.users.fetch(v)))
+                return new Party(party.id, members[0], party.color, members, party.invites)
+            }),
+        ),
+    )
+    .catch(console.error)
+    .finally(() => initialized.resolve())
+
 export class Party {
+    static async initialized() {
+        await initialized.promise
+    }
+
     static get(userId: string) {
         return playerParties.get(userId)
     }
 
     static create(leader: User) {
         const existingParty = this.get(leader.id)
-        if (!existingParty) return new Party(leader)
+        if (!existingParty) return this.create0(leader)
 
         if (!existingParty.isLeader(leader.id))
             throw new UserError("Only the party leader can invite other players.")
 
         return existingParty
+    }
+
+    private static create0(leader: User) {
+        const party = new Party(SnowflakeUtil.generate().toString(), leader, getRandomColor())
+        party.addMember0(leader)
+        party.send(`Party Created`, "The party has been created.", leader)
+        return party
     }
 
     static join(user: User, partyId: string) {
@@ -42,7 +69,7 @@ export class Party {
         const party = this.get(leader.id)
         if (!party) throw new UserError("You aren't in a party.")
         if (!party.isLeader(leader.id)) throw new UserError("Only the party leader can kick players.")
-        if (!party.getMembers().includes(user.id)) throw new UserError("This player isn't in your party.")
+        if (!party.isMember(user)) throw new UserError("This player isn't in your party.")
 
         party.removeMember(user)
         return party
@@ -52,23 +79,25 @@ export class Party {
         listeners.push(callback)
     }
 
-    id: string
-    leader: User
-    private readonly partyColor: number
-    private members: Set<User>
-    private invites: Set<string>
+    readonly members = new Set<User>()
+    readonly invites = new Set<string>()
 
-    constructor(leader: User) {
-        this.id = SnowflakeUtil.generate().toString()
-        this.leader = leader
-        this.partyColor = this.getRandomColor()
-        this.members = new Set()
-        this.invites = new Set()
+    constructor(
+        readonly id: string,
+        readonly leader: User,
+        readonly color: number,
+        members?: User[],
+        invites?: string[],
+    ) {
+        invites?.forEach((invite) => this.invites.add(invite))
+        if (members) {
+            for (const member of members) {
+                this.members.add(member)
+                playerParties.set(member.id, this)
+            }
+        }
 
-        this.addMember0(leader)
         parties.set(this.id, this)
-
-        this.send(`Party Created`, "The party has been created.", leader)
     }
 
     disband() {
@@ -143,11 +172,21 @@ export class Party {
     private removeMember0(user: User) {
         this.members.delete(user)
         playerParties.delete(user.id)
+        for (const guild of client.guilds.cache.values()) {
+            const voice = guild.voiceStates.cache.get(user.id)
+            if (voice?.channelId && Queue.cache.get(voice.channelId)) {
+                voice.disconnect().catch(() => null)
+            }
+        }
         this.updated()
     }
 
     getMembers(): string[] {
         return Array.from(this.members).map((user) => user.id)
+    }
+
+    isMember(user: User) {
+        return this.members.has(user)
     }
 
     isLeader(user: string) {
@@ -163,7 +202,7 @@ export class Party {
         const embed = new EmbedBuilder()
             .setTitle(title)
             .setDescription(description ?? null)
-            .setColor(this.partyColor)
+            .setColor(this.color)
 
         if (author) embed.setAuthor({ name: author.username, iconURL: author.displayAvatarURL() })
         return embed
@@ -172,10 +211,22 @@ export class Party {
     private updated() {
         listeners.forEach((call) => call(this))
     }
-
-    private getRandomColor() {
-        return Math.floor(Math.random() * 0xaaaaaa) + 0x222222
-    }
 }
 
-process.on("SIGINT", () => parties.values().forEach((p) => p.disband()))
+function getRandomColor() {
+    return Math.floor(Math.random() * 0xaaaaaa) + 0x222222
+}
+
+process.on("SIGINT", () =>
+    Bun.write(
+        "./parties.json",
+        JSON.stringify(
+            Array.from(parties.values()).map((party) => ({
+                id: party.id,
+                color: party.color,
+                members: party.getMembers(),
+                invites: Array.from(party.invites),
+            })),
+        ),
+    ),
+)

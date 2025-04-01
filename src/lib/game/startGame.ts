@@ -58,8 +58,8 @@ export async function startGame(queue: Queue, teams: string[][]) {
         sequence: gameId,
         guildId: guild.id,
         queueId: queue._id,
-        teams: teams.map((players) => ({ players })),
         channels: vcs.map((v) => v.id),
+        teams,
     })
 
     for (let i = 0; i < teamMembers.length; i++) {

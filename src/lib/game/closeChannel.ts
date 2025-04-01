@@ -27,7 +27,7 @@ export async function closeChannel(game: Game, score1: number, score2: number, i
                 .setFields(
                     game.teams.map((v, i) => ({
                         name: `Team ${i + 1}`,
-                        value: v.players.map((v) => `- ${userMention(v)}`).join("\n"),
+                        value: v.map((v) => `- ${userMention(v)}`).join("\n"),
                     })),
                 ),
         )

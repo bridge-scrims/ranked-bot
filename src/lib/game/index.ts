@@ -44,8 +44,8 @@ export async function archiveGame(game: Game) {
             $unset: { queueId: "", guildId: "", channels: "" },
             $set: {
                 winner: game.winner,
-                replay: game.replay,
-                ...game.teams.reduce((o, v, i) => ({ ...o, [`teams.${i}.result`]: v.score }), {}),
+                scores: game.scores,
+                meta: game.meta,
             },
         },
     )
@@ -53,7 +53,7 @@ export async function archiveGame(game: Game) {
     if (!update.matchedCount) return false
 
     games.delete(game._id)
-    void Promise.allSettled(game.channels!.map((id) => client.rest.delete(Routes.channel(id))))
+    void Promise.allSettled(game.channels.map((id) => client.rest.delete(Routes.channel(id))))
     void Bun.sleep(1000).then(() => client.rest.delete(Routes.channel(game._id)).catch(() => null))
     return true
 }

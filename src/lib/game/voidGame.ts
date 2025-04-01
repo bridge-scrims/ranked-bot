@@ -1,7 +1,7 @@
 import { EmbedBuilder, bold, userMention } from "discord.js"
 
 import { colors } from "@/discord"
-import { gameLog } from "@/lib/game/gameLog"
+import { gameLog } from "@/lib/game/log"
 import { archiveGame, getGame } from "."
 
 export async function voidGame(gameId: string) {
@@ -16,7 +16,7 @@ export async function voidGame(gameId: string) {
         .setTitle(`Game #${game.sequence} Voided`)
         .setDescription(
             game.teams
-                .map((team, i) => bold(`Team ${i + 1}: `) + team.players.map(userMention).join(", "))
+                .map((team, i) => bold(`Team ${i + 1}: `) + team.map(userMention).join(", "))
                 .join("\n"),
         )
         .setTimestamp()

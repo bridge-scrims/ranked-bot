@@ -57,7 +57,7 @@ export default {
         if (!interaction.channel!.isSendable())
             throw new Error(`Invalid game channel type ${interaction.channel!.type}`)
 
-        const teamIdx = game.teams.findIndex((v) => v.players.includes(interaction.user.id))
+        const teamIdx = game.teams.findIndex((v) => v.includes(interaction.user.id))
         if (teamIdx === -1) throw new UserError("Only game participants can send void requests!")
 
         const scoreInput = interaction.options.getString("score", true)
@@ -84,7 +84,7 @@ export default {
             .setStyle(ButtonStyle.Success)
 
         await interaction.channel.send({
-            content: game.teams[otherTeam].players.map(userMention).join(" "),
+            content: game.teams[otherTeam].map(userMention).join(" "),
             embeds: [scoreEmbed],
             components: [new ActionRowBuilder<ButtonBuilder>().addComponents(scoreButton)],
         })

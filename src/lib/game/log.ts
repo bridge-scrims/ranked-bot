@@ -8,6 +8,11 @@ export async function gameLog(game: Game, message: MessageCreateOptions) {
     if (queue) await log(queue.gameLog, message)
 }
 
+export async function queueLog(game: Game, message: MessageCreateOptions) {
+    const queue = Queue.cache.get(game.queueId!)
+    if (queue) await log(queue.queueLog, message)
+}
+
 async function log(channelId: string, message: MessageCreateOptions) {
     const channel = await client?.channels.fetch(channelId).catch(() => null)
     if (channel?.isSendable()) {

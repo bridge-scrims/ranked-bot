@@ -47,18 +47,22 @@ export default {
             data.teams.flatMap((t) => t.players.map((id) => [Player.resolveMcUuid(id), t.name])),
         )
 
-        if (!game.teams.every((t) => new Set(t.players.map((id) => pTeams[id])).size === 1))
+        if (
+            !game.teams.every(
+                (t) => t.every((id) => id in pTeams) && new Set(t.map((id) => pTeams[id])).size === 1,
+            )
+        )
             throw new UserError("Players in the replay do not match the players of this game.")
 
         if (data.timestamp < game.date.valueOf())
             throw new UserError("Replay must be from after you queued this game.")
 
-        const winner = game.teams.findIndex((t) => pTeams[t.players[0]] === data.winner)
+        const winner = game.teams.findIndex((t) => pTeams[t[0]].toLowerCase() === data.winner.toLowerCase())
         if (winner === -1) throw new Error(`Invalid winner for ${data._id}`)
 
-        game.replay = data._id
         game.winner = winner
-        game.teams.forEach((t) => (t.score = teams[pTeams[t.players[0]]].goals))
+        game.scores = game.teams.map((t) => teams[pTeams[t[0]]].goals)
+        game.meta = { replay: id, duration: data.duration, map: data.map }
         await scoreGame(game)
 
         return "Game scored."

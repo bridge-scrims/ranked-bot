@@ -1,7 +1,7 @@
 import { Player } from "@/database"
 
 export abstract class QueueParticipant {
-    private skips = 0
+    protected skips = 0
 
     getSkips() {
         return this.skips

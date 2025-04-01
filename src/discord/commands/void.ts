@@ -26,7 +26,7 @@ export default {
         const game = await Game.findById(interaction.channelId)
         if (!game) throw new UserError("This command can only be used in game channels!")
 
-        const teamIdx = game.teams.findIndex((v) => v.players.includes(interaction.user.id))
+        const teamIdx = game.teams.findIndex((v) => v.includes(interaction.user.id))
         if (teamIdx === -1) throw new UserError("Only game participants can send void requests!")
 
         if (!interaction.channel!.isSendable())
@@ -44,7 +44,7 @@ export default {
             .setStyle(ButtonStyle.Danger)
 
         await interaction.channel.send({
-            content: game.teams[otherTeam].players.map(userMention).join(" "),
+            content: game.teams[otherTeam].map(userMention).join(" "),
             embeds: [voidEmbed],
             components: [new ActionRowBuilder<ButtonBuilder>().addComponents(voidButton)],
         })

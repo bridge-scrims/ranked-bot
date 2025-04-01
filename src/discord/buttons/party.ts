@@ -1,17 +1,15 @@
+import { MessageOptionsBuilder } from "@/lib/discord/MessageOptionsBuilder"
+import { UserError } from "@/lib/discord/UserError"
 import { Party } from "@/lib/party"
-import { ButtonInteraction, MessageFlags } from "discord.js"
+import { ButtonInteraction } from "discord.js"
 
 export default {
     id: "PARTY",
-    execute(interaction: ButtonInteraction<"cached">) {
+    async execute(interaction: ButtonInteraction<"cached">) {
         switch (interaction.args.shift()) {
             case "join": {
-                const existingParty = Party.get(interaction.user.id)
-                if (existingParty) {
-                    return interaction.reply({
-                        flags: MessageFlags.Ephemeral,
-                        content: "You are already in a party.",
-                    })
+                if (Party.get(interaction.user.id)) {
+                    throw new UserError("You are already in a party.")
                 }
 
                 const party = Party.join(interaction.user, interaction.args.shift()!)
@@ -21,7 +19,7 @@ export default {
                     party.leader,
                 )
 
-                interaction.update({ embeds: [embed], components: [] })
+                return interaction.update(new MessageOptionsBuilder().addEmbeds(embed))
             }
         }
     },

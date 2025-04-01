@@ -80,8 +80,6 @@ export class InteractionHandler {
     private async respond(interaction: Interaction, response: BaseMessageOptions) {
         if (interaction.isRepliable()) {
             if (interaction.replied || interaction.deferred) await interaction.editReply(response)
-            else if (interaction.isMessageComponent() && interaction.channel?.isDMBased())
-                await interaction.update(response)
             else await interaction.reply({ ...response, flags: MessageFlags.Ephemeral })
         }
     }

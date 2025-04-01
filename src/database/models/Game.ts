@@ -4,12 +4,15 @@ import { Types } from "mongoose"
 import { SEASON } from "@/Constants"
 import { Document, modelClass } from "../util"
 
-export class Team {
-    @Prop({ type: () => [String], required: true })
-    players!: string[]
+export class GameMeta {
+    @Prop({ type: Types.UUID, required: true })
+    replay!: string
 
-    @Prop({ type: Number, required: false })
-    score?: number
+    @Prop({ type: Number, required: true })
+    duration!: number
+
+    @Prop({ type: String, required: true })
+    map!: string
 }
 
 @Document("Game", "ranked_games")
@@ -32,21 +35,23 @@ class GameClass {
     @Prop({ type: Types.Long, required: false })
     queueId?: string
 
-    @Prop({ type: () => [String], required: false })
-    channels?: string[]
+    @Prop({ type: [Types.Long], required: false })
+    channels!: string[]
+
+    @Prop({ type: [[Types.Long]], required: true })
+    teams!: string[][]
+
+    @Prop({ type: [Number], required: false, default: undefined })
+    scores?: number[]
 
     @Prop({ type: Number, required: false })
     winner?: number
 
-    @Prop({ type: String, required: false })
-    replay?: string
+    @Prop({ type: Types.Long, required: false })
+    scorer?: string
 
-    @Prop({ type: () => [Team], required: true })
-    teams!: Team[]
-
-    isParticipant(id: string) {
-        return this.teams.some((v) => v.players.includes(id))
-    }
+    @Prop({ type: GameMeta, required: false })
+    meta?: GameMeta
 }
 
 export const Game = modelClass(GameClass)

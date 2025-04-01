@@ -23,16 +23,19 @@ export enum QueueResult {
 }
 
 export function addToQueue(queue: Queue, user: string) {
+    console.log("Queue", user)
+
     if (client.users.cache.get(user)?.bot) return QueueResult.Bot
     if (!Player.getMcUuid(user)) {
         setChannelNick(queue, user, "USE /REGISTER")
         return QueueResult.NotRegistered
     }
 
+    console.log("Queue2", user)
     const party = Party.get(user)
     if (party) {
         if (!party.isLeader(user)) {
-            // setChannelNick(queue, user, "NOT PARTY LEADER")
+            setChannelNick(queue, user, "NOT PARTY LEADER")
             return QueueResult.NotLeader
         }
 
@@ -42,6 +45,7 @@ export function addToQueue(queue: Queue, user: string) {
         }
     }
 
+    console.log("Queue3", user)
     const users = party?.getMembers() ?? [user]
     if (onCooldown(user)) return QueueResult.OnCooldown
     if (playerQueues.get(user) === queue._id) return QueueResult.AlreadyQueued
@@ -86,7 +90,9 @@ export function removeParticipantFromQueue(user: string) {
 }
 
 client.once("ready", () =>
-    Promise.all([Queue.cache.initialized(), Player.cacheInitialize()]).then(() => loadQueueMembers()),
+    Promise.all([Queue.cache.initialized(), Player.cacheInitialize(), Party.initialized()]).then(() =>
+        loadQueueMembers(),
+    ),
 )
 function loadQueueMembers() {
     for (const queue of Queue.cache.values()) {
@@ -130,22 +136,13 @@ client.on("voiceStateUpdate", (oldState, newState) => {
 
 onCooldownExpire((player) => updateQueueStatus(player))
 Party.onUpdate((party) => {
-    const queueId = playerQueues.get(party.leader.id)
-    if (!queueId) return
+    const previous = playerQueues.get(party.leader.id)
+    party.getMembers().forEach((v) => removeParticipantFromQueue(v))
 
-    const queue = Queue.cache.get(queueId)
-    if (!queue) return
-
-    const partyMembers = party.getMembers()
-    const participants = queues.get(queue._id)!
-
-    if (partyMembers.length >= 1) {
-        participants.set(party.leader.id, new GroupQueueParticipant(partyMembers))
-    } else {
-        participants.set(party.leader.id, new SoloQueueParticipant(party.leader.id))
+    if (previous) {
+        const queue = Queue.cache.get(previous)!
+        addToQueue(queue, party.leader.id)
     }
-
-    updateStatus(queue)
 })
 
 setInterval(() => {

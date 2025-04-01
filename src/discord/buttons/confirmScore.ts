@@ -9,7 +9,7 @@ export default {
     async execute(interaction: ButtonInteraction<"cached">) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
-        const scores = interaction.args.map(parseInt)
+        const scores = interaction.args.map((v) => parseInt(v))
         const game = await getGame(interaction.channelId)
         if (!game) throw new UserError("This command can only be used in game channels!")
 
@@ -18,8 +18,9 @@ export default {
             if (!success) throw new UserError("This game has already been voided.")
         } else {
             game.winner = scores[0] > scores[1] ? 0 : scores[1] > scores[0] ? 1 : -1
-            scores.forEach((v, i) => (game.teams[i].score = v))
+            game.scores = scores
 
+            console.log("Scoring", scores, game)
             const success = await scoreGame(game, interaction.user)
             if (!success) throw new UserError("This game has already been scored.")
         }
