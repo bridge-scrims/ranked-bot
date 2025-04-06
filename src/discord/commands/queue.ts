@@ -41,7 +41,7 @@ export default {
         const queue = Queue.cache.get(channel.id)
         if (!queue) throw new UserError(`${channel} is not a queue channel!`)
 
-        switch (addToQueue(queue, interaction.user.id)) {
+        switch (await addToQueue(queue, interaction.user.id)) {
             case QueueResult.NotRegistered:
                 throw new UserError("You must use /register first to use the ranked queue.")
             case QueueResult.NotLeader:

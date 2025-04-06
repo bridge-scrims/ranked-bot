@@ -15,6 +15,17 @@ export class GameMeta {
     map!: string
 }
 
+export class EloDiff {
+    @Prop({ type: Types.Long, required: true })
+    id!: string
+
+    @Prop({ type: Number, required: true })
+    old!: number
+
+    @Prop({ type: Number, required: true })
+    new!: number
+}
+
 @Document("Game", "ranked_games")
 class GameClass {
     @Prop({ type: Types.Long, required: true })
@@ -44,13 +55,16 @@ class GameClass {
     @Prop({ type: [Number], required: false, default: undefined })
     scores?: number[]
 
+    @Prop({ type: [EloDiff], required: false, default: undefined, _id: false })
+    elo?: EloDiff[]
+
     @Prop({ type: Number, required: false })
     winner?: number
 
     @Prop({ type: Types.Long, required: false })
     scorer?: string
 
-    @Prop({ type: GameMeta, required: false })
+    @Prop({ type: GameMeta, required: false, _id: false })
     meta?: GameMeta
 }
 

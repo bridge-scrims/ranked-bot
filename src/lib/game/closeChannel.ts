@@ -11,7 +11,7 @@ export async function closeChannel(game: Game, score1: number, score2: number, i
     const update = await Game.updateOne({ _id: game.id }, { $unset: { channels: "" } })
     if (!update.modifiedCount) return false
 
-    void Promise.allSettled(game.channels!.map((id) => client.rest.delete(Routes.channel(id))))
+    void Promise.allSettled(game.channels.map((id) => client.rest.delete(Routes.channel(id))))
 
     const message = new MessageOptionsBuilder()
         .setContent(guild.roles.cache.find((v) => v.name.toLowerCase() === "scorer")?.toString())

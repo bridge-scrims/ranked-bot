@@ -3,35 +3,19 @@ import { client } from "@/discord"
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SnowflakeUtil, User } from "discord.js"
 import { UserError } from "../discord/UserError"
 
+const initialized = Promise.withResolvers()
 const listeners: ((party: Party) => unknown)[] = []
 const playerParties = new Map<string, Party>()
 const parties = new Map<string, Party>()
 
-const initialized = Promise.withResolvers()
-const PARTY_FILE = Bun.file("./parties.json")
-Promise.all([new Promise((res) => client.once("ready", res)), PARTY_FILE.json()])
-    .then(([, data]) =>
-        Promise.all(
-            data.map(async (party) => {
-                const members = await Promise.all(party.members.map((v) => client.users.fetch(v)))
-                return new Party(party.id, members[0], party.color, members, party.invites)
-            }),
-        ),
-    )
-    .catch(console.error)
-    .finally(() => initialized.resolve())
-
 export class Party {
-    static async initialized() {
+    static async get(userId: string) {
         await initialized.promise
-    }
-
-    static get(userId: string) {
         return playerParties.get(userId)
     }
 
-    static create(leader: User) {
-        const existingParty = this.get(leader.id)
+    static async create(leader: User) {
+        const existingParty = await this.get(leader.id)
         if (!existingParty) return this.create0(leader)
 
         if (!existingParty.isLeader(leader.id))
@@ -55,18 +39,18 @@ export class Party {
         return party
     }
 
-    static leave(user: User) {
-        const party = this.get(user.id)
+    static async leave(user: User) {
+        const party = await this.get(user.id)
         if (!party) throw new UserError("You aren't in a party.")
 
         party.removeMember(user)
         return party
     }
 
-    static kick(user: User, leader: User) {
+    static async kick(user: User, leader: User) {
         if (user.id === leader.id) throw new UserError("You can't kick yourself.")
 
-        const party = this.get(leader.id)
+        const party = await this.get(leader.id)
         if (!party) throw new UserError("You aren't in a party.")
         if (!party.isLeader(leader.id)) throw new UserError("Only the party leader can kick players.")
         if (!party.isMember(user)) throw new UserError("This player isn't in your party.")
@@ -178,6 +162,7 @@ export class Party {
                 voice.disconnect().catch(() => null)
             }
         }
+
         this.updated()
     }
 
@@ -217,16 +202,40 @@ function getRandomColor() {
     return Math.floor(Math.random() * 0xaaaaaa) + 0x222222
 }
 
-process.on("SIGINT", () =>
-    Bun.write(
-        "./parties.json",
-        JSON.stringify(
-            Array.from(parties.values()).map((party) => ({
-                id: party.id,
-                color: party.color,
-                members: party.getMembers(),
-                invites: Array.from(party.invites),
-            })),
+const PARTY_FILE = Bun.file("./data/parties.json")
+
+Promise.all([new Promise((res) => client.once("ready", res)), PARTY_FILE.json()])
+    .then(([, data]) =>
+        Promise.all(
+            (data as PartyData[]).map(async (party) => {
+                const members = await Promise.all(party.members.map((v) => client.users.fetch(v)))
+                return new Party(party.id, members[0]!, party.color, members, party.invites)
+            }),
         ),
-    ),
-)
+    )
+    .catch(console.error)
+    .finally(() => initialized.resolve())
+
+process.on("SIGINT", async () => {
+    await initialized.promise
+    await Bun.write(
+        PARTY_FILE,
+        JSON.stringify(
+            Array.from(parties.values()).map(
+                (party): PartyData => ({
+                    id: party.id,
+                    color: party.color,
+                    members: party.getMembers(),
+                    invites: Array.from(party.invites),
+                }),
+            ),
+        ),
+    )
+})
+
+interface PartyData {
+    id: string
+    color: number
+    members: string[]
+    invites: string[]
+}

@@ -13,7 +13,7 @@ export function stringifyResult(game: Game) {
     const scores = game.scores
     if (!scores) return "game voided"
 
-    const winner = scores[0] > scores[1] ? game.teams[0] : scores[1] > scores[0] ? game.teams[1] : null
-    const score = scores[0] > scores[1] ? `${scores[0]}-${scores[1]}` : `${scores[1]}-${scores[0]}`
+    const winner = scores[0]! > scores[1]! ? game.teams[0] : scores[1]! > scores[0]! ? game.teams[1] : null
+    const score = scores[0]! > scores[1]! ? `${scores[0]}-${scores[1]}` : `${scores[1]}-${scores[0]}`
     return winner ? winner.map(userMention).join(" ") + ` won ${score}` : "game ended in a draw"
 }

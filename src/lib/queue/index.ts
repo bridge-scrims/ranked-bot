@@ -22,20 +22,18 @@ export enum QueueResult {
     AlreadyQueued,
 }
 
-export function addToQueue(queue: Queue, user: string) {
-    console.log("Queue", user)
-
+export async function addToQueue(queue: Queue, user: string) {
     if (client.users.cache.get(user)?.bot) return QueueResult.Bot
+
+    await Player.cacheInitialized()
     if (!Player.getMcUuid(user)) {
         setChannelNick(queue, user, "USE /REGISTER")
         return QueueResult.NotRegistered
     }
 
-    console.log("Queue2", user)
-    const party = Party.get(user)
+    const party = await Party.get(user)
     if (party) {
         if (!party.isLeader(user)) {
-            setChannelNick(queue, user, "NOT PARTY LEADER")
             return QueueResult.NotLeader
         }
 
@@ -45,14 +43,14 @@ export function addToQueue(queue: Queue, user: string) {
         }
     }
 
-    console.log("Queue3", user)
     const users = party?.getMembers() ?? [user]
+    users.forEach((user) => resetChannelNick(queue, user))
+
     if (onCooldown(user)) return QueueResult.OnCooldown
     if (playerQueues.get(user) === queue._id) return QueueResult.AlreadyQueued
 
     users.forEach((user) => {
-        resetChannelNick(queue, user)
-        removeParticipantFromQueue(user)
+        removeParticipantFromQueue(user, true)
         playerQueues.set(user, queue._id)
     })
 
@@ -68,14 +66,13 @@ export function addToQueue(queue: Queue, user: string) {
 }
 
 export function getQueueCount(queue: Queue) {
-    console.log(Array.from(queues.get(queue._id)!.values()))
     return Array.from(queues.get(queue._id)!.values()).reduce((pv, cv) => pv + cv.getPlayers().length, 0)
 }
 
-export function removeParticipantFromQueue(user: string) {
+export function removeParticipantFromQueue(user: string, force = false) {
     const queueId = playerQueues.get(user)
     if (queueId !== undefined) {
-        if (!queues.get(queueId)!.delete(user)) {
+        if (!queues.get(queueId)!.delete(user) && !force) {
             return false
         }
 
@@ -89,29 +86,25 @@ export function removeParticipantFromQueue(user: string) {
     return undefined
 }
 
-client.once("ready", () =>
-    Promise.all([Queue.cache.initialized(), Player.cacheInitialize(), Party.initialized()]).then(() =>
-        loadQueueMembers(),
-    ),
-)
+client.once("ready", () => Queue.cache.initialized().then(() => loadQueueMembers()))
 function loadQueueMembers() {
     for (const queue of Queue.cache.values()) {
         const channel = client.guilds.cache.get(queue.guildId)?.channels.cache.get(queue._id)
         if (channel?.isVoiceBased()) {
             for (const member of channel.members.values()) {
-                addToQueue(queue, member.id)
+                addToQueue(queue, member.id).catch(console.error)
             }
         }
     }
 }
 
-export function updateQueueStatus(player: string) {
+export async function updateQueueStatus(player: string) {
     for (const guild of client.guilds.cache.values()) {
         const member = guild.members.cache.get(player)
         if (member?.voice.channelId) {
             const queue = Queue.cache.get(member.voice.channelId)
             if (queue) {
-                addToQueue(queue, player)
+                await addToQueue(queue, player)
                 break
             }
         }
@@ -130,18 +123,27 @@ client.on("voiceStateUpdate", (oldState, newState) => {
     }
 
     if (newQueue) {
-        addToQueue(newQueue, newState.id)
+        addToQueue(newQueue, newState.id).catch(console.error)
     }
 })
 
-onCooldownExpire((player) => updateQueueStatus(player))
+onCooldownExpire((player) => updateQueueStatus(player).catch(console.error))
 Party.onUpdate((party) => {
     const previous = playerQueues.get(party.leader.id)
-    party.getMembers().forEach((v) => removeParticipantFromQueue(v))
+    if (previous) {
+        // Remove old party from the queue
+        const entries = queues.get(previous)!
+        const entry = entries.get(party.leader.id)!
+        entries.delete(party.leader.id)
+        entry.getPlayers().forEach((v) => playerQueues.delete(v))
+    }
+
+    // Remove new party members from the queue
+    party.getMembers().forEach((v) => removeParticipantFromQueue(v, true))
 
     if (previous) {
-        const queue = Queue.cache.get(previous)!
-        addToQueue(queue, party.leader.id)
+        // Add new party to the queue
+        addToQueue(Queue.cache.get(previous)!, party.leader.id).catch(console.error)
     }
 })
 

@@ -63,8 +63,8 @@ export async function startGame(queue: Queue, teams: string[][]) {
     })
 
     for (let i = 0; i < teamMembers.length; i++) {
-        const team = teamMembers[i]
-        const vc = vcs[i]
+        const team = teamMembers[i]!
+        const vc = vcs[i]!
         for (const member of team) {
             member.voice.setChannel(vc).catch(() => null)
         }

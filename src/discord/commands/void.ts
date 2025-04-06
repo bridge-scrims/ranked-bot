@@ -44,7 +44,7 @@ export default {
             .setStyle(ButtonStyle.Danger)
 
         await interaction.channel.send({
-            content: game.teams[otherTeam].map(userMention).join(" "),
+            content: game.teams[otherTeam]!.map(userMention).join(" "),
             embeds: [voidEmbed],
             components: [new ActionRowBuilder<ButtonBuilder>().addComponents(voidButton)],
         })

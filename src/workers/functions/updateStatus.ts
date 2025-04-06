@@ -9,10 +9,25 @@ function setStatus(queue: Queue, status: string | null) {
     }
 }
 
+const pending = new Set<string>()
+const cache = new Map<string, number>()
+
 export function updateStatus(queue: Queue) {
-    setStatus(queue, `Queued Players: ${getQueueCount(queue)}`)
+    if (pending.has(queue._id)) return
+
+    pending.add(queue._id)
+    queueMicrotask(() => {
+        if (!pending.delete(queue._id)) return
+
+        const count = getQueueCount(queue)
+        if (cache.get(queue._id) !== count) {
+            cache.set(queue._id, count)
+            setStatus(queue, `Queued Players: ${count}`)
+        }
+    })
 }
 
 export function clearStatus(queue: Queue) {
+    pending.clear()
     setStatus(queue, null)
 }

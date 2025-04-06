@@ -30,6 +30,7 @@ export default {
         switch (interaction.options.getSubcommand()) {
             case "create":
             case "invite": {
+                await Player.cacheInitialized()
                 if (!Player.getMcUuid(interaction.user.id))
                     throw new UserError("You must register using `/register` before you can create a party.")
 
@@ -44,18 +45,19 @@ export default {
                     )
 
                 await interaction.deferReply({ flags: MessageFlags.Ephemeral })
-                await Party.create(interaction.user).addInvites(players)
+                const party = await Party.create(interaction.user)
+                await party.addInvites(players)
 
                 if (players.length === 0) return "Successfully created a party."
                 return `Successfully invited ${players.map((player) => player.username).join(", ")}.`
             }
             case "leave": {
-                Party.leave(interaction.user)
+                await Party.leave(interaction.user)
                 return "Successfully left the party."
             }
             case "kick": {
                 const user = interaction.options.getUser("user", true)
-                Party.kick(user, interaction.user)
+                await Party.kick(user, interaction.user)
                 return `Successfully kicked ${user.username} from the party.`
             }
         }

@@ -25,7 +25,7 @@ const DEFAULT_STATS: RankedStats = {
 
 @Document("Player", "userprofiles")
 class PlayerClass {
-    static async cacheInitialize() {
+    static async cacheInitialized() {
         await initialized.promise
     }
 
@@ -104,7 +104,7 @@ Player.watcher()
                 discordToMc[doc._id] = doc.mcUUID
                 mcToDiscord[doc.mcUUID] = doc._id
             } else {
-                delete mcToDiscord[discordToMc[doc._id]]
+                delete mcToDiscord[discordToMc[doc._id]!]
                 delete discordToMc[doc._id]
             }
         }

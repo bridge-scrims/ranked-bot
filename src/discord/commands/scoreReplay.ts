@@ -40,28 +40,40 @@ export default {
 
         if (!data) throw new UserError("Invalid replay link or game ID.")
         if (data.gameType !== "BRIDGE" || data.mode !== "DUEL")
-            throw new UserError("Games must be Bridge Duels.")
+            throw new UserError("Games must be a **Bridge Duel**.")
 
+        if (data.duration < 60 * 1000)
+            throw new UserError(
+                "Game must be above one minute in length to auto score it." +
+                    " Use **/score-screenshot** if the game was actually under one minute.",
+            )
+
+        if (data.teams.length !== game.teams.length)
+            throw new UserError("Number of teams in the replay does not match.")
+
+        await Player.cacheInitialized()
         const teams = Object.fromEntries(data.teams.map((v) => [v.name, v]))
         const pTeams = Object.fromEntries(
-            data.teams.flatMap((t) => t.players.map((id) => [Player.resolveMcUuid(id), t.name])),
+            data.teams.flatMap((t) => t.players.map((id) => [Player.resolveMcUuid(id)!, t.name])),
         )
 
-        if (
-            !game.teams.every(
-                (t) => t.every((id) => id in pTeams) && new Set(t.map((id) => pTeams[id])).size === 1,
-            )
-        )
+        if (game.teams.flatMap((t) => t).length !== Object.keys(pTeams).length)
+            throw new UserError("Number of players in the replay does not match.")
+
+        if (!game.teams.every((t) => t.every((id) => id in pTeams)))
             throw new UserError("Players in the replay do not match the players of this game.")
+
+        if (!game.teams.every((t) => new Set(t.map((id) => pTeams[id])).size === 1))
+            throw new UserError("Teams in the replay do not match the teams of this game.")
 
         if (data.timestamp < game.date.valueOf())
             throw new UserError("Replay must be from after you queued this game.")
 
-        const winner = game.teams.findIndex((t) => pTeams[t[0]].toLowerCase() === data.winner.toLowerCase())
+        const winner = game.teams.findIndex((t) => pTeams[t[0]!]!.toLowerCase() === data.winner.toLowerCase())
         if (winner === -1) throw new Error(`Invalid winner for ${data._id}`)
 
         game.winner = winner
-        game.scores = game.teams.map((t) => teams[pTeams[t[0]]].goals)
+        game.scores = game.teams.map((t) => teams[pTeams[t[0]!]!]!.goals)
         game.meta = { replay: id, duration: data.duration, map: data.map }
         await scoreGame(game)
 

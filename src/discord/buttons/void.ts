@@ -11,7 +11,7 @@ export default {
         const game = await getGame(interaction.args.shift()!)
         if (!game) throw new UserError("Game has already finished!")
 
-        const team = game.teams[parseInt(interaction.args.shift()!)]
+        const team = game.teams[parseInt(interaction.args.shift()!)]!
         if (!team.includes(interaction.user.id))
             throw new UserError("This void request must be accepted by the other team!")
 

@@ -35,7 +35,7 @@ export default {
             throw new UserError("Use the ingame /link command to link your Minecraft and Discord first.")
 
         await Player.setMcUuid(interaction.user.id, scrimsUser._id)
-        updateQueueStatus(interaction.user.id)
+        await updateQueueStatus(interaction.user.id)
 
         return `Registered you as ${bold(ign)}.`
     },

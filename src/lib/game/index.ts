@@ -37,23 +37,34 @@ export async function createGame(data: Partial<Game>) {
 }
 
 export async function archiveGame(game: Game) {
+    const $set = {
+        winner: game.winner,
+        scores: game.scores,
+        scorer: game.scorer,
+        meta: game.meta,
+        elo: game.elo,
+    }
+
     const games = await ongoingGames
-    const update = await Game.updateOne(
+    const result = await Game.updateOne(
         { _id: game._id, queueId: { $exists: true } },
         {
             $unset: { queueId: "", guildId: "", channels: "" },
-            $set: {
-                winner: game.winner,
-                scores: game.scores,
-                meta: game.meta,
-            },
+            $set,
         },
     )
 
-    if (!update.matchedCount) return false
+    if (!result.matchedCount) return false
 
     games.delete(game._id)
+    game.winner = $set.winner
+    game.scores = $set.scores
+    game.scorer = $set.scorer
+    game.meta = $set.meta
+    game.elo = $set.elo
+
     void Promise.allSettled(game.channels.map((id) => client.rest.delete(Routes.channel(id))))
     void Bun.sleep(1000).then(() => client.rest.delete(Routes.channel(game._id)).catch(() => null))
+
     return true
 }

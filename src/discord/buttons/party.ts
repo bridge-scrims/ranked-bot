@@ -8,7 +8,7 @@ export default {
     async execute(interaction: ButtonInteraction<"cached">) {
         switch (interaction.args.shift()) {
             case "join": {
-                if (Party.get(interaction.user.id)) {
+                if (await Party.get(interaction.user.id)) {
                     throw new UserError("You are already in a party.")
                 }
 

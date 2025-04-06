@@ -73,7 +73,7 @@ export default {
             .setTitle("Score Request")
             .setDescription(
                 `${interaction.user} has requested to score the game.\n` +
-                    `Please confirm ${bold(stringifyScore(game, score1, score2))}.`,
+                    `Please confirm ${bold(stringifyScore(game, score1!, score2!))}.`,
             )
             .setImage(screenshot.url)
 
@@ -84,7 +84,7 @@ export default {
             .setStyle(ButtonStyle.Success)
 
         await interaction.channel.send({
-            content: game.teams[otherTeam].map(userMention).join(" "),
+            content: game.teams[otherTeam]!.map(userMention).join(" "),
             embeds: [scoreEmbed],
             components: [new ActionRowBuilder<ButtonBuilder>().addComponents(scoreButton)],
         })

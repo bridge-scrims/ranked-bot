@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun .",
+    "check": "tsc --noEmit && eslint",
     "test": "bun src/test"
   },
   "dependencies": {

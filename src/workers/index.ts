@@ -23,7 +23,7 @@ function initWorker(queue: Queue) {
     const client = new Client({ intents: [], presence: { status: "invisible" } })
         .on("error", console.error)
         .on("ready", () => {
-            console.log(`${client.user!.tag} ready as a worker.`)
+            console.log(`${client.user!.tag} ready as a worker for ${queue._id}.`)
             updateStatus(queue)
 
             joinQueueChannel(client, queue).catch(console.error)
