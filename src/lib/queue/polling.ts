@@ -27,6 +27,7 @@ export function pollQueue(queue: Queue, participants: Map<string, QueueParticipa
     const entries = Array.from(participants.entries()).map(([id, p]) => new ParticipantEntry(id, p))
     const teamsIndex: Record<string, Team[]> = {}
     const teams = makeTeams(queue.teamSize, entries, teamsIndex)
+    if (teams.length < 2) return 0
 
     let games = 0
     for (const match of matches(entries, teams, teamsIndex)) {

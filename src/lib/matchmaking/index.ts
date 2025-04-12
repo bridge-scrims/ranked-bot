@@ -1,4 +1,4 @@
-const DEFAULT_RANGE = 25
+const DEFAULT_RANGE = 15
 
 export interface QueueEntry {
     id: string
