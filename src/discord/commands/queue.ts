@@ -46,7 +46,9 @@ export default {
                 throw new UserError("You must use /register first to use the ranked queue.")
             case QueueResult.NotLeader:
                 throw new UserError("Only the party leader can queue the party.")
-            case QueueResult.InvalidParty:
+            case QueueResult.NoAccess:
+                throw new UserError("You or someone in your party doesn't have access to this queue.")
+            case QueueResult.TooBig:
                 throw new UserError("Your party is too big for this queue.")
             case QueueResult.OnCooldown:
                 throw new UserError("You must wait 1 minute between queueing a game and requeuing.")

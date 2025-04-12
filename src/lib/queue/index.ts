@@ -12,12 +12,26 @@ const queues = new Map<string, Map<string, QueueParticipant>>()
 Queue.cache.on("add", (queue) => queues.set(queue._id, new Map()))
 Queue.cache.on("delete", (queue) => queues.delete(queue._id))
 
+const initializedGuilds: Record<string, Promise<unknown>> = {}
+Queue.cache.on("add", (queue) => {
+    if (queue.guildId in initializedGuilds) return
+
+    const promise = Promise.withResolvers()
+    initializedGuilds[queue.guildId] = promise.promise
+    client.guilds
+        .fetch(queue.guildId)
+        .then((guild) => guild.members.fetch())
+        .catch(console.error)
+        .finally(() => promise.resolve())
+})
+
 export enum QueueResult {
     Success,
     Bot,
     NotRegistered,
     NotLeader,
-    InvalidParty,
+    NoAccess,
+    TooBig,
     OnCooldown,
     AlreadyQueued,
 }
@@ -31,15 +45,30 @@ export async function addToQueue(queue: Queue, user: string) {
         return QueueResult.NotRegistered
     }
 
+    await initializedGuilds[queue.guildId]
+    const guild = await client.guilds.fetch(queue.guildId)
+    const channel = await guild.channels.fetch(queue._id)
+
+    const member = guild.members.cache.get(user)
+    if (!member || !channel?.permissionsFor(member, true).has("Connect")) {
+        return QueueResult.NoAccess
+    }
+
     const party = await Party.get(user)
     if (party) {
         if (!party.isLeader(user)) {
             return QueueResult.NotLeader
         }
 
+        const members = party.getMembers().map((v) => guild.members.cache.get(v))
+        if (!members.every((v) => v && channel.permissionsFor(v, true).has("Connect"))) {
+            setChannelNick(queue, user, "PARTY ILLEGAL")
+            return QueueResult.NoAccess
+        }
+
         if (party.getMembers().length > queue.teamSize) {
             setChannelNick(queue, user, "PARTY TOO BIG")
-            return QueueResult.InvalidParty
+            return QueueResult.TooBig
         }
     }
 
