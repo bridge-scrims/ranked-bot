@@ -10,10 +10,11 @@ import {
     type GuildMember,
 } from "discord.js"
 
-import type { Queue } from "@/database"
+import { Player, type Queue } from "@/database"
 import { client, colors } from "@/discord"
 import { createGame, incrementSequence } from "."
 import { mergePermissions } from "../discord/mergePermissions"
+import { Party } from "../party"
 
 const PERMISSIONS = new PermissionsBitField([
     PermissionFlagsBits.ViewChannel,
@@ -80,8 +81,8 @@ export async function startGame(queue: Queue, teams: string[][]) {
         )
         .addFields(
             teamMembers.map((team, i) => ({
-                name: `Team ${i + 1}`,
-                value: team.map((v) => `- ${v}`).join("\n"),
+                name: `Team ${i + 1} ${(Party.getSync(team[0]!.id) && "(Partied)") ?? ""}`,
+                value: team.map((v) => `- ${v} (ELO: ${Player.getRankedElo(v.id)}`).join("\n"),
                 inline: true,
             })),
         )

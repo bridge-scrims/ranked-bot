@@ -14,6 +14,10 @@ export class Party {
         return playerParties.get(userId)
     }
 
+    static getSync(userId: string) {
+        return playerParties.get(userId)
+    }
+
     static async create(leader: User) {
         const existingParty = await this.get(leader.id)
         if (!existingParty) return this.create0(leader)
