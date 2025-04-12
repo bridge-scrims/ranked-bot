@@ -15,17 +15,20 @@ const RESULT_VALUES: Record<Result, [number, number]> = {
 
 export class Elo {
     static calculateDuel(team1: string[], team2: string[], elos: Record<string, number>, result: Result) {
+        const elo1 = this.getAverage(team1.map((v) => elos[v]!))
+        const elo2 = this.getAverage(team2.map((v) => elos[v]!))
+
         const results = { ...elos }
-        const calc = (team1: string[], team2: string[], result: number) => {
-            const opponent = this.getAverage(team2.map((v) => elos[v]!))
-            for (const id of team1) {
-                results[id] = this.calculateElo(elos[id]!, opponent, result)
+        const calc = (elo1: number, elo2: number, team: string[], result: number) => {
+            const diff = this.calculateEloDiff(elo1, elo2, result)
+            for (const id of team) {
+                results[id] = elos[id]! + diff
             }
         }
 
         const [r1, r2] = RESULT_VALUES[result]
-        calc(team1, team2, r1)
-        calc(team2, team1, r2)
+        calc(elo1, elo2, team1, r1)
+        calc(elo2, elo1, team2, r2)
         return results
     }
 
@@ -37,8 +40,8 @@ export class Elo {
         return 1 / (1 + Math.pow(10, (elo2 - elo1) / ELO_SCALE_FACTOR))
     }
 
-    static calculateElo(elo1: number, elo2: number, result: number): number {
+    static calculateEloDiff(elo1: number, elo2: number, result: number): number {
         const expectedResult = this.getExpectedResult(elo1, elo2)
-        return Math.round(elo1 + K_FACTOR * (result - expectedResult))
+        return Math.round(K_FACTOR * (result - expectedResult))
     }
 }
