@@ -50,7 +50,7 @@ export async function addToQueue(queue: Queue, user: string) {
     if (playerQueues.get(user) === queue._id) return QueueResult.AlreadyQueued
 
     users.forEach((user) => {
-        removeParticipantFromQueue(user, true)
+        removeParticipantFromQueue(user)
         playerQueues.set(user, queue._id)
     })
 
@@ -69,14 +69,17 @@ export function getQueueCount(queue: Queue) {
     return Array.from(queues.get(queue._id)!.values()).reduce((pv, cv) => pv + cv.getPlayers().length, 0)
 }
 
-export function removeParticipantFromQueue(user: string, force = false) {
+export function removeParticipantFromQueue(user: string) {
     const queueId = playerQueues.get(user)
     if (queueId !== undefined) {
-        if (!queues.get(queueId)!.delete(user) && !force) {
+        const participants = queues.get(queueId)!
+        const entry = participants.get(user)
+        if (entry === undefined) {
             return false
         }
 
-        playerQueues.delete(user)
+        participants.delete(user)
+        entry?.getPlayers().forEach((v) => playerQueues.delete(v))
 
         const queue = Queue.cache.get(queueId)!
         updateStatus(queue)
@@ -139,7 +142,7 @@ Party.onUpdate((party) => {
     }
 
     // Remove new party members from the queue
-    party.getMembers().forEach((v) => removeParticipantFromQueue(v, true))
+    party.getMembers().forEach((v) => removeParticipantFromQueue(v))
 
     if (previous) {
         // Add new party to the queue

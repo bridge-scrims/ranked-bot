@@ -194,7 +194,13 @@ export class Party {
     }
 
     private updated() {
-        listeners.forEach((call) => call(this))
+        listeners.forEach((call) => {
+            try {
+                call(this)
+            } catch (e) {
+                console.error(e)
+            }
+        })
     }
 }
 
