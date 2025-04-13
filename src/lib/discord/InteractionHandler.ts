@@ -45,6 +45,8 @@ export class InteractionHandler {
                     embed.setColor(0x5ca3f5).setDescription(response),
                 )
                 await this.respond(interaction, payload)
+            } else if (response instanceof MessageOptionsBuilder) {
+                await this.respond(interaction, response)
             }
         } catch (error) {
             if (error instanceof DiscordAPIError && IGNORE_CODES.has(`${error.code}`)) return

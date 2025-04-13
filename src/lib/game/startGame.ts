@@ -76,13 +76,19 @@ export async function startGame(queue: Queue, teams: string[][]) {
         .setTitle(`Game #${gameId}`)
         .setDescription(
             "Duel the other team using `/duel <user> bridge`. " +
-                "Once the game is done, send the replay link using `/score`. " +
+                "Once the game is done, send the replay link using `/score` or `/score-screenshot`. " +
                 "Remember, **games are best of 1**.",
         )
         .addFields(
             teamMembers.map((team, i) => ({
-                name: `Team ${i + 1} ${(Party.getSync(team[0]!.id) && "(Partied)") ?? ""}`,
-                value: team.map((v) => `- ${v} (ELO: ${Player.getRankedElo(v.id)}`).join("\n"),
+                name: `Team ${i + 1}}`,
+                value: team
+                    .map(
+                        (v) =>
+                            `- ${v} (ELO: ${Player.getRankedElo(v.id)}` +
+                            `${Party.getSync(team[0]!.id) ? " | Partied" : ""})`,
+                    )
+                    .join("\n"),
                 inline: true,
             })),
         )

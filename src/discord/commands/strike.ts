@@ -8,16 +8,19 @@ import {
     MessageFlags,
     SlashCommandBuilder,
     SlashCommandSubcommandBuilder,
+    time,
+    userMention,
 } from "discord.js"
 
 export default {
     builder: new SlashCommandBuilder()
         .setName("strike")
-        .setDescription("Manage ranked bridge strikes.")
+        .setDescription("Manage Ranked Bridge strikes.")
         .addSubcommand(buildAddSubcommand())
         .addSubcommand(buildListSubcommand())
         .setContexts(InteractionContextType.Guild)
         .setDefaultMemberPermissions("0"),
+
     async execute(interaction: ChatInputCommandInteraction<"cached">) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral })
         switch (interaction.options.getSubcommand()) {
@@ -32,12 +35,10 @@ export default {
                     userId: user.id,
                 })
 
-                await user
-                    .send(
-                        `**You have been given a strike in Ranked Bridge (${SEASON})**` +
-                            (reason ? ` for *${reason}*.` : "."),
-                    )
-                    .catch(() => null)
+                const dm =
+                    `**You have been given a strike in Ranked Bridge (${SEASON})**` +
+                    (reason ? ` for *${reason}*.` : ".")
+                user.send(dm).catch(() => null)
 
                 return `Successfully added a strike to ${user}.`
             }
@@ -46,28 +47,22 @@ export default {
                 const user = interaction.options.getUser("user", true)
                 const season = interaction.options.getString("season") || SEASON
 
-                const strikes = await Strike.find({ userId: user.id, season })
+                const strikes = await Strike.find({ userId: user.id, season }, null, { sort: { givenAt: 1 } })
                 if (strikes.length === 0) return `${user} has no strikes in season ${season}.`
 
-                return interaction.editReply(
-                    new MessageOptionsBuilder().createMultipleEmbeds(
-                        strikes.sort((a, b) => a.givenAt.getTime() - b.givenAt.getTime()),
-                        (strikes) =>
-                            new EmbedBuilder()
-                                .setTitle(`${season} Strikes`)
-                                .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
-                                .setDescription(
-                                    `All strikes for ${user} during season ${season}:\n` +
-                                        strikes
-                                            .map(
-                                                (strike, index) =>
-                                                    `${index + 1}. **${strike.reason}**\n` +
-                                                    `Given by: <@${strike.executorId}>\n` +
-                                                    `-# **Date:** ${strike.givenAt.toLocaleDateString()}`,
-                                            )
-                                            .join("\n\n"),
-                                ),
-                    ),
+                return new MessageOptionsBuilder().createMultipleEmbeds(strikes, (strikes, _, offset) =>
+                    new EmbedBuilder()
+                        .setTitle(`Ranked Strikes | ${season}`)
+                        .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
+                        .setColor(0xb01a32)
+                        .setFields(
+                            strikes.map((strike, index) => ({
+                                name: `${offset + index + 1}. Strike | **${time(strike.givenAt, "D")}**`,
+                                value:
+                                    `Given by ${userMention(strike.executorId)}` +
+                                    (strike.reason ? ` for *${strike.reason}*.` : "."),
+                            })),
+                        ),
                 )
             }
         }

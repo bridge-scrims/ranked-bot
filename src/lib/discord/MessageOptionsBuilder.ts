@@ -111,7 +111,7 @@ export class MessageOptionsBuilder {
 
     createMultipleEmbeds<T>(
         items: T[],
-        getEmbedCall: (items: T[], index: number, groups: T[][]) => EmbedBuilder,
+        getEmbedCall: (items: T[], index: number, offset: number, groups: T[][]) => EmbedBuilder,
     ) {
         let groups: T[][] = Array.from({ length: Math.ceil(items.length / 25) })
         if (groups.length > 10) throw new TypeError("There can't be more than 10 embeds!")
@@ -123,7 +123,7 @@ export class MessageOptionsBuilder {
 
         return this.addEmbeds(
             ...groups.map((items, idx, groups) => {
-                const embed = getEmbedCall(items, idx, groups)
+                const embed = getEmbedCall(items, idx, idx * 25, groups)
                 if (!embed.data.footer && groups.length > 1)
                     embed.setFooter({ text: `Page ${idx + 1}/${groups.length}` })
                 return embed

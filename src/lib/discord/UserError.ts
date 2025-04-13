@@ -8,7 +8,7 @@ export class UserError extends Error {
         super(description ?? title)
         this.payload = new MessageOptionsBuilder().setEphemeral(true).addEmbeds(
             new EmbedBuilder()
-                .setColor("#DC0023")
+                .setColor(0xdc0023)
                 .setTitle(description ? title : null)
                 .setDescription(this.message),
         )
