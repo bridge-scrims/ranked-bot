@@ -1,6 +1,7 @@
 import { Queue } from "@/database"
 import { client } from "@/discord"
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SnowflakeUtil, User } from "discord.js"
+import { ButtonBuilder, ButtonStyle, EmbedBuilder, SnowflakeUtil, TextBasedChannel, User } from "discord.js"
+import { MessageOptionsBuilder } from "../discord/MessageOptionsBuilder"
 import { UserError } from "../discord/UserError"
 
 const initialized = Promise.withResolvers()
@@ -12,6 +13,11 @@ export class Party {
     static async get(userId: string) {
         await initialized.promise
         return playerParties.get(userId)
+    }
+
+    static async getInvite(partyId: string) {
+        await initialized.promise
+        return parties.get(partyId)
     }
 
     static getSync(userId: string) {
@@ -32,14 +38,6 @@ export class Party {
         const party = new Party(SnowflakeUtil.generate().toString(), leader, getRandomColor())
         party.addMember0(leader)
         party.send(`Party Created`, "The party has been created.", leader)
-        return party
-    }
-
-    static join(user: User, partyId: string) {
-        const party = parties.get(partyId)
-        if (!party) throw new UserError("This party no longer exists.")
-
-        party.addMember(user)
         return party
     }
 
@@ -94,54 +92,52 @@ export class Party {
         parties.delete(this.id)
     }
 
-    async addInvites(users: User[]) {
+    async addInvites(users: User[], channel?: TextBasedChannel) {
         const invites = users.filter((user) => !this.invites.has(user.id))
         if (invites.length === 0) return
 
-        await Promise.all(invites.map((user) => this.addInvite(user)))
-        const failedInvites = invites.filter((user) => !this.invites.has(user.id))
-        if (failedInvites.length > 0) {
-            throw new UserError(
-                "Party Invite Failed",
-                `Failed to invite ${failedInvites.map((player) => player.username).join(", ")}.`,
-            )
+        await Promise.all(invites.map((user) => this.addInvite(user, channel)))
+        const failed = invites.filter((user) => !this.invites.has(user.id))
+        if (failed.length > 0) {
+            throw new UserError("Party Invite Failed", `Failed to invite ${failed.join(" ")}.`)
         }
     }
 
-    private async addInvite(user: User) {
+    private async addInvite(user: User, channel?: TextBasedChannel) {
         if (this.invites.has(user.id)) return
 
-        const embed = this.getEmbed(
-            "Party Invite",
-            `${this.leader} has invited you to join their party.`,
-            this.leader,
-        )
+        const message = new MessageOptionsBuilder()
+            .setContent(user.toString())
+            .addEmbeds(
+                this.getEmbed(
+                    "Party Invite",
+                    `${this.leader} has invited you to join their party.`,
+                    this.leader,
+                ),
+            )
+            .addButtons(
+                new ButtonBuilder()
+                    .setCustomId(`PARTY:join:${this.id}`)
+                    .setLabel("Accept")
+                    .setStyle(ButtonStyle.Success),
+            )
 
-        const message = await user
-            .send({
-                embeds: [embed],
-                components: [
-                    new ActionRowBuilder<ButtonBuilder>().addComponents(
-                        new ButtonBuilder()
-                            .setCustomId(`PARTY:join:${this.id}`)
-                            .setLabel("Accept")
-                            .setStyle(ButtonStyle.Success),
-                    ),
-                ],
-            })
-            .catch(() => null)
+        const result = await (channel?.isSendable()
+            ? channel.send(message).catch(() => null)
+            : user.send(message).catch(() => null))
 
-        if (!message) return
+        if (!result) return
 
         this.invites.add(user.id)
         this.send(`Party Invite`, `${user} has been invited to the party.`, this.leader)
     }
 
     addMember(user: User) {
-        if (!this.invites.delete(user.id)) return
+        if (!this.invites.delete(user.id)) return false
 
         this.addMember0(user)
         this.send("Party Join", `${user} has joined the party.`, user)
+        return true
     }
 
     private addMember0(user: User) {

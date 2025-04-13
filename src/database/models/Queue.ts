@@ -1,4 +1,5 @@
 import { DocumentType, Prop } from "@typegoose/typegoose"
+import { channelLink } from "discord.js"
 import { Types } from "mongoose"
 import { Document, modelClassCached } from "../util"
 
@@ -17,6 +18,9 @@ class QueueClass {
     vcCategory!: string
 
     @Prop({ type: Types.Long, required: true })
+    teamsChannel!: string
+
+    @Prop({ type: Types.Long, required: true })
     gameLog!: string
 
     @Prop({ type: Types.Long, required: true })
@@ -30,6 +34,10 @@ class QueueClass {
 
     @Prop({ type: String, required: true })
     token!: string
+
+    toString() {
+        return channelLink(this._id, this.guildId)
+    }
 }
 
 export const Queue = modelClassCached(QueueClass)

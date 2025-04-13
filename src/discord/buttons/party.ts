@@ -1,7 +1,7 @@
 import { MessageOptionsBuilder } from "@/lib/discord/MessageOptionsBuilder"
 import { UserError } from "@/lib/discord/UserError"
 import { Party } from "@/lib/party"
-import { ButtonInteraction } from "discord.js"
+import { ButtonInteraction, MessageFlags } from "discord.js"
 
 export default {
     id: "PARTY",
@@ -12,14 +12,30 @@ export default {
                     throw new UserError("You are already in a party.")
                 }
 
-                const party = Party.join(interaction.user, interaction.args.shift()!)
+                const party = await Party.getInvite(interaction.args.shift()!)
+                if (!party) {
+                    interaction.message.delete().catch(() => null)
+                    throw new UserError("This party no longer exists.")
+                }
+
+                if (!party.addMember(interaction.user)) {
+                    throw new UserError("You haven't been invited to this party.")
+                }
+
                 const embed = party.getEmbed(
                     "Invitation Accepted",
                     "You have accepted the party invitation.",
                     party.leader,
                 )
 
-                return interaction.update(new MessageOptionsBuilder().addEmbeds(embed))
+                const message = new MessageOptionsBuilder().addEmbeds(embed)
+                if (interaction.channel?.isDMBased()) {
+                    await interaction.update(message)
+                } else {
+                    interaction.message.delete().catch(() => null)
+                    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
+                    return message
+                }
             }
         }
     },

@@ -1,4 +1,4 @@
-import { Player } from "@/database"
+import { Player, Queue } from "@/database"
 import { UserError } from "@/lib/discord/UserError"
 import { Party } from "@/lib/party"
 
@@ -10,6 +10,17 @@ import {
     SlashCommandSubcommandBuilder,
     SlashCommandUserOption,
 } from "discord.js"
+
+const teamChannels = new Set<string>()
+function indexTeamChannels() {
+    teamChannels.clear()
+    for (const queue of Queue.cache.values()) {
+        teamChannels.add(queue.teamsChannel)
+    }
+}
+
+Queue.cache.on("add", () => indexTeamChannels())
+Queue.cache.on("delete", () => indexTeamChannels())
 
 export default {
     builder: new SlashCommandBuilder()
@@ -46,7 +57,9 @@ export default {
 
                 await interaction.deferReply({ flags: MessageFlags.Ephemeral })
                 const party = await Party.create(interaction.user)
-                await party.addInvites(players)
+
+                const channel = teamChannels.has(interaction.channelId) ? interaction.channel! : undefined
+                await party.addInvites(players, channel)
 
                 if (players.length === 0) return "Successfully created a party."
                 return `Successfully invited ${players.map((player) => player.username).join(", ")}.`
