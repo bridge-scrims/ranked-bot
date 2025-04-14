@@ -1,5 +1,6 @@
 import { Queue } from "@/database"
 import { client } from "@/discord"
+import { addShutdownTask } from "@/util/shutdown"
 import { ButtonBuilder, ButtonStyle, EmbedBuilder, SnowflakeUtil, TextBasedChannel, User } from "discord.js"
 import { MessageOptionsBuilder } from "../discord/MessageOptionsBuilder"
 import { UserError } from "../discord/UserError"
@@ -222,7 +223,7 @@ Promise.all([new Promise((res) => client.once("ready", res)), PARTY_FILE.json()]
     .catch(console.error)
     .finally(() => initialized.resolve())
 
-process.on("SIGINT", async () => {
+addShutdownTask(async () => {
     await initialized.promise
     await Bun.write(
         PARTY_FILE,

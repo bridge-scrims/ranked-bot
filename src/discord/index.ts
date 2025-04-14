@@ -3,6 +3,7 @@ import { Client, ClientEvents, GatewayIntentBits } from "discord.js"
 import { Command, Component, InteractionHandler } from "@/lib/discord/InteractionHandler"
 import { EventHandler, registerEvents } from "@/lib/discord/registerEvents"
 import { importDir } from "@/util/imports"
+import { addShutdownTask } from "@/util/shutdown"
 
 export const client = new Client({
     shards: "auto",
@@ -43,10 +44,7 @@ export const colors = {
 }
 
 export async function initDiscord() {
+    addShutdownTask(() => client.destroy())
     await client.login(process.env["CLIENT_TOKEN"])
     console.log(`Logged in as ${client.user!.tag}`)
-}
-
-export async function closeDiscord() {
-    await client.destroy()
 }

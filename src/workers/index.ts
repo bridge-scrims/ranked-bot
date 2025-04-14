@@ -1,5 +1,6 @@
 import { Queue } from "@/database"
 import { decrypt } from "@/util/encryption"
+import { addShutdownTask } from "@/util/shutdown"
 import { Client } from "discord.js"
 import { joinQueueChannel } from "./functions/joinChannel"
 import { clearStatus, updateStatus } from "./functions/updateStatus"
@@ -44,12 +45,12 @@ export function getWorker(queue: Queue) {
     return workers.get(queue._id)
 }
 
-export async function destroyWorkers() {
-    await Promise.all(
+addShutdownTask(() =>
+    Promise.all(
         Array.from(workers.entries()).map(([queueId, client]) => {
             const queue = Queue.cache.get(queueId)!
             clearStatus(queue)
             return client.destroy()
         }),
-    )
-}
+    ),
+)
