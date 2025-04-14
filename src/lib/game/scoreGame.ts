@@ -67,10 +67,11 @@ async function updateStats(game: Game, elos: Record<string, number>) {
 
 function sendGameLog(game: Game, players: string[], teams: EmbedField[]) {
     const scorer = (game.scorer && client.users.cache.get(game.scorer)) || null
+    const score = stringifyScore(game, game.scores![0]!, game.scores![1]!)
     const embed = new EmbedBuilder()
         .setColor(colors.baseColor)
         .setTitle(`Game #${game.sequence} Results`)
-        .setDescription(stringifyScore(game, game.scores![0]!, game.scores![1]!) + ".")
+        .setDescription(`${score[0]!.toUpperCase()}${score.slice(1)}.`)
         .setFields(teams)
         .setFooter(scorer && { text: `Scored by ${scorer.username}` })
         .setTimestamp()

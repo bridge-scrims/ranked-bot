@@ -69,11 +69,18 @@ export default {
         if (data.timestamp < game.date.valueOf())
             throw new UserError("Replay must be from after you queued this game.")
 
-        const winner = game.teams.findIndex((t) => pTeams[t[0]!]!.toLowerCase() === data.winner.toLowerCase())
-        if (winner === -1) throw new Error(`Invalid winner for ${data._id}`)
+        const orderedTeams = game.teams.map((t) => teams[pTeams[t[0]!]!]!)
 
-        game.winner = winner
-        game.scores = game.teams.map((t) => teams[pTeams[t[0]!]!]!.goals)
+        if (data.winner === "") {
+            game.winner = -1
+        } else {
+            const winner = orderedTeams.findIndex((team) => team.name === data.winner)
+            if (winner === -1) throw new Error(`Invalid winner for ${data._id}`)
+
+            game.winner = winner
+        }
+
+        game.scores = orderedTeams.map((team) => team.goals)
         game.meta = { replay: id, duration: data.duration, map: data.map }
         await scoreGame(game)
 
