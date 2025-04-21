@@ -19,6 +19,7 @@ const Options = {
     VcCategory: "vc-category",
     QueueLog: "queue-log",
     TeamSize: "team-size",
+    TeamsChannel: "teams-channel",
     GameLog: "game-log",
     Token: "token",
 }
@@ -62,6 +63,13 @@ export default {
                 .setDescription("The channel to post games in.")
                 .setRequired(true),
         )
+        .addChannelOption((option) =>
+            option
+                .setName(Options.TeamsChannel)
+                .addChannelTypes(ChannelType.GuildText)
+                .setDescription("The channel for creating parties.")
+                .setRequired(true),
+        )
         .addIntegerOption((option) =>
             option
                 .setName(Options.TeamSize)
@@ -84,6 +92,7 @@ export default {
         const vcCategory = interaction.options.getChannel(Options.VcCategory, true)
         const queueLog = interaction.options.getChannel(Options.QueueLog, true)
         const gameLog = interaction.options.getChannel(Options.GameLog, true)
+        const teamsChannel = interaction.options.getChannel(Options.TeamsChannel, true)
         const teamSize = interaction.options.getInteger(Options.TeamSize, true)
         const token = interaction.options.getString(Options.Token, true)
 
@@ -103,6 +112,7 @@ export default {
             vcCategory: vcCategory.id,
             queueLog: queueLog.id,
             gameLog: gameLog.id,
+            teamsChannel: teamsChannel.id,
             teamSize,
             workerId: clientId,
             token: encrypt(token),
