@@ -12,19 +12,19 @@
     "@discordjs/voice": "^0.18.0",
     "@typegoose/typegoose": "^12.14.0",
     "crypto-js": "^4.2.0",
-    "discord.js": "^14.18.0",
-    "glob": "^11.0.1",
-    "mongodb": "^6.15.0",
-    "mongoose": "^8.13.2",
+    "discord.js": "^14.19.1",
+    "glob": "^11.0.2",
+    "mongodb": "^6.16.0",
+    "mongoose": "^8.14.0",
     "mongoose-long": "^0.8.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.24.0",
-    "@types/bun": "^1.2.9",
+    "@eslint/js": "^9.25.1",
+    "@types/bun": "^1.2.10",
     "@types/crypto-js": "^4.2.2",
-    "bun-types": "^1.2.9",
-    "eslint": "^9.24.0",
+    "bun-types": "^1.2.10",
+    "eslint": "^9.25.1",
     "prettier": "^3.5.3",
-    "typescript-eslint": "^8.29.1"
+    "typescript-eslint": "^8.31.0"
   }
 }
