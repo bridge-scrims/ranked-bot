@@ -12,17 +12,19 @@ const queues = new Map<string, Map<string, QueueParticipant>>()
 Queue.cache.on("add", (queue) => queues.set(queue._id, new Map()))
 Queue.cache.on("delete", (queue) => queues.delete(queue._id))
 
+const clientInitialized = new Promise((res) => client.once("ready", res))
 const initializedGuilds: Record<string, Promise<unknown>> = {}
 Queue.cache.on("add", (queue) => {
     if (queue.guildId in initializedGuilds) return
 
     const promise = Promise.withResolvers()
     initializedGuilds[queue.guildId] = promise.promise
-    client.guilds
-        .fetch(queue.guildId)
+
+    clientInitialized
+        .then(() => client.guilds.fetch(queue.guildId))
         .then((guild) => guild.members.fetch())
         .catch(console.error)
-        .finally(() => promise.resolve())
+        .finally(() => promise.resolve(null))
 })
 
 export enum QueueResult {
@@ -118,7 +120,7 @@ export function removeParticipantFromQueue(user: string) {
     return undefined
 }
 
-client.once("ready", () => Queue.cache.initialized().then(() => loadQueueMembers()))
+void Promise.all([clientInitialized, Queue.cache.initialized()]).then(() => loadQueueMembers())
 function loadQueueMembers() {
     for (const queue of Queue.cache.values()) {
         const channel = client.guilds.cache.get(queue.guildId)?.channels.cache.get(queue._id)

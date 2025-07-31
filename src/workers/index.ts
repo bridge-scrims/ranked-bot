@@ -1,9 +1,9 @@
 import { Queue } from "@/database"
 import { decrypt } from "@/util/encryption"
 import { addShutdownTask } from "@/util/shutdown"
-import { Client } from "discord.js"
+import { Client, GatewayIntentBits } from "discord.js"
 import { joinQueueChannel } from "./functions/joinChannel"
-import { clearStatus, updateStatus } from "./functions/updateStatus"
+import { clearStatus } from "./functions/updateStatus"
 
 const workers: Map<string, Client> = new Map()
 Queue.cache.on("add", (queue) => addWorker(queue))
@@ -20,21 +20,14 @@ function removeWorker(queueId: string) {
     workers.delete(queueId)
 }
 
+const INTENTS = [GatewayIntentBits.GuildVoiceStates]
+
 function initWorker(queue: Queue) {
-    const client = new Client({ intents: [], presence: { status: "invisible" } })
+    const client = new Client({ intents: INTENTS, presence: { status: "invisible" } })
         .on("error", console.error)
         .on("ready", () => {
             console.log(`${client.user!.tag} ready as a worker for ${queue._id}.`)
-            updateStatus(queue)
-
             joinQueueChannel(client, queue).catch(console.error)
-            const interval = setInterval(() => {
-                if (client.isReady()) {
-                    joinQueueChannel(client, queue).catch(console.error)
-                } else {
-                    clearInterval(interval)
-                }
-            }, 60 * 1000)
         })
 
     client.login(decrypt(queue.token)).catch(console.error)

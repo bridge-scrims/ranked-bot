@@ -64,7 +64,7 @@ export async function archiveGame(game: Game) {
     game.elo = $set.elo
 
     void Promise.allSettled(game.channels.map((id) => client.rest.delete(Routes.channel(id))))
-    void Bun.sleep(1000).then(() => client.rest.delete(Routes.channel(game._id)).catch(() => null))
+    void sleep(1000).then(() => client.rest.delete(Routes.channel(game._id)).catch(() => null))
 
     return true
 }

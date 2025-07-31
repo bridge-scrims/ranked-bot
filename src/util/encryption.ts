@@ -1,6 +1,11 @@
 import CryptoJS from "crypto-js"
 
-const SECRET = process.env["ENCRYPTION_SECRET"]!
+const secret = process.env["ENCRYPTION_SECRET"]
+if (!secret && process.env["NODE_ENV"] === "production") {
+    throw new Error("ENCRYPTION_SECRET not set")
+}
+
+const SECRET = secret ?? "testing"
 const CONFIG = { mode: CryptoJS.mode.ECB }
 
 export function encrypt(message: string) {

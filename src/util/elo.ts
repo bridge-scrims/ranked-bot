@@ -1,5 +1,4 @@
 const ELO_SCALE_FACTOR = 400
-const K_FACTOR = 32
 
 export enum Result {
     Team1Win,
@@ -14,15 +13,30 @@ const RESULT_VALUES: Record<Result, [number, number]> = {
 }
 
 export class Elo {
-    static calculateDuel(team1: string[], team2: string[], elos: Record<string, number>, result: Result) {
+    static modifier?: number
+    static getModifier() {
+        return this.modifier
+    }
+
+    static setModifier(value: number) {
+        this.modifier = value === 1 ? undefined : value
+    }
+
+    static calculateDuel(
+        team1: string[],
+        team2: string[],
+        elos: Record<string, number>,
+        games: Record<string, number>,
+        result: Result,
+    ) {
         const elo1 = this.getAverage(team1.map((v) => elos[v]!))
         const elo2 = this.getAverage(team2.map((v) => elos[v]!))
 
         const results = { ...elos }
         const calc = (elo1: number, elo2: number, team: string[], result: number) => {
-            const diff = this.calculateEloDiff(elo1, elo2, result)
             for (const id of team) {
-                results[id] = elos[id]! + diff
+                const kFactor = games[id]! > 15 ? 16 : 32
+                results[id] = elos[id]! + this.calculateEloDiff(elo1, elo2, result, kFactor)
             }
         }
 
@@ -33,15 +47,18 @@ export class Elo {
     }
 
     static getAverage(team: number[]) {
-        return team.reduce((pv, cv) => pv + cv, 0) / team.length
+        const max = Math.max(...team)
+        team.splice(team.indexOf(max), 1)
+        const mins = team.reduce((pv, cv) => pv + cv, 0) / team.length
+        return max * 0.75 + mins * 0.25
     }
 
     static getExpectedResult(elo1: number, elo2: number): number {
         return 1 / (1 + Math.pow(10, (elo2 - elo1) / ELO_SCALE_FACTOR))
     }
 
-    static calculateEloDiff(elo1: number, elo2: number, result: number): number {
+    static calculateEloDiff(elo1: number, elo2: number, result: number, kFactor: number) {
         const expectedResult = this.getExpectedResult(elo1, elo2)
-        return Math.round(K_FACTOR * (result - expectedResult))
+        return Math.round(kFactor * (result - expectedResult) * (this.modifier ?? 1))
     }
 }
