@@ -1,7 +1,9 @@
+import { ButtonBuilder, ButtonStyle, EmbedBuilder, SnowflakeUtil, TextBasedChannel, User } from "discord.js"
+import fs from "fs/promises"
+
 import { Queue } from "@/database"
 import { client } from "@/discord"
 import { addShutdownTask } from "@/util/shutdown"
-import { ButtonBuilder, ButtonStyle, EmbedBuilder, SnowflakeUtil, TextBasedChannel, User } from "discord.js"
 import { MessageOptionsBuilder } from "../discord/MessageOptionsBuilder"
 import { UserError } from "../discord/UserError"
 
@@ -209,35 +211,40 @@ function getRandomColor() {
     return Math.floor(Math.random() * 0xaaaaaa) + 0x222222
 }
 
-const PARTY_FILE = Bun.file("./data/parties.json")
+const PARTY_FILE = "./data/parties.json"
 
-Promise.all([new Promise((res) => client.once("ready", res)), PARTY_FILE.json()])
+Promise.all([
+    new Promise((res) => client.once("ready", res)),
+    fs.readFile(PARTY_FILE, "utf-8").then((v) => JSON.parse(v) as PartyData[]),
+])
     .then(([, data]) =>
         Promise.all(
-            (data as PartyData[]).map(async (party) => {
+            data.map(async (party) => {
                 const members = await Promise.all(party.members.map((v) => client.users.fetch(v)))
                 return new Party(party.id, members[0]!, party.color, members, party.invites)
             }),
         ),
     )
-    .catch(console.error)
-    .finally(() => initialized.resolve())
+    .catch((err) => console.warn(`Failed to load parties: ${err}`))
+    .finally(() => initialized.resolve(null))
 
 addShutdownTask(async () => {
     await initialized.promise
-    await Bun.write(
-        PARTY_FILE,
-        JSON.stringify(
-            Array.from(parties.values()).map(
-                (party): PartyData => ({
-                    id: party.id,
-                    color: party.color,
-                    members: party.getMembers(),
-                    invites: Array.from(party.invites),
-                }),
+    await fs
+        .writeFile(
+            PARTY_FILE,
+            JSON.stringify(
+                Array.from(parties.values()).map(
+                    (party): PartyData => ({
+                        id: party.id,
+                        color: party.color,
+                        members: party.getMembers(),
+                        invites: Array.from(party.invites),
+                    }),
+                ),
             ),
-        ),
-    )
+        )
+        .catch((err) => console.warn(`Failed to save parties: ${err}`))
 })
 
 interface PartyData {

@@ -27,7 +27,12 @@ export function updateStatus(queue: Queue) {
     })
 }
 
+export function resetStatus(queue: Queue) {
+    pending.delete(queue._id)
+    cache.delete(queue._id)
+}
+
 export function clearStatus(queue: Queue) {
-    pending.clear()
+    resetStatus(queue)
     setStatus(queue, null)
 }

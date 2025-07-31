@@ -22,6 +22,9 @@ export class EloDiff {
     @Prop({ type: Number, required: true })
     old!: number
 
+    @Prop({ type: Number, required: false })
+    modifier?: number
+
     @Prop({ type: Number, required: true })
     new!: number
 }

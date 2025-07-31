@@ -14,8 +14,11 @@ export async function scoreGame(game: Game) {
     const players = game.teams.flatMap((v) => v)
 
     const oldElo = Object.fromEntries(players.map((v) => [v, Player.getRankedElo(v)]))
-    const newElo = Elo.calculateDuel(game.teams[0]!, game.teams[1]!, oldElo, result)
-    game.elo = Object.entries(oldElo).map(([id, old]) => ({ id, old, new: newElo[id]! }))
+    const gameCounts = Object.fromEntries(players.map((v) => [v, Player.getGamesCount(v)]))
+
+    const newElo = Elo.calculateDuel(game.teams[0]!, game.teams[1]!, oldElo, gameCounts, result)
+    const modifier = Elo.getModifier()
+    game.elo = Object.entries(oldElo).map(([id, old]) => ({ id, old, modifier, new: newElo[id]! }))
 
     const success = await archiveGame(game)
     if (!success) return false
@@ -55,6 +58,7 @@ async function updateStats(game: Game, elos: Record<string, number>) {
                 }
 
                 Player.updateElo(id, elos[id]!)
+                Player.incrementGames(id)
                 await Player.updateOne(
                     { _id: id },
                     updates.map((v) => ({ $set: v })),

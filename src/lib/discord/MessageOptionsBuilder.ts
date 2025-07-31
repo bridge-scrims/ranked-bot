@@ -1,7 +1,7 @@
 import {
     APIActionRowComponent,
+    APIComponentInMessageActionRow,
     APIEmbed,
-    APIMessageActionRowComponent,
     ActionRowBuilder,
     AllowedMentionsTypes,
     BaseMessageOptions,
@@ -29,14 +29,14 @@ type CreateFlagsString = Extract<MessageFlagsString, "Ephemeral" | "SuppressEmbe
 export class MessageOptionsBuilder {
     public content?: string
     public embeds: APIEmbed[]
-    public components: APIActionRowComponent<APIMessageActionRowComponent>[]
+    public components: APIActionRowComponent<APIComponentInMessageActionRow>[]
     public allowedMentions: MessageMentionOptions
     private _flags?: BitField<CreateFlagsString, CreateFlags>
 
     constructor({ content, embeds, components, allowedMentions }: BaseMessageOptions = {}) {
         this.content = content ?? NULL
         this.embeds = (embeds as APIEmbed[]) ?? []
-        this.components = (components as APIActionRowComponent<APIMessageActionRowComponent>[]) ?? []
+        this.components = (components as APIActionRowComponent<APIComponentInMessageActionRow>[]) ?? []
         this.allowedMentions = allowedMentions ?? {
             parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role],
         }

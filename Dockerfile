@@ -1,9 +1,10 @@
-FROM oven/bun:latest
+FROM node:lts-alpine
 
 WORKDIR /app
 COPY . .
 
-RUN bun install
-RUN bun run test
+RUN npm ci
+RUN npm run build
+RUN npm run test
 
-ENTRYPOINT ["bun", "."]
+ENTRYPOINT [ "node", "." ]

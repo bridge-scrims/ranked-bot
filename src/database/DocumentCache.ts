@@ -51,7 +51,7 @@ export class DocumentCache<T> extends Map<string, T> {
     }
 
     __setInitialized() {
-        this.init.resolve()
+        this.init.resolve(null)
     }
 
     async initialized() {

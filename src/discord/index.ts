@@ -21,26 +21,23 @@ export const client = new Client({
 })
 
 export const handler = new InteractionHandler(client)
-const [commands, buttons, events] = await Promise.all([
-    importDir<Command | ((handler: InteractionHandler) => unknown)>(import.meta.dirname, "commands"),
-    importDir<Component>(import.meta.dirname, "buttons"),
-    importDir<EventHandler<keyof ClientEvents>>(import.meta.dirname, "events"),
-])
-
-for (const command of commands) {
-    if (typeof command === "function") {
-        command(handler)
-    } else {
-        handler.addCommands(command)
-    }
-}
-handler.addComponents(...buttons)
-registerEvents(client, events)
 
 export const colors = {
     baseColor: 0x5ca3f5,
     successColor: 0xbc77fc,
     errorColor: 0xff003c,
+}
+
+export async function registration() {
+    const [commands, buttons, events] = await Promise.all([
+        importDir<Command>(import.meta.dirname, "commands"),
+        importDir<Component>(import.meta.dirname, "buttons"),
+        importDir<EventHandler<keyof ClientEvents>>(import.meta.dirname, "events"),
+    ])
+
+    handler.addCommands(...commands)
+    handler.addComponents(...buttons)
+    registerEvents(client, events)
 }
 
 export async function initDiscord() {
