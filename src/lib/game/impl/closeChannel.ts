@@ -1,11 +1,12 @@
-import { Game } from "@/database/models/Game"
+import { Game } from "@/database/impl/models/Game"
 import { client, colors } from "@/discord"
 import { stringifyScore } from "@/util/scores"
 import { bold, ButtonBuilder, ButtonStyle, EmbedBuilder, Routes, userMention } from "discord.js"
-import { MessageOptionsBuilder } from "../discord/MessageOptionsBuilder"
+import { MessageOptionsBuilder } from "../../discord/classes/MessageOptionsBuilder"
 
 export async function closeChannel(game: Game, score1: number, score2: number, image?: string) {
-    const guild = await client.guilds.fetch(game.guildId!)
+    if (!game.guildId) return false
+    const guild = await client.guilds.fetch(game.guildId)
     if (!guild) return
 
     const update = await Game.updateOne({ _id: game.id }, { $unset: { channels: "" } })

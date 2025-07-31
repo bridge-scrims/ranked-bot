@@ -1,6 +1,6 @@
 import { Client, ClientEvents, GatewayIntentBits } from "discord.js"
 
-import { Command, Component, InteractionHandler } from "@/lib/discord/InteractionHandler"
+import { Command, Component, InteractionHandler } from "@/lib/discord/classes/InteractionHandler"
 import { EventHandler, registerEvents } from "@/lib/discord/registerEvents"
 import { importDir } from "@/util/imports"
 import { addShutdownTask } from "@/util/shutdown"

@@ -2,8 +2,8 @@ import { Queue } from "@/database"
 import { client } from "@/discord"
 import { addShutdownTask } from "@/util/shutdown"
 import { ButtonBuilder, ButtonStyle, EmbedBuilder, SnowflakeUtil, TextBasedChannel, User } from "discord.js"
-import { MessageOptionsBuilder } from "../discord/MessageOptionsBuilder"
-import { UserError } from "../discord/UserError"
+import { MessageOptionsBuilder } from "../discord/classes/MessageOptionsBuilder"
+import { UserError } from "../discord/classes/UserError"
 
 const initialized = Promise.withResolvers()
 const listeners: ((party: Party) => unknown)[] = []

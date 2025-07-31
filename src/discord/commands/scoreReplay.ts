@@ -6,9 +6,9 @@ import {
 } from "discord.js"
 
 import { Player } from "@/database"
-import { UserError } from "@/lib/discord/UserError"
+import { UserError } from "@/lib/discord/classes/UserError"
 import { getGame } from "@/lib/game"
-import { scoreGame } from "@/lib/game/scoreGame"
+import { scoreGame } from "@/lib/game/impl/scoreGame"
 import { fetchGame } from "@/lib/minecraft/scrims"
 
 export default {

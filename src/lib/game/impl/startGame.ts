@@ -12,9 +12,9 @@ import {
 
 import { Player, type Queue } from "@/database"
 import { client, colors } from "@/discord"
-import { createGame, incrementSequence } from "."
-import { mergePermissions } from "../discord/mergePermissions"
-import { Party } from "../party"
+import { createGame, incrementSequence } from ".."
+import { mergePermissions } from "../../discord/mergePermissions"
+import { Party } from "../../party"
 
 const PERMISSIONS = new PermissionsBitField([
     PermissionFlagsBits.ViewChannel,

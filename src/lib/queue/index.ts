@@ -2,10 +2,10 @@ import { Player, Queue } from "@/database"
 import { client } from "@/discord"
 import { updateStatus } from "@/workers/functions/updateStatus"
 import { Party } from "../party"
-import { onCooldown, onCooldownExpire } from "./cooldown"
-import { resetChannelNick, setChannelNick } from "./nicks"
-import { GroupQueueParticipant, QueueParticipant, SoloQueueParticipant } from "./participant"
-import { pollQueue } from "./polling"
+import { onCooldown, onCooldownExpire } from "./impl/cooldown"
+import { resetChannelNick, setChannelNick } from "./impl/nicks"
+import { GroupQueueParticipant, QueueParticipant, SoloQueueParticipant } from "./impl/participant"
+import { pollQueue } from "./impl/polling"
 
 const playerQueues = new Map<string, string>()
 const queues = new Map<string, Map<string, QueueParticipant>>()
@@ -175,7 +175,8 @@ Party.onUpdate((party) => {
 
     if (previous) {
         // Add new party to the queue
-        addToQueue(Queue.cache.get(previous)!, party.leader.id).catch(console.error)
+        const queue = Queue.cache.get(previous)
+        if (queue) addToQueue(queue, party.leader.id).catch(console.error)
     }
 })
 

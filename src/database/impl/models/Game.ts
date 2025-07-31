@@ -2,7 +2,7 @@ import { DocumentType, Prop } from "@typegoose/typegoose"
 import { Types } from "mongoose"
 
 import { SEASON } from "@/Constants"
-import { Document, modelClass } from "../util"
+import { Document, modelClass } from "../util/util"
 
 export class GameMeta {
     @Prop({ type: Types.UUID, required: true })

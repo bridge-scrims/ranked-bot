@@ -1,5 +1,5 @@
-import { MessageOptionsBuilder } from "@/lib/discord/MessageOptionsBuilder"
-import { UserError } from "@/lib/discord/UserError"
+import { MessageOptionsBuilder } from "@/lib/discord/classes/MessageOptionsBuilder"
+import { UserError } from "@/lib/discord/classes/UserError"
 import { Party } from "@/lib/party"
 import { ButtonInteraction, MessageFlags } from "discord.js"
 

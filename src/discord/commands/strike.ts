@@ -1,6 +1,6 @@
 import { SEASON } from "@/Constants"
-import { Strike } from "@/database/models/Strike"
-import { MessageOptionsBuilder } from "@/lib/discord/MessageOptionsBuilder"
+import { Strike } from "@/database/impl/models/Strike"
+import { MessageOptionsBuilder } from "@/lib/discord/classes/MessageOptionsBuilder"
 import {
     ChatInputCommandInteraction,
     EmbedBuilder,

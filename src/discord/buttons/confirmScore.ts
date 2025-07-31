@@ -1,7 +1,7 @@
-import { UserError } from "@/lib/discord/UserError"
+import { UserError } from "@/lib/discord/classes/UserError"
 import { getGame } from "@/lib/game"
-import { scoreGame } from "@/lib/game/scoreGame"
-import { voidGame } from "@/lib/game/voidGame"
+import { scoreGame } from "@/lib/game/impl/scoreGame"
+import { voidGame } from "@/lib/game/impl/voidGame"
 import { MessageFlags, type ButtonInteraction } from "discord.js"
 
 export default {

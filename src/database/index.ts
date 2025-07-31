@@ -1,9 +1,9 @@
 import { addShutdownTask } from "@/util/shutdown"
 import mongoose from "mongoose"
 
-export * from "./models/Game"
-export * from "./models/Player"
-export * from "./models/Queue"
+export * from "./impl/models/Game"
+export * from "./impl/models/Player"
+export * from "./impl/models/Queue"
 
 export async function initDatabase() {
     addShutdownTask(() => mongoose.disconnect())

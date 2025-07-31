@@ -1,5 +1,5 @@
 import { Player, Queue } from "@/database"
-import { UserError } from "@/lib/discord/UserError"
+import { UserError } from "@/lib/discord/classes/UserError"
 import { Party } from "@/lib/party"
 
 import {

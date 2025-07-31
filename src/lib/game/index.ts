@@ -1,5 +1,5 @@
 import { SEASON } from "@/Constants"
-import { Game } from "@/database/models/Game"
+import { Game } from "@/database/impl/models/Game"
 import { client } from "@/discord"
 import { Routes } from "discord.js"
 

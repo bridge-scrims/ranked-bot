@@ -4,8 +4,14 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "start": "bun run dist/index.js",
     "dev": "bun .",
     "check": "tsc --noEmit && eslint",
+    "format": "bunx prettier --check .",
+    "format:write": "bunx prettier --write .",
+    "typecheck": "npx tsc --noEmit",
+    "lint": "bun run format:write && bunx eslint --fix . && bun run typecheck",
     "test": "bun src/test"
   },
   "dependencies": {

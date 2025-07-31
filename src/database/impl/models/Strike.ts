@@ -1,6 +1,6 @@
 import { DocumentType, Prop } from "@typegoose/typegoose"
 import { Types } from "mongoose"
-import { Document, modelClass } from "../util"
+import { Document, modelClass } from "../util/util"
 
 @Document("Strike", "ranked_strikes")
 export class StrikeClass {

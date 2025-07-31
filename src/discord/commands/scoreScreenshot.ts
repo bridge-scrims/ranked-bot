@@ -11,9 +11,9 @@ import {
     type ChatInputCommandInteraction,
 } from "discord.js"
 
-import { Game } from "@/database/models/Game"
+import { Game } from "@/database/impl/models/Game"
 import { colors } from "@/discord"
-import { UserError } from "@/lib/discord/UserError"
+import { UserError } from "@/lib/discord/classes/UserError"
 import { stringifyScore } from "@/util/scores"
 
 export default {

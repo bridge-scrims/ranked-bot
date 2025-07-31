@@ -130,7 +130,6 @@ export class InteractionHandler {
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CommandHandler = (interaction: any) => Promise<unknown>
 type ComponentHandler = (interaction: MessageComponentInteraction<"cached">) => Promise<unknown>
 type AutocompleteHandler = (interaction: AutocompleteInteraction<"cached">) => Promise<unknown>

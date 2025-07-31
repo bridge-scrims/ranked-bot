@@ -1,7 +1,7 @@
 import { Queue } from "@/database"
-import { removeParticipantFromQueue } from "."
-import { startGame } from "../game/startGame"
-import { makeTeams, matches, QueueEntry, Team } from "../matchmaking"
+import { removeParticipantFromQueue } from ".."
+import { startGame } from "../../game/impl/startGame"
+import { makeTeams, matches, QueueEntry, Team } from "../../matchmaking"
 import { addCooldown } from "./cooldown"
 import { QueueParticipant } from "./participant"
 

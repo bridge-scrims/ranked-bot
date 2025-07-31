@@ -1,8 +1,8 @@
 import { EmbedBuilder, bold, userMention } from "discord.js"
 
 import { colors } from "@/discord"
-import { gameLog } from "@/lib/game/log"
-import { archiveGame, getGame } from "."
+import { gameLog } from "@/lib/game/impl/log"
+import { archiveGame, getGame } from ".."
 
 export async function voidGame(gameId: string) {
     const game = await getGame(gameId)

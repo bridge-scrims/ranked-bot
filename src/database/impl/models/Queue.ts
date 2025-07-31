@@ -1,7 +1,7 @@
 import { DocumentType, Prop } from "@typegoose/typegoose"
 import { channelLink } from "discord.js"
 import { Types } from "mongoose"
-import { Document, modelClassCached } from "../util"
+import { Document, modelClassCached } from "../util/util"
 
 @Document("Queue", "ranked_queues")
 class QueueClass {

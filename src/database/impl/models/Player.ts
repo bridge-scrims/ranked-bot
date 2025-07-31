@@ -3,7 +3,7 @@ import { userMention } from "discord.js"
 import { Types } from "mongoose"
 
 import { DEFAULT_ELO, SEASON, Stats } from "@/Constants"
-import { Document, modelClass } from "../util"
+import { Document, modelClass } from "../util/util"
 
 interface RankedStats {
     elo: number
@@ -86,7 +86,7 @@ const mcToDiscord: Record<string, string> = {}
 
 Player.watcher()
     .on("open", () => {
-        void Player.find({}, { mcUUID: 1, [Stats.Elo]: 1 }).then((players) => {
+        void Player.find({}, { mcUUID: 1, [`ranked.${Stats.Elo}`]: 1 } as any).then((players) => {
             players.forEach((v) => {
                 eloCache[v._id] = v.getRankedStats().elo
                 if (v.mcUUID !== undefined) {

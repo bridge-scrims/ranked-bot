@@ -174,3 +174,5 @@ tsconfig.tsbuildinfo
 database.json
 .vscode/
 data/
+.claude
+dist/

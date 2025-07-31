@@ -7,8 +7,8 @@ import {
     type ChatInputCommandInteraction,
 } from "discord.js"
 
-import { MessageOptionsBuilder } from "@/lib/discord/MessageOptionsBuilder"
-import { UserError } from "@/lib/discord/UserError"
+import { MessageOptionsBuilder } from "@/lib/discord/classes/MessageOptionsBuilder"
+import { UserError } from "@/lib/discord/classes/UserError"
 import { getGame } from "@/lib/game"
 import { stringifyScore } from "@/util/scores"
 

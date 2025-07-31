@@ -1,19 +1,19 @@
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      actions-deps:
-        patterns:
-          - "*"
+    - package-ecosystem: "github-actions"
+      directory: "/"
+      schedule:
+          interval: "weekly"
+      groups:
+          actions-deps:
+              patterns:
+                  - "*"
 
-  - package-ecosystem: "bun"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      bot-deps:
-        patterns:
-          - "*"
+    - package-ecosystem: "bun"
+      directory: "/"
+      schedule:
+          interval: "weekly"
+      groups:
+          bot-deps:
+              patterns:
+                  - "*"

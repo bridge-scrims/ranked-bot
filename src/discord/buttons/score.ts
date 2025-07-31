@@ -1,6 +1,6 @@
-import { UserError } from "@/lib/discord/UserError"
+import { UserError } from "@/lib/discord/classes/UserError"
 import { getGame } from "@/lib/game"
-import { closeChannel } from "@/lib/game/closeChannel"
+import { closeChannel } from "@/lib/game/impl/closeChannel"
 import { MessageFlags, type ButtonInteraction } from "discord.js"
 
 export default {

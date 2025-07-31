@@ -1,16 +1,18 @@
 import { Queue } from "@/database"
-import type { Game } from "@/database/models/Game"
+import type { Game } from "@/database/impl/models/Game"
 import { client } from "@/discord"
 import type { MessageCreateOptions } from "discord.js"
 
 export async function gameLog(game: Game, message: MessageCreateOptions) {
-    const queue = Queue.cache.get(game.queueId!)
-    if (queue) await log(queue.gameLog, message)
+    if (!game.queueId) return
+    const queue = Queue.cache.get(game.queueId)
+    if (queue && queue.gameLog) await log(queue.gameLog, message)
 }
 
 export async function queueLog(game: Game, message: MessageCreateOptions) {
-    const queue = Queue.cache.get(game.queueId!)
-    if (queue) await log(queue.queueLog, message)
+    if (!game.queueId) return
+    const queue = Queue.cache.get(game.queueId)
+    if (queue && queue.queueLog) await log(queue.queueLog, message)
 }
 
 async function log(channelId: string, message: MessageCreateOptions) {

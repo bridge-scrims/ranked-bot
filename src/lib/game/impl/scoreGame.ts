@@ -2,12 +2,12 @@ import { EmbedBuilder, EmbedField, spoiler, userMention } from "discord.js"
 
 import { Stats } from "@/Constants"
 import { Player } from "@/database"
-import type { Game } from "@/database/models/Game"
+import type { Game } from "@/database/impl/models/Game"
 import { client, colors } from "@/discord"
-import { gameLog, queueLog } from "@/lib/game/log"
+import { gameLog, queueLog } from "@/lib/game/impl/log"
 import { Elo, Result } from "@/util/elo"
 import { stringifyResult, stringifyScore } from "@/util/scores"
-import { archiveGame } from "."
+import { archiveGame } from ".."
 
 export async function scoreGame(game: Game) {
     const result = game.winner === 0 ? Result.Team1Win : game.winner === 1 ? Result.Team2Win : Result.Draw

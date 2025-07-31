@@ -1,5 +1,5 @@
 import { Player } from "@/database"
-import { UserError } from "@/lib/discord/UserError"
+import { UserError } from "@/lib/discord/classes/UserError"
 import { getUserByUsername } from "@/lib/minecraft/scrims"
 import { updateQueueStatus } from "@/lib/queue"
 import {

@@ -8,7 +8,7 @@ import {
 } from "discord.js"
 
 import { Queue } from "@/database"
-import { UserError } from "@/lib/discord/UserError"
+import { UserError } from "@/lib/discord/classes/UserError"
 import { addToQueue, QueueResult, removeParticipantFromQueue } from "@/lib/queue"
 
 const guildQueues: Record<string, Queue> = {}
