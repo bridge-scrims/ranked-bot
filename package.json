@@ -16,7 +16,7 @@
     "dotenv": "^17.2.1",
     "glob": "^11.0.3",
     "mongodb": "^6.18.0",
-    "mongoose": "^8.16.0",
+    "mongoose": "^8.17.0",
     "mongoose-long": "^0.8.0",
     "tsc-alias": "^1.8.16"
   },
