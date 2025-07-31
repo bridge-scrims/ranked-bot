@@ -4,7 +4,7 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "start": "bun run dist/index.js",
     "dev": "bun .",
     "check": "tsc --noEmit && eslint",

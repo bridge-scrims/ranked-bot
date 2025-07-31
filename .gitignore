@@ -176,3 +176,4 @@ database.json
 data/
 .claude
 dist/
+tsconfig.tsbuild.json
