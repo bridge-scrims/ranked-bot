@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@discordjs/voice": "^0.18.0",
-    "@typegoose/typegoose": "^12.17.0",
+    "@typegoose/typegoose": "^12.18.0",
     "crypto-js": "^4.2.0",
     "discord.js": "^14.21.0",
     "dotenv": "^17.2.1",
